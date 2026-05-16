@@ -122,3 +122,4 @@ export const deleteCV = async (userId) => {
     return { success: false, error: error.message };
   }
 };
+
