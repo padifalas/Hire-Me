@@ -1,3 +1,4 @@
+//supabase connection setup (API keys, project ID)
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
