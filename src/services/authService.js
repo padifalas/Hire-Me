@@ -1,4 +1,4 @@
-// src/services/authService.js
+//this is the Sign up, login, logout functions and also the get session and get user profile functions
 import { supabase } from '../config/supabase';
 
 /**
