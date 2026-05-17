@@ -4,10 +4,17 @@ import { useAuth } from "../../contexts/AuthContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
-
 import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
+
+import TakealotLogo from "../../assets/TakealotLogo.png";
+import VodacomLogo from "../../assets/VodacomLogo.png";
+import BBDLogo from "../../assets/BBDLogo.png";
+import DeloitteLogo from "../../assets/DeloitteLogo.png";
+import BitLogo from "../../assets/24bitLogo.png";
+import HireMeLogo from "../../assets/HireMeLogo.png";
+
 import {
   Briefcase,
   Lightbulb,
@@ -33,7 +40,7 @@ const TOP_MATCHES = [
   {
     id: 1,
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     role: "Junior Frontend Developer",
     location: "Cape Town",
     match: 85,
@@ -43,7 +50,7 @@ const TOP_MATCHES = [
   {
     id: 2,
     company: "Vodacom",
-    logoSrc: "/assets/VodacomLogo.png",
+    logoSrc: VodacomLogo,
     role: "Graduate Software Engineer",
     location: "Durban",
     match: 70,
@@ -53,7 +60,7 @@ const TOP_MATCHES = [
   {
     id: 3,
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     role: "Graduate Software Engineer",
     location: "Johannesburg",
     match: 80,
@@ -67,7 +74,7 @@ const APPLICATIONS = [
     id: 1,
     role: "Junior Frontend Developer",
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     days: "2 days ago",
     status: "Interview Requested",
     statusColor: "#DC8F00",
@@ -78,7 +85,7 @@ const APPLICATIONS = [
     id: 2,
     role: "Graduate Software Engineer",
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     days: "2 days ago",
     status: "Under Review",
     statusColor: "#F97316",
@@ -89,7 +96,7 @@ const APPLICATIONS = [
     id: 3,
     role: "Data Analyst Intern",
     company: "Deloitte",
-    logoSrc: "/assets/DeloitteLogo.png",
+    logoSrc: DeloitteLogo,
     days: "7 days ago",
     status: "Rejected",
     statusColor: "#C1121F",
@@ -110,7 +117,7 @@ const APP_NOTIFICATIONS = [
     id: 1,
     role: "Junior Full-Stack Developer",
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     days: "2 days ago",
     status: "Interview Requested",
     statusColor: "#DC8F00",
@@ -121,7 +128,7 @@ const APP_NOTIFICATIONS = [
     id: 2,
     role: "Graduate Software Engineer",
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     days: "2 days ago",
     status: "Under Review",
     statusColor: "#F97316",
@@ -132,7 +139,7 @@ const APP_NOTIFICATIONS = [
     id: 3,
     role: "Data Analyst Intern",
     company: "Deloitte",
-    logoSrc: "/assets/DeloitteLogo.png",
+    logoSrc: DeloitteLogo,
     days: "7 days ago",
     status: "Rejected",
     statusColor: "#C1121F",
@@ -146,7 +153,7 @@ const APP_NOTIFICATIONS = [
     id: 4,
     role: "Graduate Game Developer",
     company: "24Bit Games",
-    logoSrc: "/assets/24bitLogo.png",
+    logoSrc: BitLogo,
     days: "9 days ago",
     status: "Under Review",
     statusColor: "#DC8F00",
@@ -282,11 +289,12 @@ function TableHeader() {
 
 /* Dashboard view */
 
-function DashboardView() {
+function DashboardView({ studentName }) {
+  const firstName = (studentName ?? "there").split("")[0];
   return (
     <div className="sd-dashboard">
       <div>
-        <h1 className="sd-greeting__title">Good morning, Andre</h1>
+        <h1 className="sd-greeting__title">Good morning, {firstName}</h1>
         <p className="sd-greeting__sub">
           5 new opportunities match your profile this week
         </p>
@@ -394,7 +402,12 @@ function StudentDashboard() {
     name: userProfile?.full_name ?? "Student",
     university: userProfile?.university ?? "University",
     initials: userProfile?.full_name
-      ? userProfile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      ? userProfile.full_name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
       : "S",
   };
 
@@ -402,7 +415,6 @@ function StudentDashboard() {
     await signOut();
     navigate("/");
   }
-
 
   return (
     <div className="sd-root">
@@ -412,13 +424,11 @@ function StudentDashboard() {
       >
         <div className="sd-sidebar__brand">
           <div className="sd-sidebar__brand-inner">
-            <div className="sd-sidebar__logo-mark">H</div>
-            {sidebarOpen && (
-              <div>
-                <div className="sd-sidebar__brand-name">HireMe</div>
-                <div className="sd-sidebar__brand-sub">Graduate Ready</div>
-              </div>
-            )}
+            <img
+              src={HireMeLogo}
+              alt="HireMe logo"
+              className="sd-sidebar__logo-img"
+            />
           </div>
         </div>
 
@@ -451,19 +461,18 @@ function StudentDashboard() {
         </div>
 
         <div className="sd-sidebar__footer">
-      {sidebarOpen && (
-    <button className="sd-signout-btn" onClick={handleSignOut}>
-      Sign out
-    </button>
-  )}
-  <button
-    className="sd-collapse-btn"
-    onClick={() => setSidebarOpen((o) => !o)}
-  >
-    <Menu size={18} />
-  </button>
+          {sidebarOpen && (
+            <button className="sd-signout-btn" onClick={handleSignOut}>
+              Sign out
+            </button>
+          )}
+          <button
+            className="sd-collapse-btn"
+            onClick={() => setSidebarOpen((o) => !o)}
+          >
+            <Menu size={18} />
+          </button>
         </div>
-        
       </aside>
 
       {/* Main */}
@@ -485,7 +494,9 @@ function StudentDashboard() {
         </header>
 
         <main className="sd-content">
-          {activeNav === "dashboard" && <DashboardView />}
+          {activeNav === "dashboard" && (
+            <DashboardView studentName={student.name} />
+          )}
           {activeNav === "applications" && <ApplicationsView />}
           {!["dashboard", "applications"].includes(activeNav) && (
             <div className="sd-empty">
