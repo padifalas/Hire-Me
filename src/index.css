@@ -3,46 +3,46 @@
 /* CSS Variables - the color palette */
 :root {
   /* primary  Colors */
-  --color-primary: ;
-  --color-primary-hover: ;
-  --color-primary-active: ;
+  --color-primary: #f8f7f2;
+  --color-primary-hover: #e2e2e2;
+  --color-primary-active: #fe4100;
 
-  --color-secondary: ;
-  --color-secondary-hover: ;
+  --color-secondary: #7e7e7e;
+  --color-secondary-hover: #2a2a2a;
 
   /* match Scores */
-  --color-match-excellent: ;
-  --color-match-good: ;
-  --color-match-fair: ;
-  --color-match-poor: ;
+  --color-match-excellent: #16a34a;
+  --color-match-good: #dc8f00;
+  --color-match-fair: #f97316;
+  --color-match-poor: #ed3541;
 
   /* status Colors */
-  --color-status-review: ;
-  --color-status-interview: ;
-  --color-status-submitted: ;
-  --color-status-rejected: ;
-  --color-status-hired: ;
+  --color-status-review: #64748b;
+  --color-status-interview: #495260;
+  --color-status-submitted: #dc8f00;
+  --color-status-rejected: #c1121f;
+  --color-status-hired: #16a34a;
 
   /* skill Tags */
-  --color-skill-technical: ;
-  --color-skill-missing: ;
-  --color-skill-soft: ;
-  --color-skill-domain: ;
+  --color-skill-technical: #6ea65a;
+  --color-skill-missing: #f87171;
+  --color-skill-soft: #64748b;
+  --color-skill-domain: #495260;
 
-  /* bbackgrounds */
-  --color-bg-page: ;
-  --color-bg-card: ;
-  --color-bg-sidebar: ;
+  /* backgrounds */
+  --color-bg-page: #f8f7f2;
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #f8f7f2;
 
   /* text colors */
-  --color-text-primary: ;
-  --color-text-secondary: ;
-  --color-text-tertiary: ;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-tertiary: #bababa;
 
   /* UI Elements */
-  --color-border: ;
-  --color-border-focus: ;
-  --color-border-error: ;
+  --color-border: #cacaca;
+  --color-border-focus: #656565;
+  --color-border-error: #c1121f;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -82,14 +82,14 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
