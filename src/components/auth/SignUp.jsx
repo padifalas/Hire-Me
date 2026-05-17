@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signUpWithEmail, signInWithEmail } from "../../services/authService";
+import { supabase } from "../../config/supabase";
+
+
 import "./SignUp.css";
 
 export default function SignUp() {
   const [mode, setMode] = useState("signin");
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     fullName: "",
     role: "student",
   });
-
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -19,10 +21,7 @@ export default function SignUp() {
   const navigate = useNavigate();
 
   function handleChange(e) {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
   async function handleSignUp() {
@@ -30,34 +29,18 @@ export default function SignUp() {
     setError(null);
     setMessage(null);
 
-    const { data, error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
+    const result = await signUpWithEmail(formData.email, formData.password, {
+      fullName: formData.fullName,
+      role: formData.role,
     });
 
-    if (error) {
-      setError(error.message);
+    if (!result.success) {
+      setError(result.error);
       setLoading(false);
       return;
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        full_name: formData.fullName,
-        role: formData.role,
-        email: formData.email,
-      });
-
-      if (profileError) {
-        setError(profileError.message);
-        setLoading(false);
-        return;
-      }
-    }
-
     setMessage("Account created! Check your email to confirm your account.");
-
     setLoading(false);
   }
 
@@ -66,29 +49,42 @@ export default function SignUp() {
     setError(null);
     setMessage(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    });
+    const result = await signInWithEmail(formData.email, formData.password);
 
-    if (error) {
-      setError(error.message);
+    if (!result.success) {
+      setError(result.error);
       setLoading(false);
       return;
     }
 
-    navigate("/dashboard");
+  // 2 fetch role from users table i supabase using result.user.id 
+  const { data, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", result.user.id)
+    .single();
+
+  if (error || !data) {
+    navigate("/student-dashboard"); 
+    return;
   }
+
+  if (data.role === "employer") {
+    navigate("/employer-dashboard");
+  } else {
+    navigate("/student-dashboard");
+  }
+}
 
   function handleSubmit(e) {
     e.preventDefault();
-
     if (mode === "signup") {
       handleSignUp();
     } else {
       handleSignIn();
     }
   }
+
 
   return (
     <div className="auth-page">

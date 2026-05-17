@@ -1,15 +1,24 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import SignUp from "./components/auth/SignUp.jsx";
 import "./components/auth/SignUp.css";
+import StudentDashboard from "./components/student/StudentDashboard.jsx";
+import "./components/student/StudentDashboard.css";
+import EmployerDashboard from "./components/employer/EmployerDashboard.jsx";
+import "./components/employer/EmployerDashboard.css";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SignUp />} />
-        <Route path="/signup" element={<SignUp />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<SignUp />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
