@@ -1,7 +1,11 @@
 import { useState } from "react";
+
+import { useAuth } from "../../contexts/AuthContext";
+import { signOut } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
+
+
 import "./StudentDashboard.css";
-import { BrowserRouter } from "react-router-dom";
-// import { supabase } from "../../config/supabase.js";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 
@@ -389,11 +393,23 @@ function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
 
+  const { userProfile } = useAuth();
+  const navigate = useNavigate();
+
+  // will get real data f
   const student = {
-    name: "Andre Gopal",
-    university: "University of Witwatersrand",
-    initials: "AG",
+    name: userProfile?.full_name ?? "Student",
+    university: userProfile?.university ?? "University",
+    initials: userProfile?.full_name
+      ? userProfile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      : "S",
   };
+
+  async function handleSignOut() {
+    await signOut();
+    navigate("/");
+  }
+
 
   return (
     <div className="sd-root">
@@ -442,13 +458,19 @@ function StudentDashboard() {
         </div>
 
         <div className="sd-sidebar__footer">
-          <button
-            className="sd-collapse-btn"
-            onClick={() => setSidebarOpen((o) => !o)}
-          >
-            <Menu size={18} />
-          </button>
+      {sidebarOpen && (
+    <button className="sd-signout-btn" onClick={handleSignOut}>
+      Sign out
+    </button>
+  )}
+  <button
+    className="sd-collapse-btn"
+    onClick={() => setSidebarOpen((o) => !o)}
+  >
+    <Menu size={18} />
+  </button>
         </div>
+        
       </aside>
 
       {/* Main */}
