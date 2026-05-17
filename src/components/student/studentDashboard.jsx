@@ -1,5 +1,7 @@
 import { useState } from "react";
 import ".studentDashboard.css";
+import { BrowserRouter } from "react-router-dom";
+import { supabase } from "../../config/supabase.js";
 import Footer from "./components/footer";
 import {
   Briefcase,
@@ -372,7 +374,7 @@ function ApplicationsView() {
   );
 }
 
-/* ── Root component ─────────────────────────────────────────── */
+/* Root component */
 
 export default function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -477,3 +479,5 @@ export default function StudentDashboard() {
     </div>
   );
 }
+
+export default StudentDashboard
