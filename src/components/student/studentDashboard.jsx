@@ -4,6 +4,13 @@ import { BrowserRouter } from "react-router-dom";
 // import { supabase } from "../../config/supabase.js";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
+
+import TakealotLogo from "../../assets/TakealotLogo.png";
+import VodacomLogo from "../../assets/VodacomLogo.png";
+import BBDLogo from "../../assets/BBDLogo.png";
+import DeloitteLogo from "../../assets/DeloitteLogo.png";
+import BitLogo from "../../assets/24bitLogo.png";
+
 import {
   Briefcase,
   Lightbulb,
@@ -29,7 +36,7 @@ const TOP_MATCHES = [
   {
     id: 1,
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     role: "Junior Frontend Developer",
     location: "Cape Town",
     match: 85,
@@ -39,7 +46,7 @@ const TOP_MATCHES = [
   {
     id: 2,
     company: "Vodacom",
-    logoSrc: "/assets/VodacomLogo.png",
+    logoSrc: VodacomLogo,
     role: "Graduate Software Engineer",
     location: "Durban",
     match: 70,
@@ -49,7 +56,7 @@ const TOP_MATCHES = [
   {
     id: 3,
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     role: "Graduate Software Engineer",
     location: "Johannesburg",
     match: 80,
@@ -63,7 +70,7 @@ const APPLICATIONS = [
     id: 1,
     role: "Junior Frontend Developer",
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     days: "2 days ago",
     status: "Interview Requested",
     statusColor: "#DC8F00",
@@ -74,7 +81,7 @@ const APPLICATIONS = [
     id: 2,
     role: "Graduate Software Engineer",
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     days: "2 days ago",
     status: "Under Review",
     statusColor: "#F97316",
@@ -85,7 +92,7 @@ const APPLICATIONS = [
     id: 3,
     role: "Data Analyst Intern",
     company: "Deloitte",
-    logoSrc: "/assets/DeloitteLogo.png",
+    logoSrc: DeloitteLogo,
     days: "7 days ago",
     status: "Rejected",
     statusColor: "#C1121F",
@@ -106,7 +113,7 @@ const APP_NOTIFICATIONS = [
     id: 1,
     role: "Junior Full-Stack Developer",
     company: "Takealot",
-    logoSrc: "/assets/Takealot_logo.svg(1).png",
+    logoSrc: TakealotLogo,
     days: "2 days ago",
     status: "Interview Requested",
     statusColor: "#DC8F00",
@@ -117,7 +124,7 @@ const APP_NOTIFICATIONS = [
     id: 2,
     role: "Graduate Software Engineer",
     company: "BBD",
-    logoSrc: "/assets/BBDLogo.png",
+    logoSrc: BBDLogo,
     days: "2 days ago",
     status: "Under Review",
     statusColor: "#F97316",
@@ -128,7 +135,7 @@ const APP_NOTIFICATIONS = [
     id: 3,
     role: "Data Analyst Intern",
     company: "Deloitte",
-    logoSrc: "/assets/DeloitteLogo.png",
+    logoSrc: DeloitteLogo,
     days: "7 days ago",
     status: "Rejected",
     statusColor: "#C1121F",
@@ -142,7 +149,7 @@ const APP_NOTIFICATIONS = [
     id: 4,
     role: "Graduate Game Developer",
     company: "24Bit Games",
-    logoSrc: "/assets/24bitLogo.png",
+    logoSrc: BitLogo,
     days: "9 days ago",
     status: "Under Review",
     statusColor: "#DC8F00",
