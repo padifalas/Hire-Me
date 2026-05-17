@@ -1,8 +1,9 @@
 import { useState } from "react";
-import ".studentDashboard.css";
+import "./StudentDashboard.css";
 import { BrowserRouter } from "react-router-dom";
-import { supabase } from "../../config/supabase.js";
-import Footer from "./components/footer";
+// import { supabase } from "../../config/supabase.js";
+import Footer from "../layout/footer.jsx";
+import "../layout/footer.css";
 import {
   Briefcase,
   Lightbulb,
@@ -16,7 +17,7 @@ import {
   Filter,
 } from "lucide-react";
 
-const navItems = [
+const NAV_ITEMS = [
   { icon: Briefcase, label: "Dashboard", id: "dashboard" },
   { icon: Lightbulb, label: "Opportunities", id: "opportunities" },
   { icon: FileText, label: "Applications", id: "applications" },
@@ -24,7 +25,7 @@ const navItems = [
   { icon: Bell, label: "Notifications", id: "notifications" },
 ];
 
-const topMatches = [
+const TOP_MATCHES = [
   {
     id: 1,
     company: "Takealot",
@@ -57,7 +58,7 @@ const topMatches = [
   },
 ];
 
-const applications = [
+const APPLICATIONS = [
   {
     id: 1,
     role: "Junior Frontend Developer",
@@ -65,7 +66,7 @@ const applications = [
     logoSrc: "/assets/Takealot_logo.svg(1).png",
     days: "2 days ago",
     status: "Interview Requested",
-    statusColour: "#DC8F00",
+    statusColor: "#DC8F00",
     statusBg: "#E0F0FF",
   },
 
@@ -91,8 +92,8 @@ const applications = [
   },
 ];
 
-const appTabs = ["All", "Submitted", "Under Review", "Interview", "Rejected"];
-const tabCounts = {
+const APP_TABS = ["All", "Submitted", "Under Review", "Interview", "Rejected"];
+const TAB_COUNTS = {
   All: null,
   Submitted: 2,
   "Under Review": 3,
@@ -100,7 +101,7 @@ const tabCounts = {
   Rejected: 3,
 };
 
-const appNotifications = [
+const APP_NOTIFICATIONS = [
   {
     id: 1,
     role: "Junior Full-Stack Developer",
@@ -159,13 +160,13 @@ function CompanyLogo({ src, company, size = 32 }) {
   );
 }
 
-function MatchBadge({ match, Color }) {
+function MatchBadge({ match, color }) {
   return (
     <span
       className="sd-match-badge"
       style={{
         background: color + "18",
-        color,
+        color: color,
         border: `1px solid ${color}33`,
       }}
     >
@@ -376,7 +377,7 @@ function ApplicationsView() {
 
 /* Root component */
 
-export default function StudentDashboard() {
+function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
@@ -480,4 +481,4 @@ export default function StudentDashboard() {
   );
 }
 
-export default StudentDashboard
+export default StudentDashboard;
