@@ -4,7 +4,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
-
 import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
@@ -14,6 +13,7 @@ import VodacomLogo from "../../assets/VodacomLogo.png";
 import BBDLogo from "../../assets/BBDLogo.png";
 import DeloitteLogo from "../../assets/DeloitteLogo.png";
 import BitLogo from "../../assets/24bitLogo.png";
+import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import {
   Briefcase,
@@ -289,11 +289,12 @@ function TableHeader() {
 
 /* Dashboard view */
 
-function DashboardView() {
+function DashboardView({ studentName }) {
+  const firstName = (studentName ?? "there").split("")[0];
   return (
     <div className="sd-dashboard">
       <div>
-        <h1 className="sd-greeting__title">Good morning, Andre</h1>
+        <h1 className="sd-greeting__title">Good morning, {firstName}</h1>
         <p className="sd-greeting__sub">
           5 new opportunities match your profile this week
         </p>
@@ -401,7 +402,12 @@ function StudentDashboard() {
     name: userProfile?.full_name ?? "Student",
     university: userProfile?.university ?? "University",
     initials: userProfile?.full_name
-      ? userProfile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      ? userProfile.full_name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
       : "S",
   };
 
@@ -409,7 +415,6 @@ function StudentDashboard() {
     await signOut();
     navigate("/");
   }
-
 
   return (
     <div className="sd-root">
@@ -419,13 +424,11 @@ function StudentDashboard() {
       >
         <div className="sd-sidebar__brand">
           <div className="sd-sidebar__brand-inner">
-            <div className="sd-sidebar__logo-mark">H</div>
-            {sidebarOpen && (
-              <div>
-                <div className="sd-sidebar__brand-name">HireMe</div>
-                <div className="sd-sidebar__brand-sub">Graduate Ready</div>
-              </div>
-            )}
+            <img
+              src={HireMeLogo}
+              alt="HireMe logo"
+              className="sd-sidebar__logo-img"
+            />
           </div>
         </div>
 
@@ -458,19 +461,18 @@ function StudentDashboard() {
         </div>
 
         <div className="sd-sidebar__footer">
-      {sidebarOpen && (
-    <button className="sd-signout-btn" onClick={handleSignOut}>
-      Sign out
-    </button>
-  )}
-  <button
-    className="sd-collapse-btn"
-    onClick={() => setSidebarOpen((o) => !o)}
-  >
-    <Menu size={18} />
-  </button>
+          {sidebarOpen && (
+            <button className="sd-signout-btn" onClick={handleSignOut}>
+              Sign out
+            </button>
+          )}
+          <button
+            className="sd-collapse-btn"
+            onClick={() => setSidebarOpen((o) => !o)}
+          >
+            <Menu size={18} />
+          </button>
         </div>
-        
       </aside>
 
       {/* Main */}
@@ -492,7 +494,9 @@ function StudentDashboard() {
         </header>
 
         <main className="sd-content">
-          {activeNav === "dashboard" && <DashboardView />}
+          {activeNav === "dashboard" && (
+            <DashboardView studentName={student.name} />
+          )}
           {activeNav === "applications" && <ApplicationsView />}
           {!["dashboard", "applications"].includes(activeNav) && (
             <div className="sd-empty">
