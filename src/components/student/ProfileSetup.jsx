@@ -14,7 +14,7 @@ import { UploadCloud, FileText, CheckCircle2, Loader2 } from "lucide-react";
 const CURRENT_YEAR = new Date().getFullYear();
 const GRAD_YEARS = Array.from({ length: 7 }, (_, i) => CURRENT_YEAR - 2 + i);
 
-// Drives the little progress list shown while the pipeline runs
+// does a lil progress list shown while the pipeline runs
 const STEPS = [
   { key: "uploading", label: "Uploading documents" },
   { key: "reading", label: "Reading CV & transcript" },

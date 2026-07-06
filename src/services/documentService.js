@@ -1,10 +1,7 @@
-// src/services/documentService.js
+//
 //
 // Handles CV + academic transcript upload (PDF/DOCX), client-side text
 // extraction, and triggering the `extract-skills` Edge Function.
-//
-// Requires:
-//   npm install pdfjs-dist mammoth
 //
 // pdfjs-dist needs its worker configured once — see setupPdfWorker() below,
 // call it once from main.jsx.
@@ -20,7 +17,7 @@ const ALLOWED_TYPES = [
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
- * Call once at app startup (e.g. in main.jsx) to point pdf.js at its worker.
+ * Call once wen app starts to point pdf.js at its worker.
  */
 export function setupPdfWorker() {
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -39,7 +36,7 @@ function validateFile(file) {
 }
 
 /**
- * Extract plain text from a PDF or DOCX File object, entirely client-side.
+ * extract plain text from a PDF or DOCX File object, entirely client-side.
  * @param {File} file
  * @returns {Promise<string>}
  */
@@ -76,17 +73,15 @@ export async function extractTextFromFile(file) {
     }
     return trimmed;
   } catch (err) {
-    // Re-throw with the original message intact so the UI can show the real
-    // cause (e.g. "Failed to fetch dynamically imported module" usually means
-    // the pdf.js worker path is misconfigured — see setupPdfWorker()).
+
     throw new Error(`Could not read "${file.name}": ${err.message}`);
   }
 }
 
 /**
- * Upload a document (CV or transcript) to the appropriate private bucket and
- * record it on student_profiles. Returns the extracted text too, so the
- * caller doesn't need to re-parse the file for the AI extraction step.
+ * uppload a document (CV or transcript) to the appropriate private bucket and
+ * record it on student_profiles. returns the extracted text too, so the
+ * caller dont't need to re-parse the file for the AI extraction step.
  *
  * @param {File} file
  * @param {string} userId
@@ -106,7 +101,7 @@ export async function uploadDocument(file, userId, docType) {
 
     if (uploadError) throw uploadError;
 
-    // Buckets are private, so we store the path and generate signed URLs on
+    // buckets are private, so we store the path and generate signed URLs on
     // demand rather than a public URL.
     const columnPrefix = docType === "cv" ? "cv" : "transcript";
     const { error: updateError } = await supabase
@@ -129,7 +124,7 @@ export async function uploadDocument(file, userId, docType) {
 }
 
 /**
- * Get a temporary signed URL to view/download a stored document.
+ * get a temporary signed URL to view/download a stored document.
  * @param {'cv' | 'transcript'} docType
  * @param {string} storagePath - the value stored in cv_url / transcript_url
  */
@@ -137,14 +132,14 @@ export async function getDocumentSignedUrl(docType, storagePath) {
   const bucket = docType === "cv" ? "cvs" : "transcripts";
   const { data, error } = await supabase.storage
     .from(bucket)
-    .createSignedUrl(storagePath, 60 * 10); // 10 minutes
+    .createSignedUrl(storagePath, 60 * 10); // 10 mina
 
   if (error) return { success: false, error: error.message };
   return { success: true, url: data.signedUrl };
 }
 
 /**
- * Trigger the extract-skills Edge Function with the CV/transcript text
+ * trigger the extract-skills Edge Function with the CV/transcript text
  * already extracted client-side. Updates student_profiles server-side.
  *
  * @param {string} studentId
@@ -167,7 +162,7 @@ export async function triggerSkillExtraction(studentId, cvText, transcriptText) 
 }
 
 /**
- * Fetch the full student_profiles row for the profile page.
+ * ffetch the full student_profiles row for the profile page.
  */
 export async function getStudentProfile(userId) {
   try {
@@ -196,8 +191,8 @@ function blobToFileLike(blob, storagePath) {
 }
 
 /**
- * Re-download and re-extract text from whatever CV/transcript are already
- * stored for this user (no re-upload needed) — used by the "Run AI Analysis"
+ * -download again and re-extract text from whatever CV/transcript are already
+ * stored for this user (no re-upload needed) — used by the "Run AI Analysis" btn
  * button on the profile page when the person hasn't picked new files.
  */
 export async function extractTextFromStoredDocument(docType, storagePath) {

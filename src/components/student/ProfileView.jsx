@@ -181,7 +181,7 @@ export default function ProfileView({ user }) {
       </div>
 
       <div className="pv-grid-layout">
-        {/* Editable fields */}
+        {/* u can edit these fields */}
         <form onSubmit={handleSaveFields} className="pv-card">
           <h2 className="pv-card__title">Academic & contact details</h2>
           <div className="pv-fields-grid">
@@ -230,7 +230,7 @@ export default function ProfileView({ user }) {
           </button>
         </form>
 
-        {/* Documents + AI */}
+        {/* documents + AI */}
         <div className="pv-card">
           <h2 className="pv-card__title">Documents & AI analysis</h2>
 
