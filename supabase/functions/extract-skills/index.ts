@@ -1,16 +1,13 @@
-// supabase/functions/extract-skills/index.ts
+
 //
-// Deploy with:  supabase functions deploy extract-skills
+// will deploy w:  supabase functions deploy extract-skills
+
+//   supabase secrets set GEMINI_API_KEY=AIza...        freee
+//   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...  (paid - fuckk)
 //
-// Set ONE of these secrets depending on which provider you use:
-//   supabase secrets set GEMINI_API_KEY=AIza...        (free — recommended for this project)
-//   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...  (paid — optional fallback)
-//
-// Get a free Gemini key at https://aistudio.google.com/apikey (no credit card needed)
 //
 // This function receives RAW TEXT already extracted from the CV/transcript in
-// the browser (see documentService.js) — it does not parse PDF/DOCX itself.
-// It calls the configured LLM once to both extract skills AND translate
+// the browser (se documentService.js) — it does not parse PDF/DOCX itself. it calls the configured LLM once to both extract skills AND translate
 // academic projects into industry-standard descriptions, then writes the
 // result into student_profiles using the service role key.
 
@@ -23,7 +20,7 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Prefer Gemini (free) if its key is set; otherwise fall back to Claude (paid)
+
 const PROVIDER = GEMINI_API_KEY ? "gemini" : "claude";
 
 const CORS_HEADERS = {
@@ -86,8 +83,8 @@ function cleanAndParseJson(rawText: string) {
 }
 
 /**
- * Google Gemini — free tier, no credit card required.
- * Get a key at https://aistudio.google.com/apikey
+ * Google gemiin
+
  */
 async function callGemini(cvText: string, transcriptText: string) {
   const model = "gemini-2.5-flash"; // best free-tier RPD/RPM balance
@@ -118,8 +115,8 @@ async function callGemini(cvText: string, transcriptText: string) {
 }
 
 /**
- * Anthropic Claude — paid, kept as an optional fallback if you later have
- * budget/credits and want to compare quality.
+ * Anthropic Claud
+ *
  */
 async function callClaude(cvText: string, transcriptText: string) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {

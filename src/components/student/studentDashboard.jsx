@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
+import ProfileView from "./ProfileView.jsx";
 
 import TakealotLogo from "../../assets/TakealotLogo.png";
 import VodacomLogo from "../../assets/VodacomLogo.png";
@@ -394,7 +395,7 @@ function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
 
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
   // will get real data f
@@ -498,7 +499,8 @@ function StudentDashboard() {
             <DashboardView studentName={student.name} />
           )}
           {activeNav === "applications" && <ApplicationsView />}
-          {!["dashboard", "applications"].includes(activeNav) && (
+          {activeNav === "profile" && <ProfileView user={user} />}
+          {!["dashboard", "applications", "profile"].includes(activeNav) && (
             <div className="sd-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="sd-empty__label">

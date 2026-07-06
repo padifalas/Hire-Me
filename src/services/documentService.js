@@ -44,22 +44,43 @@ function validateFile(file) {
  * @returns {Promise<string>}
  */
 export async function extractTextFromFile(file) {
-  if (file.type === "application/pdf") {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let text = "";
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent();
-      text += content.items.map((item) => item.str).join(" ") + "\n";
-    }
-    return text.trim();
+  if (!file) {
+    throw new Error("No file provided to extract text from.");
   }
 
-  // DOCX
-  const arrayBuffer = await file.arrayBuffer();
-  const { value } = await mammoth.extractRawText({ arrayBuffer });
-  return value.trim();
+  try {
+    if (file.type === "application/pdf") {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        text += content.items.map((item) => item.str).join(" ") + "\n";
+      }
+      const trimmed = text.trim();
+      if (!trimmed) {
+        throw new Error(
+          "This PDF has no extractable text (it may be a scanned image). Try a text-based PDF or a DOCX instead.",
+        );
+      }
+      return trimmed;
+    }
+
+    // DOCX
+    const arrayBuffer = await file.arrayBuffer();
+    const { value } = await mammoth.extractRawText({ arrayBuffer });
+    const trimmed = value.trim();
+    if (!trimmed) {
+      throw new Error("This DOCX file appears to be empty.");
+    }
+    return trimmed;
+  } catch (err) {
+    // Re-throw with the original message intact so the UI can show the real
+    // cause (e.g. "Failed to fetch dynamically imported module" usually means
+    // the pdf.js worker path is misconfigured — see setupPdfWorker()).
+    throw new Error(`Could not read "${file.name}": ${err.message}`);
+  }
 }
 
 /**
@@ -146,9 +167,86 @@ export async function triggerSkillExtraction(studentId, cvText, transcriptText) 
 }
 
 /**
- * Update the non-document parts of the student's profile
- * (university, qualification, links, etc.)
+ * Fetch the full student_profiles row for the profile page.
  */
+export async function getStudentProfile(userId) {
+  try {
+    const { data, error } = await supabase
+      .from("student_profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) throw error;
+    return { success: true, profile: data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+const EXT_MIME_MAP = {
+  pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
+function blobToFileLike(blob, storagePath) {
+  const fileName = storagePath.split("/").pop();
+  const ext = fileName.split(".").pop().toLowerCase();
+  return new File([blob], fileName, { type: EXT_MIME_MAP[ext] || blob.type });
+}
+
+/**
+ * Re-download and re-extract text from whatever CV/transcript are already
+ * stored for this user (no re-upload needed) — used by the "Run AI Analysis"
+ * button on the profile page when the person hasn't picked new files.
+ */
+export async function extractTextFromStoredDocument(docType, storagePath) {
+  if (!storagePath) {
+    return { success: false, error: `No ${docType} on file yet — upload one first.` };
+  }
+
+  // Compatibility shim: if this profile still has a full public URL saved
+  // from the old cvService.js flow (before we switched to private buckets),
+  // storagePath will look like a URL rather than "userId/filename.ext".
+  // storage.download() needs just the bucket-relative path.
+  let cleanPath = storagePath;
+  if (storagePath.startsWith("http")) {
+    const marker = "/object/public/";
+    const signMarker = "/object/sign/";
+    const idx =
+      storagePath.indexOf(marker) >= 0
+        ? storagePath.indexOf(marker) + marker.length
+        : storagePath.indexOf(signMarker) + signMarker.length;
+    if (idx > 0) {
+      // strip "<bucket-name>/" prefix that follows, then any query string
+      const afterBucket = storagePath.slice(idx).split("/").slice(1).join("/");
+      cleanPath = decodeURIComponent(afterBucket.split("?")[0]);
+    } else {
+      return {
+        success: false,
+        error: `Your stored ${docType} is from an old upload flow and can't be re-downloaded automatically. Please re-upload it.`,
+      };
+    }
+  }
+
+  try {
+    const bucket = docType === "cv" ? "cvs" : "transcripts";
+    const { data, error } = await supabase.storage.from(bucket).download(cleanPath);
+    if (error) {
+      throw new Error(
+        `${error.message || "Download failed"} (bucket: "${bucket}", path: "${cleanPath}"). ` +
+          `If this file was uploaded before the storage migration, please re-upload it.`,
+      );
+    }
+
+    const file = blobToFileLike(data, cleanPath);
+    const text = await extractTextFromFile(file);
+    return { success: true, text };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function updateStudentProfile(userId, profileData) {
   try {
     const { error } = await supabase
