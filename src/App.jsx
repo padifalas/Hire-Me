@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import SignUp from "./components/auth/SignUp.jsx";
 import "./components/auth/SignUp.css";
+import ProfileSetup from "./components/student/ProfileSetup.jsx";
+import "./components/student/ProfileSetup.css";
 import StudentDashboard from "./components/student/StudentDashboard.jsx";
 import "./components/student/StudentDashboard.css";
 import EmployerDashboard from "./components/employer/EmployerDashboard.jsx";
@@ -15,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<SignUp />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         </Routes>
