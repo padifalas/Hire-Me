@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/authContext";
 import { updateEmployerProfile, uploadCompanyLogo } from "../../services/employerService";
 
 import "../student/ProfileSetup.css"; // shares the auth-style page/card layout with the student version

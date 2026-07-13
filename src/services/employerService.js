@@ -1,5 +1,6 @@
-
-// thiss basically handle employer company profile management n job opportunity posting.
+// src/services/employerService.js
+//
+// Handles employer company profile management and job opportunity posting.
 
 import { supabase } from "../config/supabase";
 
@@ -25,7 +26,7 @@ export async function getEmployerProfile(userId) {
 }
 
 /**
- * update company profile fields.
+ * Update company profile fields.
  */
 export async function updateEmployerProfile(userId, profileData) {
   try {
@@ -51,7 +52,7 @@ export async function updateEmployerProfile(userId, profileData) {
 }
 
 /**
- * upload ur company logo to the public company-logos bucket.
+ * Upload a company logo to the public company-logos bucket.
  */
 export async function uploadCompanyLogo(file, userId) {
   try {
@@ -144,13 +145,15 @@ export async function updateOpportunity(opportunityId, jobData) {
     if (jobData.remoteOption !== undefined) updatePayload.remote_option = jobData.remoteOption;
     updatePayload.updated_at = new Date().toISOString();
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("opportunities")
       .update(updatePayload)
-      .eq("id", opportunityId);
+      .eq("id", opportunityId)
+      .select()
+      .single();
 
     if (error) throw error;
-    return { success: true };
+    return { success: true, opportunity: data };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -186,4 +189,35 @@ export async function getEmployerOpportunities(employerId) {
  */
 export async function closeOpportunity(opportunityId) {
   return updateOpportunity(opportunityId, { status: "closed" });
+}
+
+/**
+ * Recent applications across all of this employer's job postings, with the
+ * real applicant name, job title, and match score computed at apply-time.
+ */
+export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
+  try {
+    const { data: opps, error: oppError } = await supabase
+      .from("opportunities")
+      .select("id")
+      .eq("employer_id", employerId);
+
+    if (oppError) throw oppError;
+
+    const opportunityIds = opps.map((o) => o.id);
+    if (opportunityIds.length === 0) return { success: true, applications: [] };
+
+    const { data, error } = await supabase
+      .from("applications")
+      .select("*, opportunities(title), student:student_id(full_name)")
+      .in("opportunity_id", opportunityIds)
+      .order("applied_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return { success: true, applications: data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/authContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import "../layout/footer.css";
 import JobsView from "./JobsView.jsx";
 import CompanyProfileView from "./CompanyProfileView.jsx";
 import JobPostingForm from "./JobPostingForm.jsx";
-import { getEmployerOpportunities } from "../../services/employerService";
+import { getEmployerOpportunities, getRecentApplicationsForEmployer } from "../../services/employerService";
 
 import {
   LayoutDashboard,
@@ -35,38 +35,6 @@ const NAV_ITEMS = [
 
 
 
-const RECENT_APPLICATIONS = [
-  {
-    id: 1,
-    role: "Junior Full-Stack Developer",
-    applicant: "Jaiden Muruvan",
-    initials: "JM",
-    date: "Today",
-    match: 82,
-    matchColor: "#16A34A",
-  },
-  {
-    id: 2,
-    role: "Marketing Coordinator",
-    applicant: "Padi Maifala",
-    initials: "PM",
-    date: "Today",
-    match: 48,
-    matchColor: "#DC8F00",
-  },
-  {
-    id: 3,
-    role: "Data Analyst Intern",
-    applicant: "Tim Chilezi",
-    initials: "TC",
-    date: "2 Days ago",
-    match: 64,
-    matchColor: "#DC8F00",
-  },
-];
-
-
-
 function Avatar({ initials, size = 32 }) {
   return (
     <div
@@ -88,7 +56,7 @@ function MatchBadge({ match, color }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {match}%
+      {match === null || match === undefined || match === "—" ? "—" : `${match}%`}
     </span>
   );
 }
@@ -101,6 +69,8 @@ function DashboardView({ employerName, employerId, onNavigate }) {
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
+  const [recentApps, setRecentApps] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(true);
 
   const loadJobs = useCallback(async () => {
     setLoadingJobs(true);
@@ -109,9 +79,17 @@ function DashboardView({ employerName, employerId, onNavigate }) {
     setLoadingJobs(false);
   }, [employerId]);
 
+  const loadRecentApps = useCallback(async () => {
+    setLoadingApps(true);
+    const result = await getRecentApplicationsForEmployer(employerId);
+    if (result.success) setRecentApps(result.applications);
+    setLoadingApps(false);
+  }, [employerId]);
+
   useEffect(() => {
     loadJobs();
-  }, [loadJobs]);
+    loadRecentApps();
+  }, [loadJobs, loadRecentApps]);
 
   const activeJobs = jobs.filter((j) => j.status === "active");
   const totalApplications = jobs.reduce((sum, j) => sum + j.applicationCount, 0);
@@ -120,6 +98,19 @@ function DashboardView({ employerName, employerId, onNavigate }) {
     if (!deadline) return "No deadline";
     const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
     return diff >= 0 ? `${diff} Days` : "Expired";
+  }
+
+  function matchColor(score) {
+    if (score === null || score === undefined) return "#94a3b8";
+    if (score >= 75) return "#16A34A";
+    if (score >= 50) return "#DC8F00";
+    return "#DC2626";
+  }
+
+  function initialsFor(name) {
+    return name
+      ? name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      : "S";
   }
 
   return (
@@ -180,7 +171,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
             ))}
           </div>
 
-          {/* Recent applications — placeholder until application matching/review is built */}
+          {/* Recent applications */}
           <div className="ed-card">
             <div className="ed-card__header">
               <span className="ed-card__title">Recent Applications</span>
@@ -192,14 +183,29 @@ function DashboardView({ employerName, employerId, onNavigate }) {
               ))}
             </div>
 
-            {RECENT_APPLICATIONS.map((app) => (
+            {loadingApps && <p className="ed-empty__label" style={{ padding: "16px 4px" }}>Loading...</p>}
+
+            {!loadingApps && recentApps.length === 0 && (
+              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                No applications yet.
+              </p>
+            )}
+
+            {recentApps.map((app) => (
               <div key={app.id} className="ed-table-row ed-table-row--apps">
                 <div className="ed-applicant-cell">
-                  <Avatar initials={app.initials} size={28} />
-                  <span className="ed-applicant-name">{app.role}</span>
+                  <Avatar initials={initialsFor(app.student?.full_name)} size={28} />
+                  <span className="ed-applicant-name">
+                    {app.student?.full_name ?? "Student"} — {app.opportunities?.title ?? "Opportunity"}
+                  </span>
                 </div>
-                <MatchBadge match={app.match} color={app.matchColor} />
-                <span className="ed-table-cell ed-table-cell--muted">{app.date}</span>
+                <MatchBadge
+                  match={app.match_score ?? "—"}
+                  color={matchColor(app.match_score)}
+                />
+                <span className="ed-table-cell ed-table-cell--muted">
+                  {new Date(app.applied_at).toLocaleDateString()}
+                </span>
                 <button className="ed-view-btn">View →</button>
               </div>
             ))}
@@ -211,9 +217,9 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         <JobPostingForm
           employerId={employerId}
           onClose={() => setShowPostForm(false)}
-          onSaved={() => {
+          onSaved={(newJob) => {
             setShowPostForm(false);
-            loadJobs();
+            if (newJob) setJobs((prev) => [{ ...newJob, applicationCount: 0 }, ...prev]);
           }}
         />
       )}
@@ -228,8 +234,16 @@ export default function EmployerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal]   = useState("");
 
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Prevents that fucky JobsView/CompanyProfileView/DashboardView from ever receiving
+  // a null employerId on a hard refresh / session race.
+  useEffect(() => {
+    if (!loading && !user) navigate("/");
+  }, [loading, user, navigate]);
+
+  if (loading || !user) return null;
 
   const employer = {
     name:    userProfile?.full_name    ?? "Employer",

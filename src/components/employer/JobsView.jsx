@@ -35,16 +35,37 @@ export default function JobsView({ employerId }) {
     loadJobs();
   }, [loadJobs]);
 
-  function handleSaved() {
+  function handleSaved(savedJob) {
+    const wasEditing = Boolean(editingJob);
     setShowForm(false);
     setEditingJob(null);
-    loadJobs();
+
+    if (!savedJob) {
+      // Fallback in case the form couldn't hand back the saved row for some
+      // reason - re-fetch so the list is still correct.
+      loadJobs();
+      return;
+    }
+
+    // Update local state directly from the mutation response instead of
+    // re-fetching the whole list + application-count aggregate on every
+    // save - that round trip was the main source of the "takes too long to
+    // save" feeling.
+    setJobs((prev) =>
+      wasEditing
+        ? prev.map((j) => (j.id === savedJob.id ? { ...savedJob, applicationCount: j.applicationCount } : j))
+        : [{ ...savedJob, applicationCount: 0 }, ...prev],
+    );
   }
 
   async function handleClose(jobId) {
     if (!confirm("Close this job posting? Students won't be able to apply anymore.")) return;
-    await closeOpportunity(jobId);
-    loadJobs();
+    const result = await closeOpportunity(jobId);
+    if (result.success) {
+      setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, status: "closed" } : j)));
+    } else {
+      loadJobs();
+    }
   }
 
   return (

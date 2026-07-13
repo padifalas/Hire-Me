@@ -133,7 +133,7 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
       return;
     }
 
-    onSaved();
+    onSaved(result.opportunity);
   }
 
   return (

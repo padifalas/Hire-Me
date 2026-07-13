@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/authContext";
 import SignUp from "./components/auth/SignUp.jsx";
 import "./components/auth/SignUp.css";
 import ProfileSetup from "./components/student/ProfileSetup.jsx";

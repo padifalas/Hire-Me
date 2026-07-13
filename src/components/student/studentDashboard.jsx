@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/authContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,7 @@ import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 import ProfileView from "./ProfileView.jsx";
+import OpportunitiesView from "./OpportunitiesView.jsx";
 
 import TakealotLogo from "../../assets/TakealotLogo.png";
 import VodacomLogo from "../../assets/VodacomLogo.png";
@@ -395,8 +396,16 @@ function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
 
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Prevents every child view (ProfileView, OpportunitiesView, etc.) from
+  // ever receiving a null user.id on a hard refresh / session race.
+  useEffect(() => {
+    if (!loading && !user) navigate("/");
+  }, [loading, user, navigate]);
+
+  if (loading || !user) return null;
 
   // will get real data f
   const student = {
@@ -500,7 +509,8 @@ function StudentDashboard() {
           )}
           {activeNav === "applications" && <ApplicationsView />}
           {activeNav === "profile" && <ProfileView user={user} />}
-          {!["dashboard", "applications", "profile"].includes(activeNav) && (
+          {activeNav === "opportunities" && <OpportunitiesView user={user} />}
+          {!["dashboard", "applications", "profile", "opportunities"].includes(activeNav) && (
             <div className="sd-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="sd-empty__label">
