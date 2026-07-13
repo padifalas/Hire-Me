@@ -40,23 +40,56 @@ function CompanyMark({ logoUrl, name }) {
   );
 }
 
+function MatchChip({ label, type }) {
+  return (
+    <span className={`ov-match-chip ov-match-chip--${type}`}>{label}</span>
+  );
+}
+
 function MatchExplanation({ result }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="ov-match-explain">
-      <button type="button" className="ov-match-explain__toggle" onClick={() => setOpen(!open)}>
+      <button
+        type="button"
+        className="ov-match-explain__toggle"
+        onClick={() => setOpen(!open)}
+      >
         <Info size={12} /> Why this score?
       </button>
       {open && (
         <div className="ov-match-explain__body">
           {result.matchedRequired.length > 0 && (
-            <p><strong>Matched required:</strong> {result.matchedRequired.join(", ")}</p>
+            <div className="ov-match-explain__row">
+              <span className="ov-match-explain__label">Match Required</span>
+              <div className="ov-chip-row">
+                {result.matchRequired.map((skill) => (
+                  <MatchChip key={skill} label={skill} type="matched" />
+                ))}
+              </div>
+            </div>
           )}
           {result.missingRequired.length > 0 && (
-            <p><strong>Missing required:</strong> {result.missingRequired.join(", ")}</p>
+            <div className="ov-match-explain__row">
+              <span className="ov-match-explain__label">Missing Required</span>
+              <div className="ov-chip-row">
+                {result.missingRequired.map((skill) => (
+                  <MatchChip key={skill} label={skill} type="missing" />
+                ))}
+              </div>
+            </div>
           )}
           {result.matchedNice.length > 0 && (
-            <p><strong>Matched nice-to-have:</strong> {result.matchedNice.join(", ")}</p>
+            <div className="ov-match-explain__row">
+              <span className="ov-match-explain__label">
+                Match Nice-to-have
+              </span>
+              <div className="ov-chip-row">
+                {result.matchedNice.map((skill) => (
+                  <MatchChip key={skill} label={skill} type="nice" />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -64,7 +97,13 @@ function MatchExplanation({ result }) {
   );
 }
 
-function OpportunityCard({ opportunity, matchResult, applied, onApply, applying }) {
+function OpportunityCard({
+  opportunity,
+  matchResult,
+  applied,
+  onApply,
+  applying,
+}) {
   const salaryText =
     opportunity.salary_min && opportunity.salary_max
       ? `R${opportunity.salary_min.toLocaleString()} - R${opportunity.salary_max.toLocaleString()}/mo`
@@ -73,7 +112,10 @@ function OpportunityCard({ opportunity, matchResult, applied, onApply, applying 
   return (
     <div className="ov-card">
       <div className="ov-card__top">
-        <CompanyMark logoUrl={opportunity.employer?.logo_url} name={opportunity.employer?.company_name} />
+        <CompanyMark
+          logoUrl={opportunity.employer?.logo_url}
+          name={opportunity.employer?.company_name}
+        />
         <span
           className="ov-match-badge"
           style={{
@@ -88,20 +130,33 @@ function OpportunityCard({ opportunity, matchResult, applied, onApply, applying 
 
       <div className="ov-card__body">
         <div className="ov-card__role">{opportunity.title}</div>
-        <div className="ov-card__company">{opportunity.employer?.company_name ?? "Company"}</div>
+        <div className="ov-card__company">
+          {opportunity.employer?.company_name ?? "Company"}
+        </div>
         <div className="ov-card__location">
           <MapPin size={11} />
           {opportunity.location}
-          {opportunity.remote_option && <span className="ov-remote-tag">Remote/Hybrid</span>}
+          {opportunity.remote_option && (
+            <span className="ov-remote-tag">Remote/Hybrid</span>
+          )}
         </div>
         {salaryText && <div className="ov-card__salary">{salaryText}</div>}
 
         <p className="ov-card__desc">{opportunity.description}</p>
 
         <div className="ov-card__tags">
-          {(opportunity.required_skills || []).slice(0, 5).map((skill) => (
-            <span key={skill} className="ov-tag">{skill}</span>
-          ))}
+          {(opportunity.required_skills || []).slice(0, 5).map((skill) => {
+            const isMissing = matchResult.missingRequired.includes(skill);
+            const isMatched = matchResult.matchedRequired.includes(skill);
+            return (
+              <span
+                key={skill}
+                className={`ov-tags${isMatched ? " ov-tags--matched" : ""}${isMissing ? " ov-tags--missing" : ""}`}
+              >
+                {skill}
+              </span>
+            );
+          })}
         </div>
 
         <MatchExplanation result={matchResult} />
@@ -149,7 +204,9 @@ export default function OpportunitiesView({ user }) {
     }
 
     if (appsResult.success) {
-      setAppliedIds(new Set(appsResult.applications.map((a) => a.opportunity_id)));
+      setAppliedIds(
+        new Set(appsResult.applications.map((a) => a.opportunity_id)),
+      );
     }
 
     setLoading(false);
@@ -178,7 +235,9 @@ export default function OpportunitiesView({ user }) {
       <div className="ov-header">
         <h1 className="ov-title">Opportunities</h1>
         <p className="ov-subtitle">
-          {loading ? "Loading..." : `${opportunities.length} opportunit${opportunities.length === 1 ? "y" : "ies"} matching your filters`}
+          {loading
+            ? "Loading..."
+            : `${opportunities.length} opportunit${opportunities.length === 1 ? "y" : "ies"} matching your filters`}
         </p>
       </div>
 
@@ -194,7 +253,9 @@ export default function OpportunitiesView({ user }) {
         <div className="ov-select-wrap">
           <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
             {JOB_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
           <ChevronDown size={13} />
@@ -210,7 +271,9 @@ export default function OpportunitiesView({ user }) {
       {error && <p className="ov-error">{error}</p>}
 
       {!loading && opportunities.length === 0 && (
-        <div className="ov-empty">No opportunities match your filters right now.</div>
+        <div className="ov-empty">
+          No opportunities match your filters right now.
+        </div>
       )}
 
       <div className="ov-grid">

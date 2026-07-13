@@ -1,3 +1,17 @@
+:root {
+  --color-skill-matched: #16a34a;
+  --color-skill-matched-bg: #f0fdf4;
+  --color-skill-matched-border: #bbf7d0;
+
+  --color-skill-missing: #dc2626;
+  --color-skill-missing-bg: #fef2f2;
+  --color-skill-missing-border: #fecaca;
+
+  --color-skill-nice: #7c3aed;
+  --color-skill-nice-bg: #f5f3ff;
+  --color-skill-nice-border: #ddd6fe;
+}
+
 .ov-root {
   display: flex;
   flex-direction: column;
@@ -268,4 +282,65 @@
 .ov-apply-btn--applied {
   background: #f1f5f9;
   color: #94a3b8;
+}
+
+.ov-skill-chip {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.ov-skill-chip--matched {
+  background: var(--color-skill-matched-bg);
+  color: var(--color-skill-matched);
+  border-color: var(--color-skill-matched-border);
+}
+
+.ov-skill-chip--missing {
+  background: var(--color-skill-missing-bg);
+  color: var(--color-skill-missing);
+  border-color: var(--color-skill-missing-border);
+}
+
+.ov-skill-chip--nice {
+  background: var(--color-skill-nice-bg);
+  color: var(--color-skill-nice);
+  border-color: var(--color-skill-nice-border);
+}
+
+.ov-match-explain__row {
+  margin-bottom: 8px;
+}
+
+.ov-match-explain__row:last-child {
+  margin-bottom: 0;
+}
+
+.ov-match--explain__label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03rem;
+  margin-bottom: 4px;
+}
+
+.ov-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ov-tag--matched {
+  background: var(--color-skill-matched-bg);
+  color: var(--color-skill-matched);
+}
+
+.ov-tag--missing {
+  background: var(--color-skill-missing-bg);
+  color: var(--color-skill-missing);
 }
