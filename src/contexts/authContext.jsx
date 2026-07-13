@@ -80,16 +80,16 @@ export const AuthProvider = ({ children }) => {
 
   if (loading) {
 
-    return <div style={{ padding: 24, fontFamily: "sans-serif", color: "#64748b" }}>Loading HireMe...</div>;
+    return <div style={{ padding: 24, fontFamily: "'Manrope', sans-serif", color: "#64748b" }}>Loading HireMe...</div>;
   }
 
   return (
     <AuthContext.Provider value={value}>
-      {authTimedOut && (
+      {/* {authTimedOut && (
         <div style={{ background: "#fef2f2", color: "#991b1b", padding: "8px 16px", fontSize: 13, textAlign: "center" }}>
           Sign-in check timed out.  use a separate browser profile/icongito - refresh to try again.
         </div>
-      )}
+      )} */}
       {children}
     </AuthContext.Provider>
   );

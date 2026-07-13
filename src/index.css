@@ -1,5 +1,11 @@
 /*JAIDEN*/
 
+/* Site-wide typography: Sora for headings/brand/buttons (distinctive,
+   geometric display face), Manrope for body/UI text (warm, modern, and
+   deliberately not Inter - avoids the generic "every AI SaaS demo" look).
+   Loaded once here instead of being duplicated per-page. */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
+
 /* CSS Variables - the color palette */
 :root {
   /* primary  Colors */
@@ -82,11 +88,13 @@
 
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Sora", "Manrope", sans-serif;
 }
 
 code {
