@@ -7,6 +7,8 @@ import "./EmployerDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 
+import HireMeLogo from "../../assets/HireMeLogo.png";
+
 import {
   LayoutDashboard,
   Briefcase,
