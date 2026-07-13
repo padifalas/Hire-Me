@@ -2,8 +2,8 @@
 
 ## Overview
 
-HireMe is a recruitment platform developed as a **final-year creative research project**.  
-It addresses graduate unemployment in South Africa by using **AI-powered skill translation and job matching**.  
+HireMe is a recruitment platform developed as a **final-year creative research project**.
+It addresses graduate unemployment in South Africa by using **AI-powered skill translation and job matching**.
 The system benefits both **students** (by simplifying applications and tailoring CVs) and **employers** (by reducing irrelevant applications and improving candidate quality).
 
 ---
@@ -55,7 +55,7 @@ The system benefits both **students** (by simplifying applications and tailoring
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | **Padi**    | Project Manager & Backend Developer | Oversees project direction, manages Firebase backend, authentication, database architecture, and deployment.              |
 | **Jaiden**  | Frontend Developer                  | Builds responsive React interfaces, implements student/employer dashboards, and ensures smooth UX/UI integration.         |
-| **Timothy** | Systems Integration Engineer        | Integrates all platform components — AI services, and frontend workflows — ensuring smooth communication between systems. |
+| **Timothy** | Systems Integration Engineer        | Integrates all platform components - AI services, and frontend workflows - ensuring smooth communication between systems. |
 
 > Team member’s GitHub profiles:
 >

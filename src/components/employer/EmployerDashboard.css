@@ -1,10 +1,13 @@
+
+
 .ed-root {
   display: flex;
   height: 100vh;
   overflow: hidden;
   background: #f8fafc;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Manrope", sans-serif;
 }
+
 
 .ed-sidebar {
   width: 220px;
@@ -13,9 +16,7 @@
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
+  transition: width 0.2s ease, min-width 0.2s ease;
   overflow: hidden;
 }
 
@@ -23,6 +24,7 @@
   width: 60px;
   min-width: 60px;
 }
+
 
 .ed-sidebar__brand {
   padding: 18px 14px 12px;
@@ -45,115 +47,116 @@
   width: 36px;
 }
 
+
 .ed-sidebar__nav {
-  padding: 16px 12px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 8px;
+  gap: 2px;
+  overflow-y: auto;
 }
 
-.ed-signout-btn {
-  margin-top: auto;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  background: #c1121f;
-  color: #fff;
-  transition: all 0.2s;
-  font-family: inherit;
-}
 
 .ed-sidebar__user {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 8px 14px;
+  border-bottom: 1px solid #f1f5f9;
   margin-bottom: 8px;
 }
 
 .ed-sidebar__avatar {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
   border-radius: 50%;
-  flex-shrink: 0;
   background: #dbeafe;
+  color: #1e40af;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  font-weight: 700;
-  color: #1d4ed8;
+  font-weight: 600;
 }
 
 .ed-sidebar__user-name {
   font-size: 13px;
   font-weight: 600;
-  color: #0f172a;
-  line-height: 1.2;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
 }
 
 .ed-sidebar__user-sub {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #94a3b8;
-  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
 }
 
+
 .ed-nav-btn {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 9px 10px;
-  border-radius: 9px;
   border: none;
-  cursor: pointer;
   background: transparent;
-  color: #64748b;
-  font-weight: 500;
+  border-radius: 8px;
   font-size: 13.5px;
-  margin-bottom: 2px;
-  transition:
-    background 0.15s,
-    color 0.15s;
+  color: #64748b;
+  cursor: pointer;
   text-align: left;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
 }
 
 .ed-nav-btn:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
 .ed-nav-btn--active {
   background: #eff6ff;
-  color: #0f172a;
-  font-weight: 700;
+  color: #1e3a5f;
+  font-weight: 600;
 }
 
 .ed-sidebar__footer {
-  margin-top: auto;
-  padding: 12px;
+  padding: 12px 8px;
   border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .ed-collapse-btn {
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  color: #94a3b8;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  color: #64748b;
   display: flex;
   align-items: center;
-  transition: color 0.15s;
+  justify-content: center;
+  transition: background 0.15s;
 }
 
 .ed-collapse-btn:hover {
-  background: #64748b;
+  background: #f1f5f9;
 }
 
 .ed-signout-btn {
-  margin-top: auto;
-  padding: 8px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
@@ -163,13 +166,18 @@
   color: #fff;
   transition: all 0.2s;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .ed-signout-btn:hover {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fca5a5;
+  opacity: 0.9;
 }
+
+.ed-signout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
 .ed-main {
   flex: 1;
@@ -177,6 +185,7 @@
   flex-direction: column;
   overflow: hidden;
 }
+
 
 .ed-header {
   height: 54px;
@@ -243,11 +252,13 @@
   border: 1.5px solid #fff;
 }
 
+
 .ed-content {
   flex: 1;
   overflow-y: auto;
   padding: 28px 28px 0;
 }
+
 
 .ed-dashboard {
   display: flex;
@@ -308,6 +319,7 @@
   background: #163156;
 }
 
+
 .ed-main-grid {
   display: grid;
   grid-template-columns: 1fr 240px;
@@ -326,6 +338,7 @@
   flex-direction: column;
   gap: 20px;
 }
+
 
 .ed-card {
   background: #fff;
@@ -360,6 +373,7 @@
 .ed-link-btn:hover {
   text-decoration: underline;
 }
+
 
 .ed-table-header {
   display: grid;
@@ -427,6 +441,7 @@
   text-decoration: underline;
 }
 
+
 .ed-applicant-cell {
   display: flex;
   align-items: center;
@@ -450,6 +465,7 @@
   min-width: 28px;
 }
 
+
 .ed-match-badge {
   display: inline-flex;
   align-items: center;
@@ -460,6 +476,9 @@
   font-weight: 600;
   width: fit-content;
 }
+
+
+
 
 .ed-empty {
   display: flex;

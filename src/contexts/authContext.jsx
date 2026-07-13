@@ -23,47 +23,51 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
 
   useEffect(() => {
-    // first check active session
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    let cancelled = false;
 
-      if (session?.user) {
-        setUser(session.user);
-
-        // fetch user profile
-        const result = await getUserProfile(session.user.id);
-        if (result.success) {
-          setUserProfile(result.profile);
-        }
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        console.warn(
+          "[auth] onAuthStateChange did not resolve within 8s",
+        );
+        setAuthTimedOut(true);
+        setLoading(false);
       }
+    }, 8000);
 
-      setLoading(false);
-    };
-
-    checkSession();
-
-    // listen n check for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
+      try {
+        if (session?.user) {
+          setUser(session.user);
 
-        const result = await getUserProfile(session.user.id);
-        if (result.success) {
-          setUserProfile(result.profile);
+          const result = await getUserProfile(session.user.id);
+          if (!cancelled && result.success) {
+            setUserProfile(result.profile);
+          }
+        } else {
+          setUser(null);
+          setUserProfile(null);
         }
-      } else {
-        setUser(null);
-        setUserProfile(null);
+      } catch (err) {
+        //  error hereso app stuck on a
+        // blank screen with no clue why.
+        console.error("[auth] onAuthStateChange handler threw:", err);
+      } finally {
+        if (!cancelled) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        }
       }
     });
 
     return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -74,9 +78,19 @@ export const AuthProvider = ({ children }) => {
     loading,
   };
 
+  if (loading) {
+
+    return <div style={{ padding: 24, fontFamily: "'Manrope', sans-serif", color: "#64748b" }}>Loading HireMe...</div>;
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {/* {authTimedOut && (
+        <div style={{ background: "#fef2f2", color: "#991b1b", padding: "8px 16px", fontSize: 13, textAlign: "center" }}>
+          Sign-in check timed out.  use a separate browser profile/icongito - refresh to try again.
+        </div>
+      )} */}
+      {children}
     </AuthContext.Provider>
   );
 };

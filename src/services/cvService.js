@@ -1,4 +1,4 @@
-//functions to handle CV upload, retrieval, and deletion using supabase Storage and Databasee
+// NOT USING ANYMOREEEEEE SCARED TO DLETE
 import { supabase } from '../config/supabase';
 
 
@@ -60,7 +60,7 @@ export const uploadCV = async (file, userId) => {
 
 /**all this is to get the CV URL for a student, which can be used to display or download the CV. It queries the student_profiles table for the cv_url and cv_file_name fields based on the user's ID. If successful, it returns the CV URL and file name; otherwise, it returns an error message.
  * get CV URL for a student
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<{success: boolean, url?: string, error?: string}>}
  */
 export const getCV = async (userId) => {
@@ -81,7 +81,7 @@ export const getCV = async (userId) => {
 
 /**
  * Delete CV
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<{success: boolean, error?: string}>}
  */
 export const deleteCV = async (userId) => {
@@ -96,7 +96,7 @@ export const deleteCV = async (userId) => {
     if (profile && profile.cv_url) {
       // extracct file path from URL
       const fileName = `${userId}/${profile.cv_url.split('/').pop()}`;
-      
+
       // 2. Delete from storage
       const { error: deleteError } = await supabase.storage
         .from('cvs - HireMe Storage Bucket')
@@ -122,4 +122,3 @@ export const deleteCV = async (userId) => {
     return { success: false, error: error.message };
   }
 };
-

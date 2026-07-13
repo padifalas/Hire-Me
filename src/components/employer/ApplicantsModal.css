@@ -1,0 +1,337 @@
+.am-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.am-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+}
+
+.am-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.am-modal__header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.am-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.am-close-btn:hover {
+  background: #f1f5f9;
+}
+
+.am-modal__body {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.am-empty,
+.am-empty-inline {
+  color: #94a3b8;
+  font-size: 13.5px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.am-empty-inline {
+  padding: 0 0 8px;
+  text-align: left;
+}
+
+.am-card {
+  border: 1px solid #e8edf2;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.am-card--highlighted {
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.12);
+}
+
+.am-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.am-card__name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.am-card__meta {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.am-inline-icon {
+  display: inline;
+  vertical-align: -1px;
+}
+
+.am-match-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.am-card__status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.am-status-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.am-card__date {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.am-link-btn {
+  font-size: 12.5px;
+  color: #1e3a5f;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 0;
+}
+
+.am-card__details {
+  border-top: 1px dashed #e8edf2;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.am-summary {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.am-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.am-chip {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.am-card__links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.am-card__links a {
+  font-size: 12.5px;
+  color: #0077c8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.am-card__links a:hover {
+  text-decoration: underline;
+}
+
+.am-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.am-interview-btn,
+.am-accept-btn,
+.am-reject-btn,
+.am-cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid transparent;
+}
+
+.am-interview-btn {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+.am-interview-btn:hover {
+  background: #f8fafc;
+}
+
+.am-accept-btn {
+  background: #16a34a;
+  color: #fff;
+}
+
+.am-accept-btn:hover {
+  opacity: 0.9;
+}
+
+.am-reject-btn {
+  background: #fff;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.am-reject-btn:hover {
+  background: #fef2f2;
+}
+
+.am-cancel-btn {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.am-interview-btn:disabled,
+.am-accept-btn:disabled,
+.am-reject-btn:disabled,
+.am-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.am-reject-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.am-reject-box__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.am-reject-box__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.am-generate-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.am-generate-btn:hover {
+  background: #ede9fe;
+}
+
+.am-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.am-reject-box textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.am-reject-box textarea:focus {
+  border-color: #1e3a5f;
+}
+
+.am-error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  margin: 0;
+}
