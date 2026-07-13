@@ -57,24 +57,46 @@ export default function SignUp() {
       return;
     }
 
-  // 2 fetch role from users table i supabase using result.user.id 
-  const { data, error } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", result.user.id)
-    .single();
+    // fetch role (and, for students, profile completion) from users/student_profiles
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", result.user.id)
+      .single();
 
-  if (error || !data) {
-    navigate("/student-dashboard"); 
-    return;
-  }
+    if (error || !data) {
+      navigate("/student-dashboard");
+      return;
+    }
 
-  if (data.role === "employer") {
-    navigate("/employer-dashboard");
-  } else {
-    navigate("/student-dashboard");
+    if (data.role === "employer") {
+      const { data: employerProfile } = await supabase
+        .from("employer_profiles")
+        .select("profile_completed")
+        .eq("id", result.user.id)
+        .single();
+
+      if (!employerProfile?.profile_completed) {
+        navigate("/employer-profile-setup");
+      } else {
+        navigate("/employer-dashboard");
+      }
+      return;
+    }
+
+    // Student: check whether they still need to complete their profile
+    const { data: studentProfile } = await supabase
+      .from("student_profiles")
+      .select("profile_completed")
+      .eq("id", result.user.id)
+      .single();
+
+    if (!studentProfile?.profile_completed) {
+      navigate("/profile-setup");
+    } else {
+      navigate("/student-dashboard");
+    }
   }
-}
 
   function handleSubmit(e) {
     e.preventDefault();
