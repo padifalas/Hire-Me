@@ -70,7 +70,17 @@ export default function SignUp() {
     }
 
     if (data.role === "employer") {
-      navigate("/employer-dashboard");
+      const { data: employerProfile } = await supabase
+        .from("employer_profiles")
+        .select("profile_completed")
+        .eq("id", result.user.id)
+        .single();
+
+      if (!employerProfile?.profile_completed) {
+        navigate("/employer-profile-setup");
+      } else {
+        navigate("/employer-dashboard");
+      }
       return;
     }
 

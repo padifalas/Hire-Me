@@ -242,3 +242,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Additions for EmployerProfileSetup, which shares this stylesheet */
+.ps-textarea {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  color: var(--color-text-primary);
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.ps-textarea:focus {
+  border-color: var(--color-border-focus);
+}
+
+.ps-dropzone--logo {
+  justify-content: center;
+  padding: 1.4rem;
+  text-align: center;
+}
+
+.ps-logo-preview {
+  max-height: 64px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.ps-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.ps-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.ps-checkbox-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary-active);
+}

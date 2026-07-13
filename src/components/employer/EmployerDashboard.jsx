@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 import "./EmployerDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
+import JobsView from "./JobsView.jsx";
+import CompanyProfileView from "./CompanyProfileView.jsx";
+import JobPostingForm from "./JobPostingForm.jsx";
+import { getEmployerOpportunities } from "../../services/employerService";
 
 import {
   LayoutDashboard,
@@ -30,12 +34,6 @@ const NAV_ITEMS = [
 ];
 
 
-
-const ACTIVE_JOBS = [
-  { id: 1, title: "Junior Full-Stack Developer",  applications: 18, daysRemaining: 14 },
-  { id: 2, title: "Marketing Coordinator",        applications: 11, daysRemaining: 14 },
-  { id: 3, title: "Data Analyst Intern",          applications: 8,  daysRemaining: 14 },
-];
 
 const RECENT_APPLICATIONS = [
   {
@@ -98,32 +96,50 @@ function MatchBadge({ match, color }) {
 
 
 
-function DashboardView({ employerName }) {
+function DashboardView({ employerName, employerId, onNavigate }) {
   const firstName = (employerName ?? "there").split(" ")[0];
+  const [jobs, setJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [showPostForm, setShowPostForm] = useState(false);
+
+  const loadJobs = useCallback(async () => {
+    setLoadingJobs(true);
+    const result = await getEmployerOpportunities(employerId);
+    if (result.success) setJobs(result.opportunities);
+    setLoadingJobs(false);
+  }, [employerId]);
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
+
+  const activeJobs = jobs.filter((j) => j.status === "active");
+  const totalApplications = jobs.reduce((sum, j) => sum + j.applicationCount, 0);
+
+  function daysRemaining(deadline) {
+    if (!deadline) return "No deadline";
+    const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? `${diff} Days` : "Expired";
+  }
 
   return (
     <div className="ed-dashboard">
-
 
       <div className="ed-welcome-row">
         <div>
           <h1 className="ed-greeting__title">Welcome, {firstName}</h1>
           <div className="ed-stats-pills">
             <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">3</span> Active Jobs
+              <span className="ed-stat-pill__num">{activeJobs.length}</span> Active Jobs
             </span>
             <span className="ed-stat-pill__sep">•</span>
             <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">47</span> Applications
-            </span>
-            <span className="ed-stat-pill__sep">•</span>
-            <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">12</span> Interviews
+              <span className="ed-stat-pill__num">{totalApplications}</span> Applications
             </span>
           </div>
         </div>
 
-        <button className="ed-post-btn">
+        <button className="ed-post-btn" onClick={() => setShowPostForm(true)}>
           <Plus size={14} /> Post new job
         </button>
       </div>
@@ -135,7 +151,9 @@ function DashboardView({ employerName }) {
           <div className="ed-card">
             <div className="ed-card__header">
               <span className="ed-card__title">Active Jobs</span>
-              <button className="ed-link-btn">View all 12 →</button>
+              <button className="ed-link-btn" onClick={() => onNavigate("jobs")}>
+                View all {jobs.length} →
+              </button>
             </div>
 
             <div className="ed-table-header">
@@ -144,17 +162,25 @@ function DashboardView({ employerName }) {
               ))}
             </div>
 
-            {ACTIVE_JOBS.map((job) => (
+            {loadingJobs && <p className="ed-empty__label" style={{ padding: "16px 4px" }}>Loading...</p>}
+
+            {!loadingJobs && activeJobs.length === 0 && (
+              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                No active jobs yet — post your first one above.
+              </p>
+            )}
+
+            {activeJobs.slice(0, 5).map((job) => (
               <div key={job.id} className="ed-table-row">
                 <span className="ed-table-cell">{job.title}</span>
-                <span className="ed-table-cell">{job.applications}</span>
-                <span className="ed-table-cell">{job.daysRemaining} Days</span>
-                <button className="ed-view-btn">View →</button>
+                <span className="ed-table-cell">{job.applicationCount}</span>
+                <span className="ed-table-cell">{daysRemaining(job.deadline)}</span>
+                <button className="ed-view-btn" onClick={() => onNavigate("jobs")}>View →</button>
               </div>
             ))}
           </div>
 
-          {/* Recent applications */}
+          {/* Recent applications — placeholder until application matching/review is built */}
           <div className="ed-card">
             <div className="ed-card__header">
               <span className="ed-card__title">Recent Applications</span>
@@ -180,6 +206,17 @@ function DashboardView({ employerName }) {
           </div>
         </div>
       </div>
+
+      {showPostForm && (
+        <JobPostingForm
+          employerId={employerId}
+          onClose={() => setShowPostForm(false)}
+          onSaved={() => {
+            setShowPostForm(false);
+            loadJobs();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -191,7 +228,7 @@ export default function EmployerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal]   = useState("");
 
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const employer = {
@@ -268,7 +305,7 @@ export default function EmployerDashboard() {
         </div>
       </aside>
 
-   
+
       <div className="ed-main">
         <header className="ed-header">
           <div className="ed-search">
@@ -288,9 +325,15 @@ export default function EmployerDashboard() {
 
         <main className="ed-content">
           {activeNav === "dashboard" && (
-            <DashboardView employerName={employer.name} />
+            <DashboardView
+              employerName={employer.name}
+              employerId={user?.id}
+              onNavigate={setActiveNav}
+            />
           )}
-          {activeNav !== "dashboard" && (
+          {activeNav === "jobs" && <JobsView employerId={user?.id} />}
+          {activeNav === "company-profile" && <CompanyProfileView user={user} />}
+          {!["dashboard", "jobs", "company-profile"].includes(activeNav) && (
             <div className="ed-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="ed-empty__label">

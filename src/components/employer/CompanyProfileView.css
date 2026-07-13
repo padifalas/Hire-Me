@@ -1,0 +1,167 @@
+.cpv-loading {
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.cpv-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 700px;
+}
+
+.cpv-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.cpv-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 4px 0 0;
+}
+
+.cpv-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cpv-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cpv-logo-dropzone {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  border-radius: 12px;
+  border: 1.5px dashed #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #94a3b8;
+  overflow: hidden;
+}
+
+.cpv-logo-dropzone img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.cpv-logo-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cpv-logo-hint {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.cpv-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.cpv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cpv-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.cpv-field input,
+.cpv-field select,
+.cpv-field textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13.5px;
+  color: #1e293b;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+
+.cpv-field input:focus,
+.cpv-field select:focus,
+.cpv-field textarea:focus {
+  border-color: #1e3a5f;
+}
+
+.cpv-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.cpv-checkbox-label input {
+  width: 15px;
+  height: 15px;
+}
+
+.cpv-save-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #16a34a;
+  margin: 0;
+}
+
+.cpv-error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.cpv-save-btn {
+  align-self: flex-start;
+  padding: 9px 18px;
+  background: #1e3a5f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cpv-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .cpv-fields-grid {
+    grid-template-columns: 1fr;
+  }
+}
