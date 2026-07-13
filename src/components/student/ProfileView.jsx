@@ -31,7 +31,9 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
   return (
     <div className="pv-file-field">
       <label className="pv-file-field__label">{label}</label>
-      <label className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}>
+      <label
+        className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}
+      >
         <input
           type="file"
           accept=".pdf,.docx"
@@ -43,15 +45,18 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
           {file ? file.name : currentFileName || "No file uploaded yet"}
         </span>
         <span className="pv-dropzone__action">
-          <UploadCloud size={14} /> {currentFileName || file ? "Replace" : "Upload"}
+          <UploadCloud size={14} />{" "}
+          {currentFileName || file ? "Replace" : "Upload"}
         </span>
       </label>
     </div>
   );
 }
 
-function SkillChip({ label }) {
-  return <span className="pv-skill-chip">{label}</span>;
+function SkillChip({ label, type = "technical" }) {
+  return (
+    <span className={`pv-skill-chip pv-skill-chip--${type}`}>{label}</span>
+  );
 }
 
 export default function ProfileView({ user }) {
@@ -128,22 +133,35 @@ export default function ProfileView({ user }) {
       }
 
       if (newTranscriptFile) {
-        const res = await uploadDocument(newTranscriptFile, user.id, "transcript");
+        const res = await uploadDocument(
+          newTranscriptFile,
+          user.id,
+          "transcript",
+        );
         if (!res.success) throw new Error(res.error);
         transcriptPath = res.path;
         transcriptText = res.extractedText;
       } else if (transcriptPath) {
-        const res = await extractTextFromStoredDocument("transcript", transcriptPath);
+        const res = await extractTextFromStoredDocument(
+          "transcript",
+          transcriptPath,
+        );
         if (!res.success) throw new Error(res.error);
         transcriptText = res.text;
       }
 
       if (!cvText && !transcriptText) {
-        throw new Error("Upload a CV or transcript before running AI analysis.");
+        throw new Error(
+          "Upload a CV or transcript before running AI analysis.",
+        );
       }
 
       setAiStep("extracting");
-      const aiResult = await triggerSkillExtraction(user.id, cvText, transcriptText);
+      const aiResult = await triggerSkillExtraction(
+        user.id,
+        cvText,
+        transcriptText,
+      );
       if (!aiResult.success) throw new Error(aiResult.error);
 
       setAiStep("done");
@@ -167,7 +185,11 @@ export default function ProfileView({ user }) {
   }
 
   if (!profile || !form) {
-    return <div className="pv-loading">Couldn't load your profile. Try refreshing.</div>;
+    return (
+      <div className="pv-loading">
+        Couldn't load your profile. Try refreshing.
+      </div>
+    );
   }
 
   const hasResults = profile.ai_processing_status === "completed";
@@ -177,7 +199,9 @@ export default function ProfileView({ user }) {
     <div className="pv-root">
       <div className="pv-header">
         <h1 className="pv-title">My Profile</h1>
-        <p className="pv-subtitle">Update your details and re-run AI analysis any time.</p>
+        <p className="pv-subtitle">
+          Update your details and re-run AI analysis any time.
+        </p>
       </div>
 
       <div className="pv-grid-layout">
@@ -187,23 +211,41 @@ export default function ProfileView({ user }) {
           <div className="pv-fields-grid">
             <div className="pv-field">
               <label>University</label>
-              <input name="university" value={form.university} onChange={handleChange} />
+              <input
+                name="university"
+                value={form.university}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Qualification</label>
-              <input name="qualification" value={form.qualification} onChange={handleChange} />
+              <input
+                name="qualification"
+                value={form.qualification}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Graduation year</label>
-              <select name="graduationYear" value={form.graduationYear} onChange={handleChange}>
+              <select
+                name="graduationYear"
+                value={form.graduationYear}
+                onChange={handleChange}
+              >
                 {GRAD_YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="pv-field">
               <label>Location (city)</label>
-              <input name="location" value={form.location} onChange={handleChange} />
+              <input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Phone number</label>
@@ -211,15 +253,27 @@ export default function ProfileView({ user }) {
             </div>
             <div className="pv-field">
               <label>LinkedIn URL</label>
-              <input name="linkedinUrl" value={form.linkedinUrl} onChange={handleChange} />
+              <input
+                name="linkedinUrl"
+                value={form.linkedinUrl}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>GitHub URL</label>
-              <input name="githubUrl" value={form.githubUrl} onChange={handleChange} />
+              <input
+                name="githubUrl"
+                value={form.githubUrl}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Portfolio website</label>
-              <input name="portfolioUrl" value={form.portfolioUrl} onChange={handleChange} />
+              <input
+                name="portfolioUrl"
+                value={form.portfolioUrl}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -259,7 +313,8 @@ export default function ProfileView({ user }) {
               )}
               {hasFailed && (
                 <p className="pv-ai-status pv-ai-status--failed">
-                  <AlertCircle size={14} /> Last analysis failed: {profile.ai_processing_error}
+                  <AlertCircle size={14} /> Last analysis failed:{" "}
+                  {profile.ai_processing_error}
                 </p>
               )}
               {aiError && (
@@ -315,7 +370,7 @@ export default function ProfileView({ user }) {
               <h3 className="pv-results-section__title">Technical skills</h3>
               <div className="pv-chip-row">
                 {profile.extracted_technical_skills.map((s, i) => (
-                  <SkillChip key={i} label={s.skill} />
+                  <SkillChip key={i} label={s.skill} type="technical" />
                 ))}
               </div>
             </div>
@@ -326,7 +381,7 @@ export default function ProfileView({ user }) {
               <h3 className="pv-results-section__title">Soft skills</h3>
               <div className="pv-chip-row">
                 {profile.extracted_soft_skills.map((s, i) => (
-                  <SkillChip key={i} label={s.skill} />
+                  <SkillChip key={i} label={s.skill} type="soft" />
                 ))}
               </div>
             </div>
@@ -338,14 +393,16 @@ export default function ProfileView({ user }) {
               <div className="pv-projects">
                 {profile.translated_projects.map((p, i) => (
                   <div key={i} className="pv-project-card">
-                    <div className="pv-project-card__title">{p.professional_title}</div>
+                    <div className="pv-project-card__title">
+                      {p.professional_title}
+                    </div>
                     <div className="pv-project-card__original">
                       Originally: {p.original_title}
                     </div>
                     <p className="pv-project-card__desc">{p.description}</p>
                     <div className="pv-chip-row">
                       {p.skills_demonstrated?.map((s, j) => (
-                        <SkillChip key={j} label={s} />
+                        <SkillChip key={j} label={s} type="technical" />
                       ))}
                     </div>
                   </div>
