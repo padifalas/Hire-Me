@@ -1,13 +1,10 @@
-
-
 .ed-root {
   display: flex;
   height: 100vh;
   overflow: hidden;
   background: #f8fafc;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
 }
-
 
 .ed-sidebar {
   width: 220px;
@@ -16,7 +13,9 @@
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease, min-width 0.2s ease;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
   overflow: hidden;
 }
 
@@ -24,7 +23,6 @@
   width: 60px;
   min-width: 60px;
 }
-
 
 .ed-sidebar__brand {
   padding: 18px 14px 12px;
@@ -37,33 +35,15 @@
   gap: 10px;
 }
 
-.ed-sidebar__logo-mark {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  background: #1e3a5f;
-  color: #fff;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
+.ed-sidebar__logo-img {
+  width: 120px;
+  object-fit: contain;
+  transition: width 0.2s ease;
 }
 
-.ed-sidebar__brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.2;
+.ed-sidebar--collapsed .ed-sidebar__logo-img {
+  width: 36px;
 }
-
-.ed-sidebar__brand-sub {
-  font-size: 10px;
-  color: #94a3b8;
-  letter-spacing: 0.03em;
-}
-
 
 .ed-sidebar__nav {
   flex: 1;
@@ -73,7 +53,6 @@
   gap: 2px;
   overflow-y: auto;
 }
-
 
 .ed-sidebar__user {
   display: flex;
@@ -117,7 +96,6 @@
   max-width: 130px;
 }
 
-
 .ed-nav-btn {
   display: flex;
   align-items: center;
@@ -131,7 +109,9 @@
   cursor: pointer;
   text-align: left;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   width: 100%;
 }
 
@@ -180,7 +160,9 @@
   border-radius: 6px;
   padding: 5px 12px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   white-space: nowrap;
 }
 
@@ -190,14 +172,12 @@
   border-color: #fca5a5;
 }
 
-
 .ed-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-
 
 .ed-header {
   height: 54px;
@@ -264,13 +244,11 @@
   border: 1.5px solid #fff;
 }
 
-
 .ed-content {
   flex: 1;
   overflow-y: auto;
   padding: 28px 28px 0;
 }
-
 
 .ed-dashboard {
   display: flex;
@@ -331,7 +309,6 @@
   background: #163156;
 }
 
-
 .ed-main-grid {
   display: grid;
   grid-template-columns: 1fr 240px;
@@ -350,7 +327,6 @@
   flex-direction: column;
   gap: 20px;
 }
-
 
 .ed-card {
   background: #fff;
@@ -385,7 +361,6 @@
 .ed-link-btn:hover {
   text-decoration: underline;
 }
-
 
 .ed-table-header {
   display: grid;
@@ -453,7 +428,6 @@
   text-decoration: underline;
 }
 
-
 .ed-applicant-cell {
   display: flex;
   align-items: center;
@@ -477,7 +451,6 @@
   min-width: 28px;
 }
 
-
 .ed-match-badge {
   display: inline-flex;
   align-items: center;
@@ -488,9 +461,6 @@
   font-weight: 600;
   width: fit-content;
 }
-
-
-
 
 .ed-empty {
   display: flex;
