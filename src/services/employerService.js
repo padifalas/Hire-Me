@@ -1,15 +1,12 @@
-// src/services/employerService.js
-//
-// Handles employer company profile management and job opportunity posting.
+
+// does employer company profile management and job opportunity posting.
 
 import { supabase } from "../config/supabase";
 
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 
-/**
- * Fetch the full employer_profiles row.
- */
+
 export async function getEmployerProfile(userId) {
   try {
     const { data, error } = await supabase
@@ -26,7 +23,7 @@ export async function getEmployerProfile(userId) {
 }
 
 /**
- * Update company profile fields.
+ * pdate company profile fields.
  */
 export async function updateEmployerProfile(userId, profileData) {
   try {
@@ -52,7 +49,7 @@ export async function updateEmployerProfile(userId, profileData) {
 }
 
 /**
- * Upload a company logo to the public company-logos bucket.
+ * uploadd a company logo to the public company-logos bucket.
  */
 export async function uploadCompanyLogo(file, userId) {
   try {
@@ -90,9 +87,9 @@ export async function uploadCompanyLogo(file, userId) {
 }
 
 /**
- * Create a new job opportunity.
+ * create a new job opportunity.
  * @param {string} employerId
- * @param {object} jobData - see JobPostingForm.jsx for shape
+ * @param {object} jobData -
  */
 export async function createOpportunity(employerId, jobData) {
   try {
@@ -126,7 +123,7 @@ export async function createOpportunity(employerId, jobData) {
 }
 
 /**
- * Update an existing opportunity (e.g. edit details or change status).
+ * to update an existing opportunity like edit details or change status or smthing
  */
 export async function updateOpportunity(opportunityId, jobData) {
   try {
@@ -160,7 +157,7 @@ export async function updateOpportunity(opportunityId, jobData) {
 }
 
 /**
- * Fetch all opportunities posted by this employer, with a live application count.
+ * get all opportunities posted by this employer, with a live application count.
  */
 export async function getEmployerOpportunities(employerId) {
   try {
@@ -184,7 +181,7 @@ export async function getEmployerOpportunities(employerId) {
 }
 
 /**
- * Close (soft-delete) an opportunity rather than hard-deleting it, so
+ * close an opportunity rather than hard-deleting it, so
  * existing applications keep their reference intact.
  */
 export async function closeOpportunity(opportunityId) {
@@ -192,7 +189,131 @@ export async function closeOpportunity(opportunityId) {
 }
 
 /**
- * Recent applications across all of this employer's job postings, with the
+ *  applicants for a single job posting, ordered by match score (best fit
+ * first), enriched with the student's profile details so the employer can
+ * review without leaving the page. applications.student_id embeds "users"
+ * directly (FK), but student_profiles has no FK from applications, so its
+ * data (skills, summary, etc.) is fetched separately and merged in - same
+ */
+export async function getApplicantsForOpportunity(opportunityId) {
+  try {
+    const { data: applications, error } = await supabase
+      .from("applications")
+      .select("*, student:student_id(full_name, email)")
+      .eq("opportunity_id", opportunityId)
+      .order("match_score", { ascending: false });
+
+    if (error) throw error;
+
+    const studentIds = applications.map((a) => a.student_id);
+    let profilesById = {};
+
+    if (studentIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from("student_profiles")
+        .select(
+          "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, cv_url, linkedin_url, github_url, portfolio_url",
+        )
+        .in("id", studentIds);
+
+      if (profileError) throw profileError;
+      profilesById = Object.fromEntries(profiles.map((p) => [p.id, p]));
+    }
+
+    const applicants = applications.map((a) => ({
+      ...a,
+      profile: profilesById[a.student_id] ?? null,
+    }));
+
+    return { success: true, applicants };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateApplicationStatus(applicationId, status, feedback = null) {
+  try {
+    const updatePayload = { status };
+    if (status === "rejected" && feedback) {
+      updatePayload.rejection_feedback = feedback;
+    }
+
+    const { data, error } = await supabase
+      .from("applications")
+      .update(updatePayload)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, application: data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+
+export async function generateRejectionFeedback(applicationId) {
+  try {
+    const { data, error } = await supabase.functions.invoke("generate-rejection-feedback", {
+      body: { applicationId },
+    });
+
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || "Couldn't generate feedback");
+
+    return { success: true, feedback: data.feedback };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * checkk student candidates for the "Candidates" tab. Fetches completed
+ * profiles and merges in full_name/email from `users` (student_profiles has
+ * no direct name/email columns of its own). Filtering is done client-side
+
+ *
+ */
+export async function getCandidates() {
+  try {
+    const { data: profiles, error } = await supabase
+      .from("student_profiles")
+      .select(
+        "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, ai_processing_status, cv_url",
+      )
+      .eq("profile_completed", true)
+      .order("graduation_year", { ascending: false });
+
+    if (error) throw error;
+
+    const studentIds = profiles.map((p) => p.id);
+    let usersById = {};
+
+    if (studentIds.length > 0) {
+      const { data: users, error: userError } = await supabase
+        .from("users")
+        .select("id, full_name, email")
+        .in("id", studentIds);
+
+      if (userError) throw userError;
+      usersById = Object.fromEntries(users.map((u) => [u.id, u]));
+    }
+
+    const candidates = profiles.map((p) => ({
+      ...p,
+      full_name: usersById[p.id]?.full_name ?? "Student",
+      email: usersById[p.id]?.email ?? null,
+    }));
+
+    return { success: true, candidates };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * recent applications across all of this employer's job postings, with the
  * real applicant name, job title, and match score computed at apply-time.
  */
 export async function getRecentApplicationsForEmployer(employerId, limit = 5) {

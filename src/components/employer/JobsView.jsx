@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { getEmployerOpportunities, closeOpportunity } from "../../services/employerService";
 import JobPostingForm from "./JobPostingForm.jsx";
+import ApplicantsModal from "./ApplicantsModal.jsx";
 
 import "./JobsView.css";
 
-import { Plus, Pencil, XCircle, Briefcase } from "lucide-react";
+import { Plus, Pencil, XCircle, Briefcase, Users } from "lucide-react";
 
 const STATUS_LABELS = {
   active: { label: "Active", color: "#16a34a", bg: "#f0fdf4" },
@@ -23,6 +24,7 @@ export default function JobsView({ employerId }) {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [viewingJob, setViewingJob] = useState(null);
 
   const loadJobs = useCallback(async () => {
     setLoading(true);
@@ -107,7 +109,16 @@ export default function JobsView({ employerId }) {
               <div key={job.id} className="jv-table-row">
                 <span className="jv-table-cell jv-table-cell--title">{job.title}</span>
                 <span className="jv-table-cell">{job.job_type}</span>
-                <span className="jv-table-cell">{job.applicationCount}</span>
+                <span className="jv-table-cell">
+                  <button
+                    type="button"
+                    className="jv-applicants-link"
+                    onClick={() => setViewingJob(job)}
+                    disabled={job.applicationCount === 0}
+                  >
+                    {job.applicationCount}
+                  </button>
+                </span>
                 <span className="jv-table-cell jv-table-cell--muted">
                   {remaining === null ? "No deadline" : remaining >= 0 ? `${remaining} days` : "Expired"}
                 </span>
@@ -118,6 +129,13 @@ export default function JobsView({ employerId }) {
                   {status.label}
                 </span>
                 <div className="jv-row-actions">
+                  <button
+                    className="jv-icon-btn"
+                    title="View applicants"
+                    onClick={() => setViewingJob(job)}
+                  >
+                    <Users size={14} />
+                  </button>
                   <button
                     className="jv-icon-btn"
                     title="Edit"
@@ -150,6 +168,14 @@ export default function JobsView({ employerId }) {
             setEditingJob(null);
           }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {viewingJob && (
+        <ApplicantsModal
+          opportunityId={viewingJob.id}
+          jobTitle={viewingJob.title}
+          onClose={() => setViewingJob(null)}
         />
       )}
     </div>

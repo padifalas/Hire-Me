@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "../../contexts/authContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import { getStudentProfile } from "../../services/documentService";
+import {
+  getActiveOpportunities,
+  getStudentApplicationsWithDetails,
+  computeMatchScore,
+  APPLICATION_STATUS_LABELS,
+} from "../../services/opportunityService";
 
 import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 import ProfileView from "./ProfileView.jsx";
 import OpportunitiesView from "./OpportunitiesView.jsx";
-
-import TakealotLogo from "../../assets/TakealotLogo.png";
-import VodacomLogo from "../../assets/VodacomLogo.png";
-import BBDLogo from "../../assets/BBDLogo.png";
-import DeloitteLogo from "../../assets/DeloitteLogo.png";
-import BitLogo from "../../assets/24bitLogo.png";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import {
@@ -27,7 +28,7 @@ import {
   Search,
   Upload,
   MapPin,
-  Filter,
+  Building2,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -38,137 +39,16 @@ const NAV_ITEMS = [
   { icon: Bell, label: "Notifications", id: "notifications" },
 ];
 
-const TOP_MATCHES = [
-  {
-    id: 1,
-    company: "Takealot",
-    logoSrc: TakealotLogo,
-    role: "Junior Frontend Developer",
-    location: "Cape Town",
-    match: 85,
-    tags: ["React", "JavaScript", "CSS"],
-    matchColor: "#16A34A",
-  },
-  {
-    id: 2,
-    company: "Vodacom",
-    logoSrc: VodacomLogo,
-    role: "Graduate Software Engineer",
-    location: "Durban",
-    match: 70,
-    tags: ["Java", "C#", "SQL"],
-    matchColor: "#DC8F00",
-  },
-  {
-    id: 3,
-    company: "BBD",
-    logoSrc: BBDLogo,
-    role: "Graduate Software Engineer",
-    location: "Johannesburg",
-    match: 80,
-    tags: ["React", "JavaScript", "CSS"],
-    matchColor: "#16A34A",
-  },
-];
-
-const APPLICATIONS = [
-  {
-    id: 1,
-    role: "Junior Frontend Developer",
-    company: "Takealot",
-    logoSrc: TakealotLogo,
-    days: "2 days ago",
-    status: "Interview Requested",
-    statusColor: "#DC8F00",
-    statusBg: "#E0F0FF",
-  },
-
-  {
-    id: 2,
-    role: "Graduate Software Engineer",
-    company: "BBD",
-    logoSrc: BBDLogo,
-    days: "2 days ago",
-    status: "Under Review",
-    statusColor: "#F97316",
-    statusBg: "#EDE9FE",
-  },
-
-  {
-    id: 3,
-    role: "Data Analyst Intern",
-    company: "Deloitte",
-    logoSrc: DeloitteLogo,
-    days: "7 days ago",
-    status: "Rejected",
-    statusColor: "#C1121F",
-  },
-];
-
-const APP_TABS = ["All", "Submitted", "Under Review", "Interview", "Rejected"];
-const TAB_COUNTS = {
-  All: null,
-  Submitted: 2,
-  "Under Review": 3,
-  Interview: 1,
-  Rejected: 3,
-};
-
-const APP_NOTIFICATIONS = [
-  {
-    id: 1,
-    role: "Junior Full-Stack Developer",
-    company: "Takealot",
-    logoSrc: TakealotLogo,
-    days: "2 days ago",
-    status: "Interview Requested",
-    statusColor: "#DC8F00",
-    statusBg: "#E0F0FF",
-  },
-
-  {
-    id: 2,
-    role: "Graduate Software Engineer",
-    company: "BBD",
-    logoSrc: BBDLogo,
-    days: "2 days ago",
-    status: "Under Review",
-    statusColor: "#F97316",
-    statusBg: "#ede9fe",
-  },
-
-  {
-    id: 3,
-    role: "Data Analyst Intern",
-    company: "Deloitte",
-    logoSrc: DeloitteLogo,
-    days: "7 days ago",
-    status: "Rejected",
-    statusColor: "#C1121F",
-    statusBg: "#fee2e2",
-    aiFeedback:
-      "You were in the bottom 30% of applicants. Here are a few suggestions to improve your CV for your next application.",
-    aiAction: "3 Free Courses for Data Analysis",
-  },
-
-  {
-    id: 4,
-    role: "Graduate Game Developer",
-    company: "24Bit Games",
-    logoSrc: BitLogo,
-    days: "9 days ago",
-    status: "Under Review",
-    statusColor: "#DC8F00",
-    statusBg: "#ede9fe",
-  },
-];
-
-/* Small components that will be referenced throughout the student dashboard page */
+/* Small components used throughout the student dashboard page */
 
 function CompanyLogo({ src, company, size = 32 }) {
   return (
     <div className="sd-company-logo" style={{ width: size, height: size }}>
-      <img src={src} alt={`${company} logo`} className="sd-company-logo__img" />
+      {src ? (
+        <img src={src} alt={`${company} logo`} className="sd-company-logo__img" />
+      ) : (
+        <Building2 size={Math.round(size * 0.5)} color="#94a3b8" />
+      )}
     </div>
   );
 }
@@ -200,82 +80,126 @@ function Tag({ label }) {
   return <span className="sd-tag">{label}</span>;
 }
 
-/* Job Card */
 
-function JobCard({ job }) {
-  const [applied, setApplied] = useState(false);
+function renderFeedbackText(text) {
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = linkPattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <a key={key++} href={match[2]} target="_blank" rel="noreferrer" className="sd-feedback-link">
+        {match[1]}
+      </a>,
+    );
+    lastIndex = linkPattern.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
+
+function matchColor(score) {
+  if (score >= 75) return "#16A34A";
+  if (score >= 50) return "#DC8F00";
+  return "#DC2626";
+}
+
+function computeProfileStrength(profile) {
+  if (!profile) return 0;
+  const checks = [
+    Boolean(profile.university),
+    Boolean(profile.degree_program),
+    Boolean(profile.location),
+    Boolean(profile.phone),
+    Boolean(profile.cv_url),
+    Boolean(profile.transcript_url),
+    Boolean(profile.linkedin_url || profile.github_url || profile.portfolio_url),
+    profile.ai_processing_status === "completed",
+  ];
+  const filled = checks.filter(Boolean).length;
+  return Math.round((filled / checks.length) * 100);
+}
+
+/* job Card - real opportunity + computed match score */
+
+function JobCard({ opportunity, score, onNavigate }) {
+  const company = opportunity.employer?.company_name ?? "Company";
   return (
     <div className="sd-job-card">
       <div className="sd-job-card__top">
-        <CompanyLogo src={job.logoSrc} company={job.company} size={34} />
-        <MatchBadge match={job.match} color={job.matchColor} />
+        <CompanyLogo src={opportunity.employer?.logo_url} company={company} size={34} />
+        <MatchBadge match={score} color={matchColor(score)} />
       </div>
       <div>
-        <div className="sd-job-card__role">{job.role}</div>
-        <div className="sd-job-card__company">{job.company}</div>
+        <div className="sd-job-card__role">{opportunity.title}</div>
+        <div className="sd-job-card__company">{company}</div>
       </div>
       <div className="sd-job-card__location">
         <MapPin size={11} />
-        {job.location}
+        {opportunity.location}
       </div>
       <div className="sd-job-card__tags">
-        {job.tags.map((t) => (
+        {(opportunity.required_skills || []).slice(0, 3).map((t) => (
           <Tag key={t} label={t} />
         ))}
       </div>
-      <button
-        className={`sd-apply-btn${applied ? " sd-apply-btn--applied" : ""}`}
-        onClick={() => setApplied(true)}
-      >
-        {applied ? "Applied ✓" : "Apply now"}
+      <button className="sd-apply-btn" onClick={() => onNavigate("opportunities")}>
+        View &amp; apply →
       </button>
     </div>
   );
 }
 
-/* App Row */
+/* real application + opportunity/employer details */
 
 function AppRow({ app, showFeedback = false }) {
+  const statusMeta = APPLICATION_STATUS_LABELS[app.status] ?? APPLICATION_STATUS_LABELS.submitted;
+  const company = app.employer?.company_name ?? "Company";
+  const role = app.opportunities?.title ?? "Opportunity";
+
   return (
     <div className="sd-app-row">
       <div className="sd-app-row__grid">
         <div className="sd-app-row__title-cell">
-          <CompanyLogo src={app.logoSrc} company={app.company} size={28} />
-          <span className="sd-app-row__role">{app.role}</span>
+          <CompanyLogo src={app.employer?.logo_url} company={company} size={28} />
+          <span className="sd-app-row__role">{role}</span>
         </div>
         <div className="sd-app-row__company-cell">
-          <CompanyLogo src={app.logoSrc} company={app.company} size={20} />
-          <span className="sd-app-row__company-name">{app.company}</span>
+          <CompanyLogo src={app.employer?.logo_url} company={company} size={20} />
+          <span className="sd-app-row__company-name">{company}</span>
         </div>
-        <div className="sd-app-row__date">{app.days}</div>
-        <StatusBadge
-          status={app.status}
-          color={app.statusColor}
-          bg={app.statusBg}
-        />
+        <div className="sd-app-row__date">
+          {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : "-"}
+        </div>
+        <StatusBadge status={statusMeta.label} color={statusMeta.color} bg={statusMeta.bg} />
       </div>
 
-      {showFeedback && app.aiFeedback && (
+      {showFeedback && app.status === "rejected" && app.rejection_feedback && (
         <div className="sd-ai-feedback">
           <div className="sd-ai-feedback__inner">
             <span className="sd-ai-feedback__icon">✦</span>
             <div>
-              <div className="sd-ai-feedback__title">
-                AI Feedback – {app.aiFeedback.split(".")[0]}.
-              </div>
-              <div className="sd-ai-feedback__body">
-                {app.aiFeedback.split(". ").slice(1).join(". ")}
+              <div className="sd-ai-feedback__title">Feedback from the employer</div>
+              <div className="sd-ai-feedback__body sd-ai-feedback__body--wrap">
+                {renderFeedbackText(app.rejection_feedback)}
               </div>
             </div>
           </div>
-          <button className="sd-ai-feedback__action">{app.aiAction} →</button>
         </div>
       )}
     </div>
   );
 }
 
-/*Table header */
+/*table header */
 
 function TableHeader() {
   return (
@@ -289,52 +213,107 @@ function TableHeader() {
   );
 }
 
-/* Dashboard view */
+/* dash view */
 
-function DashboardView({ studentName }) {
-  const firstName = (studentName ?? "there").split("")[0];
+function DashboardView({ studentName, user, onNavigate }) {
+  const firstName = (studentName ?? "there").split(" ")[0];
+
+  const [profile, setProfile] = useState(null);
+  const [topMatches, setTopMatches] = useState([]);
+  const [strongMatchCount, setStrongMatchCount] = useState(0);
+  const [recentApps, setRecentApps] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setLoading(true);
+
+      const [profileResult, oppResult, appsResult] = await Promise.all([
+        getStudentProfile(user.id),
+        getActiveOpportunities({}),
+        getStudentApplicationsWithDetails(user.id),
+      ]);
+
+      if (profileResult.success) setProfile(profileResult.profile);
+
+      if (oppResult.success) {
+        const skills = profileResult.success ? profileResult.profile.extracted_technical_skills || [] : [];
+        const scored = oppResult.opportunities
+          .map((o) => ({ opportunity: o, ...computeMatchScore(skills, o) }))
+          .sort((a, b) => b.score - a.score);
+        setTopMatches(scored.slice(0, 3));
+        setStrongMatchCount(scored.filter((m) => m.score >= 60).length);
+      }
+
+      if (appsResult.success) setRecentApps(appsResult.applications.slice(0, 5));
+
+      setLoading(false);
+    })();
+  }, [user]);
+
+  const profileStrength = computeProfileStrength(profile);
+
   return (
     <div className="sd-dashboard">
       <div>
-        <h1 className="sd-greeting__title">Good morning, {firstName}</h1>
+        <h1 className="sd-greeting__title">Good day, {firstName}</h1>
         <p className="sd-greeting__sub">
-          5 new opportunities match your profile this week
+          {loading
+            ? "Loading your matches..."
+            : strongMatchCount > 0
+              ? `${strongMatchCount} strong-match opportunit${strongMatchCount === 1 ? "y" : "ies"} available right now`
+              : "No strong matches yet - check Opportunities for the full list"}
         </p>
       </div>
 
       <div className="sd-card">
         <div className="sd-profile-strength__header">
           <span className="sd-profile-strength__label">
-            Profile Strength —{" "}
-            <span className="sd-profile-strength__pct">72%</span>
+            Profile Strength - <span className="sd-profile-strength__pct">{profileStrength}%</span>
           </span>
-          <button className="sd-upload-btn">
-            <Upload size={13} /> Upload transcript
+          <button className="sd-upload-btn" onClick={() => onNavigate("profile")}>
+            <Upload size={13} /> Complete profile
           </button>
         </div>
         <div className="sd-profile-strength__bar-track">
-          <div className="sd-profile-strength__bar-fill" />
+          <div className="sd-profile-strength__bar-fill" style={{ width: `${profileStrength}%` }} />
         </div>
         <p className="sd-profile-strength__hint">
-          Upload your transcript to improve your profile strength to 90%+
+          {profileStrength >= 90
+            ? "Your profile is in great shape."
+            : "Fill in more details and upload your documents to improve match quality."}
         </p>
       </div>
 
       <div>
         <div className="sd-section-header">
           <h2 className="sd-section-header__title">Top matches for you</h2>
-          <button className="sd-link-btn">View all 12 →</button>
+          <button className="sd-link-btn" onClick={() => onNavigate("opportunities")}>
+            View all →
+          </button>
         </div>
+
+        {loading && <p className="sd-empty__label">Loading...</p>}
+        {!loading && topMatches.length === 0 && (
+          <p className="sd-empty__label">No active opportunities yet - check back soon.</p>
+        )}
+
         <div className="sd-job-cards">
-          {TOP_MATCHES.map((job) => (
-            <JobCard key={`${job.id}-${job.company}`} job={job} />
+          {topMatches.map((m) => (
+            <JobCard key={m.opportunity.id} opportunity={m.opportunity} score={m.score} onNavigate={onNavigate} />
           ))}
         </div>
       </div>
 
       <div className="sd-card">
         <TableHeader />
-        {APPLICATIONS.map((app) => (
+        {!loading && recentApps.length === 0 && (
+          <p className="sd-empty__label" style={{ padding: "16px 4px" }}>
+            You haven't applied anywhere yet.
+          </p>
+        )}
+        {recentApps.map((app) => (
           <AppRow key={app.id} app={app} />
         ))}
       </div>
@@ -342,46 +321,74 @@ function DashboardView({ studentName }) {
   );
 }
 
-/* Applications view */
+/* applications  */
 
-function ApplicationsView() {
+function ApplicationsView({ user }) {
   const [activeTab, setActiveTab] = useState("All");
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setLoading(true);
+      const result = await getStudentApplicationsWithDetails(user.id);
+      if (result.success) setApplications(result.applications);
+      setLoading(false);
+    })();
+  }, [user]);
+
+  const tabCounts = useMemo(() => {
+    const counts = {};
+    for (const app of applications) {
+      counts[app.status] = (counts[app.status] || 0) + 1;
+    }
+    return counts;
+  }, [applications]);
+
+  const tabs = ["All", ...Object.keys(APPLICATION_STATUS_LABELS)];
+  const filtered = activeTab === "All" ? applications : applications.filter((a) => a.status === activeTab);
 
   return (
     <div className="sd-applications">
       <div>
         <h1 className="sd-applications__title">My Applications</h1>
         <p className="sd-applications__sub">
-          You have a total of 12 applications
+          {loading
+            ? "Loading..."
+            : `You have a total of ${applications.length} application${applications.length === 1 ? "" : "s"}`}
         </p>
       </div>
 
       <div className="sd-card">
         <div className="sd-notif-header">
-          <h3 className="sd-notif-header__title">Notifications</h3>
-          <button className="sd-link-btn">Mark all as read</button>
+          <h3 className="sd-notif-header__title">Applications</h3>
         </div>
 
         <div className="sd-tabs">
-          {APP_TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`sd-tab${tab === activeTab ? " sd-tab--active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-              {TAB_COUNTS[tab] && (
-                <span className="sd-tab__count">{TAB_COUNTS[tab]}</span>
-              )}
-            </button>
-          ))}
-          <button className="sd-filter-btn">
-            <Filter size={13} /> Filter
-          </button>
+          {tabs.map((tab) => {
+            const label = tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
+            const count = tab === "All" ? applications.length : tabCounts[tab];
+            return (
+              <button
+                key={tab}
+                className={`sd-tab${tab === activeTab ? " sd-tab--active" : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {label}
+                {Boolean(count) && <span className="sd-tab__count">{count}</span>}
+              </button>
+            );
+          })}
         </div>
 
         <TableHeader />
-        {APP_NOTIFICATIONS.map((app) => (
+        {!loading && filtered.length === 0 && (
+          <p className="sd-empty__label" style={{ padding: "16px 4px" }}>
+            No applications here yet.
+          </p>
+        )}
+        {filtered.map((app) => (
           <AppRow key={app.id} app={app} showFeedback />
         ))}
       </div>
@@ -389,7 +396,7 @@ function ApplicationsView() {
   );
 }
 
-/* Root component */
+
 
 function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -399,15 +406,13 @@ function StudentDashboard() {
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Prevents every child view (ProfileView, OpportunitiesView, etc.) from
-  // ever receiving a null user.id on a hard refresh / session race.
+
   useEffect(() => {
     if (!loading && !user) navigate("/");
   }, [loading, user, navigate]);
 
   if (loading || !user) return null;
 
-  // will get real data f
   const student = {
     name: userProfile?.full_name ?? "Student",
     university: userProfile?.university ?? "University",
@@ -505,16 +510,16 @@ function StudentDashboard() {
 
         <main className="sd-content">
           {activeNav === "dashboard" && (
-            <DashboardView studentName={student.name} />
+            <DashboardView studentName={student.name} user={user} onNavigate={setActiveNav} />
           )}
-          {activeNav === "applications" && <ApplicationsView />}
+          {activeNav === "applications" && <ApplicationsView user={user} />}
           {activeNav === "profile" && <ProfileView user={user} />}
           {activeNav === "opportunities" && <OpportunitiesView user={user} />}
           {!["dashboard", "applications", "profile", "opportunities"].includes(activeNav) && (
             <div className="sd-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="sd-empty__label">
-                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} — coming soon
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming soon
               </p>
             </div>
           )}

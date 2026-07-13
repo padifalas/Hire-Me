@@ -12,8 +12,7 @@ const JOB_TYPES = [
   { value: "contract", label: "Contract" },
 ];
 
-// Kept intentionally simple per MVP scope — a preference flag, not a
-// demographic-filtering/compliance engine.
+
 const BEE_OPTIONS = [
   { value: "", label: "No preference stated" },
   { value: "preferred", label: "BEE candidates preferred" },

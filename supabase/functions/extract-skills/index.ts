@@ -6,8 +6,8 @@
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...  (paid - fuckk)
 //
 //
-// This function receives RAW TEXT already extracted from the CV/transcript in
-// the browser (se documentService.js) — it does not parse PDF/DOCX itself. it calls the configured LLM once to both extract skills AND translate
+//  function receives RAW TEXT already extracted from the CV/transcript in
+// the browser (se documentService.js) - it does not parse PDF/docxx itself. it calls the configured LLM once to both extract skills AND translate
 // academic projects into industry-standard descriptions, then writes the
 // result into student_profiles using the service role key.
 

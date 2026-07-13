@@ -544,6 +544,16 @@
   color: #a16207;
 }
 
+.sd-ai-feedback__body--wrap {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.sd-feedback-link {
+  color: #0077c8;
+  font-weight: 600;
+}
+
 .sd-ai-feedback__action {
   font-size: 11.5px;
   color: #0077c8;

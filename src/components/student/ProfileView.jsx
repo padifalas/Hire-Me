@@ -148,7 +148,7 @@ export default function ProfileView({ user }) {
 
       setAiStep("done");
 
-      // Reload the profile so the results section reflects the new data
+      // fresh the profile so the results section reflects the new dataa
       const refreshed = await getStudentProfile(user.id);
       if (refreshed.success) setProfile(refreshed.profile);
 

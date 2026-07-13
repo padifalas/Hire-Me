@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import { updateEmployerProfile, uploadCompanyLogo } from "../../services/employerService";
 
-import "../student/ProfileSetup.css"; // shares the auth-style page/card layout with the student version
+import "../student/ProfileSetup.css"; // shares the auth-style page/card layout with the student
 
 import { UploadCloud, ImageIcon } from "lucide-react";
 
@@ -92,7 +92,7 @@ export default function EmployerProfileSetup() {
           </span>
           <h1 className="ps-title">Set up your company profile</h1>
           <p className="ps-subtitle">
-            This is what students see when they view your job postings —
+            This is what students see when they view your job postings -
             worth making it count.
           </p>
         </div>
@@ -145,7 +145,7 @@ export default function EmployerProfileSetup() {
                   name="website"
                   value={form.website}
                   onChange={handleChange}
-                  placeholder="https://yourcompany.com"
+                  placeholder="https://company.com"
                 />
               </div>
             </div>

@@ -26,27 +26,12 @@ export const AuthProvider = ({ children }) => {
   const [authTimedOut, setAuthTimedOut] = useState(false);
 
   useEffect(() => {
-    // onAuthStateChange fires once immediately with the current session
-    // (event "INITIAL_SESSION") and then again on every future sign-in/out,
-    // so a single subscription covers both the first load and later changes.
-    // We used to also call supabase.auth.getSession() separately here, which
-    // fired a second, redundant getUserProfile() request on every page load/
-    // refresh and could race with this listener - removed to cut load time.
     let cancelled = false;
 
-    // Safety net: if this never fires (e.g. a stuck token refresh - this can
-    // happen when testing the student and employer flows in two tabs of the
-    // SAME browser, since Supabase stores the session in localStorage keyed
-    // per-origin and broadcasts auth changes across tabs, so one tab signing
-    // in/out can leave another tab's in-flight session check hanging), stop
-    // showing a blank screen after a few seconds instead of hanging forever.
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
         console.warn(
-          "[auth] onAuthStateChange did not resolve within 8s - forcing loading to finish. " +
-            "If you're testing student + employer accounts in two tabs of the same browser, " +
-            "that's the likely cause (shared localStorage session) - use a separate browser " +
-            "profile or an incognito window for the second role instead.",
+          "[auth] onAuthStateChange did not resolve within 8s",
         );
         setAuthTimedOut(true);
         setLoading(false);
@@ -69,7 +54,7 @@ export const AuthProvider = ({ children }) => {
           setUserProfile(null);
         }
       } catch (err) {
-        // Make sure a thrown error here can never leave the app stuck on a
+        //  error hereso app stuck on a
         // blank screen with no clue why.
         console.error("[auth] onAuthStateChange handler threw:", err);
       } finally {
@@ -94,9 +79,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (loading) {
-    // Was previously `null`, which is indistinguishable from a crash if
-    // something hangs - a visible state makes "still loading" vs "actually
-    // broken" obvious at a glance.
+
     return <div style={{ padding: 24, fontFamily: "sans-serif", color: "#64748b" }}>Loading HireMe...</div>;
   }
 
@@ -104,8 +87,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={value}>
       {authTimedOut && (
         <div style={{ background: "#fef2f2", color: "#991b1b", padding: "8px 16px", fontSize: 13, textAlign: "center" }}>
-          Sign-in check timed out. If you have another HireMe tab open with a different account,
-          try closing it or use a separate browser profile — refresh to try again.
+          Sign-in check timed out.  use a separate browser profile/icongito - refresh to try again.
         </div>
       )}
       {children}

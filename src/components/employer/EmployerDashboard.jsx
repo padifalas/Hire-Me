@@ -9,7 +9,10 @@ import "../layout/footer.css";
 import JobsView from "./JobsView.jsx";
 import CompanyProfileView from "./CompanyProfileView.jsx";
 import JobPostingForm from "./JobPostingForm.jsx";
+import ApplicantsModal from "./ApplicantsModal.jsx";
+import CandidatesView from "./CandidatesView.jsx";
 import { getEmployerOpportunities, getRecentApplicationsForEmployer } from "../../services/employerService";
+import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import {
   LayoutDashboard,
@@ -56,7 +59,7 @@ function MatchBadge({ match, color }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {match === null || match === undefined || match === "—" ? "—" : `${match}%`}
+      {match === null || match === undefined || match === "-" ? "-" : `${match}%`}
     </span>
   );
 }
@@ -71,6 +74,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
   const [showPostForm, setShowPostForm] = useState(false);
   const [recentApps, setRecentApps] = useState([]);
   const [loadingApps, setLoadingApps] = useState(true);
+  const [reviewingApp, setReviewingApp] = useState(null);
 
   const loadJobs = useCallback(async () => {
     setLoadingJobs(true);
@@ -157,7 +161,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
 
             {!loadingJobs && activeJobs.length === 0 && (
               <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                No active jobs yet — post your first one above.
+                No active jobs yet - post your first one above.
               </p>
             )}
 
@@ -196,17 +200,19 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                 <div className="ed-applicant-cell">
                   <Avatar initials={initialsFor(app.student?.full_name)} size={28} />
                   <span className="ed-applicant-name">
-                    {app.student?.full_name ?? "Student"} — {app.opportunities?.title ?? "Opportunity"}
+                    {app.student?.full_name ?? "Student"} - {app.opportunities?.title ?? "Opportunity"}
                   </span>
                 </div>
                 <MatchBadge
-                  match={app.match_score ?? "—"}
+                  match={app.match_score ?? "-"}
                   color={matchColor(app.match_score)}
                 />
                 <span className="ed-table-cell ed-table-cell--muted">
                   {new Date(app.applied_at).toLocaleDateString()}
                 </span>
-                <button className="ed-view-btn">View →</button>
+                <button className="ed-view-btn" onClick={() => setReviewingApp(app)}>
+                  Review →
+                </button>
               </div>
             ))}
           </div>
@@ -223,6 +229,15 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           }}
         />
       )}
+
+      {reviewingApp && (
+        <ApplicantsModal
+          opportunityId={reviewingApp.opportunity_id}
+          jobTitle={reviewingApp.opportunities?.title}
+          highlightApplicationId={reviewingApp.id}
+          onClose={() => setReviewingApp(null)}
+        />
+      )}
     </div>
   );
 }
@@ -233,12 +248,13 @@ export default function EmployerDashboard() {
   const [activeNav, setActiveNav]   = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal]   = useState("");
+  const [signingOut, setSigningOut] = useState(false);
 
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Prevents that fucky JobsView/CompanyProfileView/DashboardView from ever receiving
-  // a null employerId on a hard refresh / session race.
+  // prevents that fucky JobsView/CompanyProfileView/DashboardView from ever receiving
+  //  null employerId on a hard refresh
   useEffect(() => {
     if (!loading && !user) navigate("/");
   }, [loading, user, navigate]);
@@ -254,8 +270,18 @@ export default function EmployerDashboard() {
   };
 
   async function handleSignOut() {
-    await signOut();
-    navigate("/");
+    if (signingOut) return; // guard against double-clicks doin signOut 2wice
+    setSigningOut(true);
+    try {
+      const result = await signOut();
+      if (!result.success) {
+        console.error("Sign out failed:", result.error);
+      }
+    } finally {
+      // navigate regardless of whether the Supabase call itself succeeded -
+      // user/session as soon as it fires
+      navigate("/");
+    }
   }
 
   return (
@@ -266,13 +292,7 @@ export default function EmployerDashboard() {
 
         <div className="ed-sidebar__brand">
           <div className="ed-sidebar__brand-inner">
-            <div className="ed-sidebar__logo-mark">H</div>
-            {sidebarOpen && (
-              <div>
-                <div className="ed-sidebar__brand-name">HireMe</div>
-                <div className="ed-sidebar__brand-sub">Graduate Ready</div>
-              </div>
-            )}
+            <img src={HireMeLogo} alt="HireMe logo" className="ed-sidebar__logo-img" />
           </div>
         </div>
 
@@ -306,8 +326,8 @@ export default function EmployerDashboard() {
 
         <div className="ed-sidebar__footer">
           {sidebarOpen && (
-            <button className="ed-signout-btn" onClick={handleSignOut}>
-              Sign out
+            <button className="ed-signout-btn" onClick={handleSignOut} disabled={signingOut}>
+              {signingOut ? "Signing out..." : "Sign out"}
             </button>
           )}
           <button
@@ -346,12 +366,13 @@ export default function EmployerDashboard() {
             />
           )}
           {activeNav === "jobs" && <JobsView employerId={user?.id} />}
+          {activeNav === "candidates" && <CandidatesView />}
           {activeNav === "company-profile" && <CompanyProfileView user={user} />}
-          {!["dashboard", "jobs", "company-profile"].includes(activeNav) && (
+          {!["dashboard", "jobs", "candidates", "company-profile"].includes(activeNav) && (
             <div className="ed-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="ed-empty__label">
-                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} — coming soon
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming soon
               </p>
             </div>
           )}

@@ -1,10 +1,7 @@
-//
-//
-// Handles CV + academic transcript upload (PDF/DOCX), client-side text
+//HANDLED CV + academic transcript upload (PDF/DOCX), client-side text
 // extraction, and triggering the `extract-skills` Edge Function.
-//
-// pdfjs-dist needs its worker configured once — see setupPdfWorker() below,
-// call it once from main.jsx.
+
+
 
 import { supabase } from "../config/supabase";
 import * as pdfjsLib from "pdfjs-dist";
@@ -16,9 +13,7 @@ const ALLOWED_TYPES = [
 ];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-/**
- * Call once wen app starts to point pdf.js at its worker.
- */
+
 export function setupPdfWorker() {
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -36,7 +31,7 @@ function validateFile(file) {
 }
 
 /**
- * extract plain text from a PDF or DOCX File object, entirely client-side.
+ * extract plain text from a PDF or DOCX File object
  * @param {File} file
  * @returns {Promise<string>}
  */
@@ -101,8 +96,7 @@ export async function uploadDocument(file, userId, docType) {
 
     if (uploadError) throw uploadError;
 
-    // buckets are private, so we store the path and generate signed URLs on
-    // demand rather than a public URL.
+    // buckets are private, so we store the path and generate signed URLs on demand rather than a public URL.
     const columnPrefix = docType === "cv" ? "cv" : "transcript";
     const { error: updateError } = await supabase
       .from("student_profiles")
@@ -124,7 +118,7 @@ export async function uploadDocument(file, userId, docType) {
 }
 
 /**
- * get a temporary signed URL to view/download a stored document.
+ *
  * @param {'cv' | 'transcript'} docType
  * @param {string} storagePath - the value stored in cv_url / transcript_url
  */
@@ -140,7 +134,7 @@ export async function getDocumentSignedUrl(docType, storagePath) {
 
 /**
  * trigger the extract-skills Edge Function with the CV/transcript text
- * already extracted client-side. Updates student_profiles server-side.
+ * already extracted client-side.... UPDATES student_profiles server-side.
  *
  * @param {string} studentId
  * @param {string} cvText
@@ -192,16 +186,16 @@ function blobToFileLike(blob, storagePath) {
 
 /**
  * -download again and re-extract text from whatever CV/transcript are already
- * stored for this user (no re-upload needed) — used by the "Run AI Analysis" btn
+ * stored for this user (no re-upload needed) - used by the "Run AI Analysis" btn
  * button on the profile page when the person hasn't picked new files.
  */
 export async function extractTextFromStoredDocument(docType, storagePath) {
   if (!storagePath) {
-    return { success: false, error: `No ${docType} on file yet — upload one first.` };
+    return { success: false, error: `No ${docType} on file yet - upload one first.` };
   }
 
   // Compatibility shim: if this profile still has a full public URL saved
-  // from the old cvService.js flow (before we switched to private buckets),
+  // from the old cvService.js flow
   // storagePath will look like a URL rather than "userId/filename.ext".
   // storage.download() needs just the bucket-relative path.
   let cleanPath = storagePath;
