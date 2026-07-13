@@ -19,22 +19,28 @@ import {
   Plus,
 } from "lucide-react";
 
-
-
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Dashboard",       id: "dashboard"       },
-  { icon: Briefcase,       label: "My Jobs",         id: "jobs"            },
-  { icon: Users,           label: "Candidates",      id: "candidates"      },
-  { icon: BarChart2,       label: "Analytics",       id: "analytics"       },
-  { icon: Building2,       label: "Company Profile", id: "company-profile" },
+  { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+  { icon: Briefcase, label: "My Jobs", id: "jobs" },
+  { icon: Users, label: "Candidates", id: "candidates" },
+  { icon: BarChart2, label: "Analytics", id: "analytics" },
+  { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
 
-
-
 const ACTIVE_JOBS = [
-  { id: 1, title: "Junior Full-Stack Developer",  applications: 18, daysRemaining: 14 },
-  { id: 2, title: "Marketing Coordinator",        applications: 11, daysRemaining: 14 },
-  { id: 3, title: "Data Analyst Intern",          applications: 8,  daysRemaining: 14 },
+  {
+    id: 1,
+    title: "Junior Full-Stack Developer",
+    applications: 18,
+    daysRemaining: 14,
+  },
+  {
+    id: 2,
+    title: "Marketing Coordinator",
+    applications: 11,
+    daysRemaining: 14,
+  },
+  { id: 3, title: "Data Analyst Intern", applications: 8, daysRemaining: 14 },
 ];
 
 const RECENT_APPLICATIONS = [
@@ -67,8 +73,6 @@ const RECENT_APPLICATIONS = [
   },
 ];
 
-
-
 function Avatar({ initials, size = 32 }) {
   return (
     <div
@@ -95,16 +99,11 @@ function MatchBadge({ match, color }) {
   );
 }
 
-
-
-
 function DashboardView({ employerName }) {
   const firstName = (employerName ?? "there").split(" ")[0];
 
   return (
     <div className="ed-dashboard">
-
-
       <div className="ed-welcome-row">
         <div>
           <h1 className="ed-greeting__title">Welcome, {firstName}</h1>
@@ -130,7 +129,6 @@ function DashboardView({ employerName }) {
 
       <div className="ed-main-grid">
         <div className="ed-left-col">
-
           {/* Active jobs */}
           <div className="ed-card">
             <div className="ed-card__header">
@@ -139,9 +137,13 @@ function DashboardView({ employerName }) {
             </div>
 
             <div className="ed-table-header">
-              {["Job Title", "Applications", "Days Remaining", "View"].map((h) => (
-                <span key={h} className="ed-table-th">{h}</span>
-              ))}
+              {["Job Title", "Applications", "Days Remaining", "View"].map(
+                (h) => (
+                  <span key={h} className="ed-table-th">
+                    {h}
+                  </span>
+                ),
+              )}
             </div>
 
             {ACTIVE_JOBS.map((job) => (
@@ -162,7 +164,9 @@ function DashboardView({ employerName }) {
 
             <div className="ed-table-header ed-table-header--apps">
               {["Applicant", "Match Score", "Date", "Review"].map((h) => (
-                <span key={h} className="ed-table-th">{h}</span>
+                <span key={h} className="ed-table-th">
+                  {h}
+                </span>
               ))}
             </div>
 
@@ -173,7 +177,9 @@ function DashboardView({ employerName }) {
                   <span className="ed-applicant-name">{app.role}</span>
                 </div>
                 <MatchBadge match={app.match} color={app.matchColor} />
-                <span className="ed-table-cell ed-table-cell--muted">{app.date}</span>
+                <span className="ed-table-cell ed-table-cell--muted">
+                  {app.date}
+                </span>
                 <button className="ed-view-btn">View →</button>
               </div>
             ))}
@@ -184,21 +190,24 @@ function DashboardView({ employerName }) {
   );
 }
 
-
-
 export default function EmployerDashboard() {
-  const [activeNav, setActiveNav]   = useState("dashboard");
+  const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchVal, setSearchVal]   = useState("");
+  const [searchVal, setSearchVal] = useState("");
 
   const { userProfile } = useAuth();
   const navigate = useNavigate();
 
   const employer = {
-    name:    userProfile?.full_name    ?? "Employer",
+    name: userProfile?.full_name ?? "Employer",
     company: userProfile?.company_name ?? "Software Company",
     initials: userProfile?.full_name
-      ? userProfile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      ? userProfile.full_name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
       : "E",
   };
 
@@ -209,19 +218,16 @@ export default function EmployerDashboard() {
 
   return (
     <div className="ed-root">
-
-
-      <aside className={`ed-sidebar${sidebarOpen ? "" : " ed-sidebar--collapsed"}`}>
-
+      <aside
+        className={`ed-sidebar${sidebarOpen ? "" : " ed-sidebar--collapsed"}`}
+      >
         <div className="ed-sidebar__brand">
           <div className="ed-sidebar__brand-inner">
-            <div className="ed-sidebar__logo-mark">H</div>
-            {sidebarOpen && (
-              <div>
-                <div className="ed-sidebar__brand-name">HireMe</div>
-                <div className="ed-sidebar__brand-sub">Graduate Ready</div>
-              </div>
-            )}
+            <img
+              src={HireMeLogo}
+              alt="HireMe Logo"
+              className="ed-sidebar__logo"
+            />
           </div>
         </div>
 
@@ -268,7 +274,6 @@ export default function EmployerDashboard() {
         </div>
       </aside>
 
-   
       <div className="ed-main">
         <header className="ed-header">
           <div className="ed-search">
