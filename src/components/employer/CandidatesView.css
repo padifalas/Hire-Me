@@ -141,12 +141,15 @@
 }
 
 .cd-chip {
-  background: #f1f5f9;
-  color: #475569;
   font-size: 11px;
   padding: 3px 9px;
   border-radius: 20px;
   font-weight: 500;
+}
+
+.cd-chip--technical {
+  background: color-mix(in srgb, var(--color-skill-technical) 15%, #ffffff);
+  color: var(--color-skill-technical);
 }
 
 .cd-chip--muted {

@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { createOpportunity, updateOpportunity } from "../../services/employerService";
+import {
+  createOpportunity,
+  updateOpportunity,
+} from "../../services/employerService";
 
 import "./JobPostingForm.css";
 
@@ -12,14 +15,19 @@ const JOB_TYPES = [
   { value: "contract", label: "Contract" },
 ];
 
-
 const BEE_OPTIONS = [
   { value: "", label: "No preference stated" },
   { value: "preferred", label: "BEE candidates preferred" },
   { value: "required", label: "BEE compliance required for this role" },
 ];
 
-function TagInput({ label, tags, onChange, placeholder }) {
+function TagInput({
+  label,
+  tags,
+  onChange,
+  placeholder,
+  variant = "required",
+}) {
   const [draft, setDraft] = useState("");
 
   function addTag() {
@@ -46,7 +54,7 @@ function TagInput({ label, tags, onChange, placeholder }) {
       <label>{label}</label>
       <div className="jpf-tag-input">
         {tags.map((tag) => (
-          <span key={tag} className="jpf-tag">
+          <span key={tag} className={`jpf-tag jpf-tag--${variant}`}>
             {tag}
             <button type="button" onClick={() => removeTag(tag)}>
               <X size={11} />
@@ -65,7 +73,12 @@ function TagInput({ label, tags, onChange, placeholder }) {
   );
 }
 
-export default function JobPostingForm({ employerId, existingJob, onClose, onSaved }) {
+export default function JobPostingForm({
+  employerId,
+  existingJob,
+  onClose,
+  onSaved,
+}) {
   const isEditing = Boolean(existingJob);
 
   const [form, setForm] = useState({
@@ -97,7 +110,11 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
     if (form.requiredSkills.length === 0) {
       return "Add at least one required skill so we can match candidates.";
     }
-    if (form.salaryMin && form.salaryMax && Number(form.salaryMin) > Number(form.salaryMax)) {
+    if (
+      form.salaryMin &&
+      form.salaryMax &&
+      Number(form.salaryMin) > Number(form.salaryMax)
+    ) {
       return "Minimum salary can't be higher than maximum salary.";
     }
     return null;
@@ -172,6 +189,7 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
             tags={form.requiredSkills}
             onChange={(tags) => setForm({ ...form, requiredSkills: tags })}
             placeholder="Type a skill and press Enter (e.g. React)"
+            variant="required"
           />
 
           <TagInput
@@ -179,6 +197,7 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
             tags={form.niceToHaveSkills}
             onChange={(tags) => setForm({ ...form, niceToHaveSkills: tags })}
             placeholder="Type a skill and press Enter"
+            variant="nice"
           />
 
           <div className="jpf-grid">
@@ -193,9 +212,15 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
             </div>
             <div className="jpf-field">
               <label>Job type</label>
-              <select name="jobType" value={form.jobType} onChange={handleChange}>
+              <select
+                name="jobType"
+                value={form.jobType}
+                onChange={handleChange}
+              >
                 {JOB_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -232,9 +257,15 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
             </div>
             <div className="jpf-field">
               <label>BEE preference</label>
-              <select name="beePreference" value={form.beePreference} onChange={handleChange}>
+              <select
+                name="beePreference"
+                value={form.beePreference}
+                onChange={handleChange}
+              >
                 {BEE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -256,9 +287,17 @@ export default function JobPostingForm({ employerId, existingJob, onClose, onSav
             <button type="button" className="jpf-cancel-btn" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="jpf-submit-btn" disabled={submitting}>
+            <button
+              type="submit"
+              className="jpf-submit-btn"
+              disabled={submitting}
+            >
               <Plus size={15} />
-              {submitting ? "Saving..." : isEditing ? "Save changes" : "Post job"}
+              {submitting
+                ? "Saving..."
+                : isEditing
+                  ? "Save changes"
+                  : "Post job"}
             </button>
           </div>
         </form>

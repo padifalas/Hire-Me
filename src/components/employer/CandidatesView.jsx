@@ -4,10 +4,17 @@ import { getDocumentSignedUrl } from "../../services/documentService";
 
 import "./CandidatesView.css";
 
-import { Search, GraduationCap, MapPin, Sparkles, FileDown, Users } from "lucide-react";
+import {
+  Search,
+  GraduationCap,
+  MapPin,
+  Sparkles,
+  FileDown,
+  Users,
+} from "lucide-react";
 
 function skillLabel(s) {
-  return typeof s === "string" ? s : s?.skill ?? "";
+  return typeof s === "string" ? s : (s?.skill ?? "");
 }
 
 function CandidateCard({ candidate }) {
@@ -15,7 +22,12 @@ function CandidateCard({ candidate }) {
   const [cvError, setCvError] = useState(null);
 
   const initials = candidate.full_name
-    ? candidate.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? candidate.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "S";
 
   const skills = candidate.extracted_technical_skills || [];
@@ -29,8 +41,10 @@ function CandidateCard({ candidate }) {
       window.open(result.url, "_blank", "noopener,noreferrer");
     } else {
       // CVs are only readable for students who've applied to one of ur company of
-      // jobs 
-      setCvError("This candidate's CV is only viewable once they've applied to one of your job postings.");
+      // jobs
+      setCvError(
+        "This candidate's CV is only viewable once they've applied to one of your job postings.",
+      );
     }
   }
 
@@ -42,7 +56,9 @@ function CandidateCard({ candidate }) {
           <div className="cd-card__name">{candidate.full_name}</div>
           <div className="cd-card__meta">
             <GraduationCap size={12} /> {candidate.degree_program || "-"}
-            {candidate.graduation_year ? ` · Class of ${candidate.graduation_year}` : ""}
+            {candidate.graduation_year
+              ? ` · Class of ${candidate.graduation_year}`
+              : ""}
           </div>
           {candidate.location && (
             <div className="cd-card__meta">
@@ -58,22 +74,32 @@ function CandidateCard({ candidate }) {
       </div>
 
       {candidate.professional_summary && (
-        <p className={`cd-summary${expanded ? "" : " cd-summary--clamped"}`}>{candidate.professional_summary}</p>
+        <p className={`cd-summary${expanded ? "" : " cd-summary--clamped"}`}>
+          {candidate.professional_summary}
+        </p>
       )}
 
       {skills.length > 0 && (
         <div className="cd-chip-row">
           {(expanded ? skills : skills.slice(0, 6)).map((s, i) => (
-            <span key={i} className="cd-chip">
+            <span key={i} className="cd-chip cd-chip--technical">
               {skillLabel(s)}
             </span>
           ))}
-          {!expanded && skills.length > 6 && <span className="cd-chip cd-chip--muted">+{skills.length - 6} more</span>}
+          {!expanded && skills.length > 6 && (
+            <span className="cd-chip cd-chip--muted">
+              +{skills.length - 6} more
+            </span>
+          )}
         </div>
       )}
 
       <div className="cd-card__actions">
-        <button type="button" className="cd-link-btn" onClick={() => setExpanded((e) => !e)}>
+        <button
+          type="button"
+          className="cd-link-btn"
+          onClick={() => setExpanded((e) => !e)}
+        >
           {expanded ? "Show less" : "View more"}
         </button>
         {candidate.cv_url && (
@@ -107,7 +133,10 @@ export default function CandidatesView() {
     const q = search.trim().toLowerCase();
     if (!q) return candidates;
     return candidates.filter((c) => {
-      const skills = (c.extracted_technical_skills || []).map(skillLabel).join(" ").toLowerCase();
+      const skills = (c.extracted_technical_skills || [])
+        .map(skillLabel)
+        .join(" ")
+        .toLowerCase();
       return (
         c.full_name?.toLowerCase().includes(q) ||
         c.university?.toLowerCase().includes(q) ||
@@ -123,7 +152,9 @@ export default function CandidatesView() {
       <div className="cd-header">
         <h1 className="cd-title">Candidates</h1>
         <p className="cd-subtitle">
-          {loading ? "Loading..." : `${filtered.length} candidate${filtered.length === 1 ? "" : "s"} with a completed profile`}
+          {loading
+            ? "Loading..."
+            : `${filtered.length} candidate${filtered.length === 1 ? "" : "s"} with a completed profile`}
         </p>
       </div>
 
