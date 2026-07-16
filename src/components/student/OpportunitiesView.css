@@ -1,17 +1,3 @@
-:root {
-  --color-skill-matched: #16a34a;
-  --color-skill-matched-bg: #f0fdf4;
-  --color-skill-matched-border: #bbf7d0;
-
-  --color-skill-missing: #dc2626;
-  --color-skill-missing-bg: #fef2f2;
-  --color-skill-missing-border: #fecaca;
-
-  --color-skill-nice: #7c3aed;
-  --color-skill-nice-bg: #f5f3ff;
-  --color-skill-nice-border: #ddd6fe;
-}
-
 .ov-root {
   display: flex;
   flex-direction: column;
@@ -294,21 +280,21 @@
 }
 
 .ov-skill-chip--matched {
-  background: var(--color-skill-matched-bg);
+  background: color-mix(in srgb, var(--color-skill-matched) 15%, #ffffff);
   color: var(--color-skill-matched);
-  border-color: var(--color-skill-matched-border);
+  border-color: color-mix(in srgb, var(--color-skill-matched) 35%, #ffffff);
 }
 
 .ov-skill-chip--missing {
-  background: var(--color-skill-missing-bg);
+  background: color-mix(in srgb, var(--color-skill-missing) 15%, #ffffff);
   color: var(--color-skill-missing);
-  border-color: var(--color-skill-missing-border);
+  border-color: color-mix(in srgb, var(--color-skill-missing) 35%, #ffffff);
 }
 
 .ov-skill-chip--nice {
-  background: var(--color-skill-nice-bg);
+  background: color-mix(in srgb, var(--color-skill-nice) 15%, #ffffff);
   color: var(--color-skill-nice);
-  border-color: var(--color-skill-nice-border);
+  border-color: color-mix(in srgb, var(--color-skill-nice) 35%, #ffffff);
 }
 
 .ov-match-explain__row {
@@ -319,7 +305,7 @@
   margin-bottom: 0;
 }
 
-.ov-match--explain__label {
+.ov-match-explain__label {
   display: block;
   font-size: 10.5px;
   font-weight: 700;
@@ -336,11 +322,11 @@
 }
 
 .ov-tag--matched {
-  background: var(--color-skill-matched-bg);
+  background: color-mix(in srgb, var(--color-skill-matched) 12%, #ffffff);
   color: var(--color-skill-matched);
 }
 
 .ov-tag--missing {
-  background: var(--color-skill-missing-bg);
+  background: color-mix(in srgb, var(--color-skill-missing) 12%, #ffffff);
   color: var(--color-skill-missing);
 }

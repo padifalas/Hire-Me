@@ -2,10 +2,6 @@
   --color-skill-technical: #1d4ed8;
   --color-skill-technical-bg: #eff6ff;
   --color-skill-technical-border: #dbeafe;
-
-  --color-skill-soft: #a16207;
-  --color-skill-soft-bg: #fef9c3;
-  --color-skill-soft-border: #fde68a;
 }
 
 .pv-loading {
@@ -288,15 +284,15 @@
 }
 
 .pv-skill-chip--technical {
-  background: var(--color-skill-technical-bg);
+  background: color-mix(in srgb, var(--color-skill-technical) 15%, #ffffff);
   color: var(--color-skill-technical);
-  border-color: var(--color-skill-technical-border);
+  border-color: color-mix(in srgb, var(--color-skill-technical) 35%, #ffffff);
 }
 
 .pv-skill-chip--soft {
-  background: var(--color-skill-soft-bg);
+  background: color-mix(in srgb, var(--color-skill-soft) 15%, #ffffff);
   color: var(--color-skill-soft);
-  border-color: var(--color-skill-soft-border);
+  border-color: color-mix(in srgb, var(--color-skill-soft) 35%, #ffffff);
 }
 
 .pv-projects {

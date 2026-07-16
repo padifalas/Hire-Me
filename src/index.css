@@ -34,6 +34,9 @@
   --color-skill-missing: #f87171;
   --color-skill-soft: #64748b;
   --color-skill-domain: #495260;
+  --color-skill-matched: #16a34a;
+  --color-skill-nice: #7c3aed;
+  
 
   /* backgrounds */
   --color-bg-page: #f8f7f2;

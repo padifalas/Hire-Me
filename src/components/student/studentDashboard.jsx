@@ -45,7 +45,11 @@ function CompanyLogo({ src, company, size = 32 }) {
   return (
     <div className="sd-company-logo" style={{ width: size, height: size }}>
       {src ? (
-        <img src={src} alt={`${company} logo`} className="sd-company-logo__img" />
+        <img
+          src={src}
+          alt={`${company} logo`}
+          className="sd-company-logo__img"
+        />
       ) : (
         <Building2 size={Math.round(size * 0.5)} color="#94a3b8" />
       )}
@@ -76,10 +80,9 @@ function StatusBadge({ status, color, bg }) {
   );
 }
 
-function Tag({ label }) {
-  return <span className="sd-tag">{label}</span>;
+function Tag({ label, type = "neutral" }) {
+  return <span className={`sd-tag sd-tag--${type}`}>{label}</span>;
 }
-
 
 function renderFeedbackText(text) {
   const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
@@ -93,7 +96,13 @@ function renderFeedbackText(text) {
       parts.push(text.slice(lastIndex, match.index));
     }
     parts.push(
-      <a key={key++} href={match[2]} target="_blank" rel="noreferrer" className="sd-feedback-link">
+      <a
+        key={key++}
+        href={match[2]}
+        target="_blank"
+        rel="noreferrer"
+        className="sd-feedback-link"
+      >
         {match[1]}
       </a>,
     );
@@ -121,7 +130,9 @@ function computeProfileStrength(profile) {
     Boolean(profile.phone),
     Boolean(profile.cv_url),
     Boolean(profile.transcript_url),
-    Boolean(profile.linkedin_url || profile.github_url || profile.portfolio_url),
+    Boolean(
+      profile.linkedin_url || profile.github_url || profile.portfolio_url,
+    ),
     profile.ai_processing_status === "completed",
   ];
   const filled = checks.filter(Boolean).length;
@@ -130,13 +141,20 @@ function computeProfileStrength(profile) {
 
 /* job Card - real opportunity + computed match score */
 
-function JobCard({ opportunity, score, onNavigate }) {
+function JobCard({ opportunity, matchResult, onNavigate }) {
   const company = opportunity.employer?.company_name ?? "Company";
   return (
     <div className="sd-job-card">
       <div className="sd-job-card__top">
-        <CompanyLogo src={opportunity.employer?.logo_url} company={company} size={34} />
-        <MatchBadge match={score} color={matchColor(score)} />
+        <CompanyLogo
+          src={opportunity.employer?.logo_url}
+          company={company}
+          size={34}
+        />
+        <MatchBadge
+          match={matchResult.score}
+          color={matchColor(matchResult.score)}
+        />
       </div>
       <div>
         <div className="sd-job-card__role">{opportunity.title}</div>
@@ -147,11 +165,22 @@ function JobCard({ opportunity, score, onNavigate }) {
         {opportunity.location}
       </div>
       <div className="sd-job-card__tags">
-        {(opportunity.required_skills || []).slice(0, 3).map((t) => (
-          <Tag key={t} label={t} />
-        ))}
+        {(opportunity.required_skills || []).slice(0, 3).map((t) => {
+          const isMatched = matchResult.matchedRequired?.includes(t);
+          const isMissing = matchResult.missingRequired?.includes(t);
+          return (
+            <Tag
+              key={t}
+              label={t}
+              type={isMatched ? "success" : isMissing ? "danger" : "neutral"}
+            />
+          );
+        })}
       </div>
-      <button className="sd-apply-btn" onClick={() => onNavigate("opportunities")}>
+      <button
+        className="sd-apply-btn"
+        onClick={() => onNavigate("opportunities")}
+      >
         View &amp; apply →
       </button>
     </div>
@@ -161,7 +190,9 @@ function JobCard({ opportunity, score, onNavigate }) {
 /* real application + opportunity/employer details */
 
 function AppRow({ app, showFeedback = false }) {
-  const statusMeta = APPLICATION_STATUS_LABELS[app.status] ?? APPLICATION_STATUS_LABELS.submitted;
+  const statusMeta =
+    APPLICATION_STATUS_LABELS[app.status] ??
+    APPLICATION_STATUS_LABELS.submitted;
   const company = app.employer?.company_name ?? "Company";
   const role = app.opportunities?.title ?? "Opportunity";
 
@@ -169,17 +200,29 @@ function AppRow({ app, showFeedback = false }) {
     <div className="sd-app-row">
       <div className="sd-app-row__grid">
         <div className="sd-app-row__title-cell">
-          <CompanyLogo src={app.employer?.logo_url} company={company} size={28} />
+          <CompanyLogo
+            src={app.employer?.logo_url}
+            company={company}
+            size={28}
+          />
           <span className="sd-app-row__role">{role}</span>
         </div>
         <div className="sd-app-row__company-cell">
-          <CompanyLogo src={app.employer?.logo_url} company={company} size={20} />
+          <CompanyLogo
+            src={app.employer?.logo_url}
+            company={company}
+            size={20}
+          />
           <span className="sd-app-row__company-name">{company}</span>
         </div>
         <div className="sd-app-row__date">
           {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : "-"}
         </div>
-        <StatusBadge status={statusMeta.label} color={statusMeta.color} bg={statusMeta.bg} />
+        <StatusBadge
+          status={statusMeta.label}
+          color={statusMeta.color}
+          bg={statusMeta.bg}
+        />
       </div>
 
       {showFeedback && app.status === "rejected" && app.rejection_feedback && (
@@ -187,7 +230,9 @@ function AppRow({ app, showFeedback = false }) {
           <div className="sd-ai-feedback__inner">
             <span className="sd-ai-feedback__icon">✦</span>
             <div>
-              <div className="sd-ai-feedback__title">Feedback from the employer</div>
+              <div className="sd-ai-feedback__title">
+                Feedback from the employer
+              </div>
               <div className="sd-ai-feedback__body sd-ai-feedback__body--wrap">
                 {renderFeedbackText(app.rejection_feedback)}
               </div>
@@ -238,7 +283,9 @@ function DashboardView({ studentName, user, onNavigate }) {
       if (profileResult.success) setProfile(profileResult.profile);
 
       if (oppResult.success) {
-        const skills = profileResult.success ? profileResult.profile.extracted_technical_skills || [] : [];
+        const skills = profileResult.success
+          ? profileResult.profile.extracted_technical_skills || []
+          : [];
         const scored = oppResult.opportunities
           .map((o) => ({ opportunity: o, ...computeMatchScore(skills, o) }))
           .sort((a, b) => b.score - a.score);
@@ -246,7 +293,8 @@ function DashboardView({ studentName, user, onNavigate }) {
         setStrongMatchCount(scored.filter((m) => m.score >= 60).length);
       }
 
-      if (appsResult.success) setRecentApps(appsResult.applications.slice(0, 5));
+      if (appsResult.success)
+        setRecentApps(appsResult.applications.slice(0, 5));
 
       setLoading(false);
     })();
@@ -270,14 +318,21 @@ function DashboardView({ studentName, user, onNavigate }) {
       <div className="sd-card">
         <div className="sd-profile-strength__header">
           <span className="sd-profile-strength__label">
-            Profile Strength - <span className="sd-profile-strength__pct">{profileStrength}%</span>
+            Profile Strength -{" "}
+            <span className="sd-profile-strength__pct">{profileStrength}%</span>
           </span>
-          <button className="sd-upload-btn" onClick={() => onNavigate("profile")}>
+          <button
+            className="sd-upload-btn"
+            onClick={() => onNavigate("profile")}
+          >
             <Upload size={13} /> Complete profile
           </button>
         </div>
         <div className="sd-profile-strength__bar-track">
-          <div className="sd-profile-strength__bar-fill" style={{ width: `${profileStrength}%` }} />
+          <div
+            className="sd-profile-strength__bar-fill"
+            style={{ width: `${profileStrength}%` }}
+          />
         </div>
         <p className="sd-profile-strength__hint">
           {profileStrength >= 90
@@ -289,19 +344,29 @@ function DashboardView({ studentName, user, onNavigate }) {
       <div>
         <div className="sd-section-header">
           <h2 className="sd-section-header__title">Top matches for you</h2>
-          <button className="sd-link-btn" onClick={() => onNavigate("opportunities")}>
+          <button
+            className="sd-link-btn"
+            onClick={() => onNavigate("opportunities")}
+          >
             View all →
           </button>
         </div>
 
         {loading && <p className="sd-empty__label">Loading...</p>}
         {!loading && topMatches.length === 0 && (
-          <p className="sd-empty__label">No active opportunities yet - check back soon.</p>
+          <p className="sd-empty__label">
+            No active opportunities yet - check back soon.
+          </p>
         )}
 
         <div className="sd-job-cards">
           {topMatches.map((m) => (
-            <JobCard key={m.opportunity.id} opportunity={m.opportunity} score={m.score} onNavigate={onNavigate} />
+            <JobCard
+              key={m.opportunity.id}
+              opportunity={m.opportunity}
+              matchResult={m}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       </div>
@@ -347,7 +412,10 @@ function ApplicationsView({ user }) {
   }, [applications]);
 
   const tabs = ["All", ...Object.keys(APPLICATION_STATUS_LABELS)];
-  const filtered = activeTab === "All" ? applications : applications.filter((a) => a.status === activeTab);
+  const filtered =
+    activeTab === "All"
+      ? applications
+      : applications.filter((a) => a.status === activeTab);
 
   return (
     <div className="sd-applications">
@@ -367,7 +435,8 @@ function ApplicationsView({ user }) {
 
         <div className="sd-tabs">
           {tabs.map((tab) => {
-            const label = tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
+            const label =
+              tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
             const count = tab === "All" ? applications.length : tabCounts[tab];
             return (
               <button
@@ -376,7 +445,9 @@ function ApplicationsView({ user }) {
                 onClick={() => setActiveTab(tab)}
               >
                 {label}
-                {Boolean(count) && <span className="sd-tab__count">{count}</span>}
+                {Boolean(count) && (
+                  <span className="sd-tab__count">{count}</span>
+                )}
               </button>
             );
           })}
@@ -396,8 +467,6 @@ function ApplicationsView({ user }) {
   );
 }
 
-
-
 function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -405,7 +474,6 @@ function StudentDashboard() {
 
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
-
 
   useEffect(() => {
     if (!loading && !user) navigate("/");
@@ -510,12 +578,18 @@ function StudentDashboard() {
 
         <main className="sd-content">
           {activeNav === "dashboard" && (
-            <DashboardView studentName={student.name} user={user} onNavigate={setActiveNav} />
+            <DashboardView
+              studentName={student.name}
+              user={user}
+              onNavigate={setActiveNav}
+            />
           )}
           {activeNav === "applications" && <ApplicationsView user={user} />}
           {activeNav === "profile" && <ProfileView user={user} />}
           {activeNav === "opportunities" && <OpportunitiesView user={user} />}
-          {!["dashboard", "applications", "profile", "opportunities"].includes(activeNav) && (
+          {!["dashboard", "applications", "profile", "opportunities"].includes(
+            activeNav,
+          ) && (
             <div className="sd-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="sd-empty__label">
