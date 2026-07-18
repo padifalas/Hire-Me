@@ -123,6 +123,13 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
             </div>
           )}
 
+          {applicant.cover_letter && (
+            <div className="am-cover-letter">
+              <span className="am-cover-letter__label">Cover letter</span>
+              <p className="am-cover-letter__text">{applicant.cover_letter}</p>
+            </div>
+          )}
+
           <div className="am-card__links">
             {profile?.cv_url && (
               <button type="button" className="am-link-btn" onClick={handleViewCv}>

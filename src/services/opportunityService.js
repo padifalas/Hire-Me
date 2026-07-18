@@ -3,6 +3,7 @@
 // applications.
 
 import { supabase } from "../config/supabase";
+import { normalizeSkillName, resolveNormalizedSkills } from "../utils/skillSynonyms";
 
 /**
  * fetch active opportunities.......
@@ -111,27 +112,59 @@ export async function getStudentApplicationsWithDetails(studentId) {
 
 
 export function computeMatchScore(extractedTechnicalSkills, opportunity) {
+  // normalizeSkillName collapses known synonyms (e.g. "JS" / "JavaScript",
+  // "Node" / "Node.js", "C Sharp" / "C#") to the same  string.
+  //  top of that, required/nice-to-have skills go through
+  // resolveNormalizedSkills, which prefers the AI-normalized canonical term
+  // computed once when the job was posted (required_skills_normalized) -
+  // covering domains far beyond what a hand-written alias table ever could (cos at furst we only had tech skills, but now we have marketing, healthcare, trades, etc.) - and only falls back to the
+  // (marketing, healthcare, trades, etc.) - and only falls back to the
+  // static alias table alone for older postings that predate that feature.- the AI does its work once
+  // at ingestion, not on every match calculation, so this stays fast,
+  // deterministic, and explainable.
   const studentSkills = new Set(
     (extractedTechnicalSkills || []).map((s) =>
-      (typeof s === "string" ? s : s.skill || "").toLowerCase().trim(),
+      normalizeSkillName(typeof s === "string" ? s : s.skill || ""),
     ),
   );
 
   const required = opportunity.required_skills || [];
   const niceToHave = opportunity.nice_to_have_skills || [];
+  const requiredNorm = resolveNormalizedSkills(required, opportunity.required_skills_normalized);
+  const niceToHaveNorm = resolveNormalizedSkills(niceToHave, opportunity.nice_to_have_skills_normalized);
 
-  const matchedRequired = required.filter((s) => studentSkills.has(s.toLowerCase().trim()));
-  const missingRequired = required.filter((s) => !studentSkills.has(s.toLowerCase().trim()));
-  const matchedNice = niceToHave.filter((s) => studentSkills.has(s.toLowerCase().trim()));
+  const matchedRequired = required.filter((_, i) => studentSkills.has(requiredNorm[i]));
+  const missingRequired = required.filter((_, i) => !studentSkills.has(requiredNorm[i]));
+  const matchedNice = niceToHave.filter((_, i) => studentSkills.has(niceToHaveNorm[i]));
 
-  // No required skills listed on the posting -> neutral baseline rather than
-  // an unearned 100%, since we can't actually verify fit against nothing.
+
   const requiredScore = required.length > 0 ? (matchedRequired.length / required.length) * 80 : 40;
   const niceScore = niceToHave.length > 0 ? (matchedNice.length / niceToHave.length) * 20 : 0;
 
   const score = Math.round(Math.min(100, requiredScore + niceScore));
 
   return { score, matchedRequired, missingRequired, matchedNice };
+}
+
+/**
+ * ask the generate-cover-letter Edge Function to draft a cover letter for
+ * this student + opportunity. doesn not save anything - the caller shows the
+ * result n the student can review/edit/regenerate
+ * before actually submitting the application
+ */
+export async function generateCoverLetter(studentId, opportunityId) {
+  try {
+    const { data, error } = await supabase.functions.invoke("generate-cover-letter", {
+      body: { studentId, opportunityId },
+    });
+
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || "Couldn't generate a cover letter");
+
+    return { success: true, coverLetter: data.coverLetter };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
 /**
