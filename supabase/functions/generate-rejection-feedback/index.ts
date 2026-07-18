@@ -19,7 +19,7 @@
 //      the employer can review/edit before it's saved via
 //      updateApplicationStatus().
 //
-//@ts-nocheck
+// @ts-nocheck
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
