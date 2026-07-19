@@ -11,7 +11,10 @@ import CompanyProfileView from "./CompanyProfileView.jsx";
 import JobPostingForm from "./JobPostingForm.jsx";
 import ApplicantsModal from "./ApplicantsModal.jsx";
 import CandidatesView from "./CandidatesView.jsx";
-import { getEmployerOpportunities, getRecentApplicationsForEmployer } from "../../services/employerService";
+import {
+  getEmployerOpportunities,
+  getRecentApplicationsForEmployer,
+} from "../../services/employerService";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import {
@@ -26,17 +29,13 @@ import {
   Plus,
 } from "lucide-react";
 
-
-
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Dashboard",       id: "dashboard"       },
-  { icon: Briefcase,       label: "My Jobs",         id: "jobs"            },
-  { icon: Users,           label: "Candidates",      id: "candidates"      },
-  { icon: BarChart2,       label: "Analytics",       id: "analytics"       },
-  { icon: Building2,       label: "Company Profile", id: "company-profile" },
+  { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+  { icon: Briefcase, label: "My Jobs", id: "jobs" },
+  { icon: Users, label: "Candidates", id: "candidates" },
+  { icon: BarChart2, label: "Analytics", id: "analytics" },
+  { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
-
-
 
 function Avatar({ initials, size = 32 }) {
   return (
@@ -59,13 +58,12 @@ function MatchBadge({ match, color }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {match === null || match === undefined || match === "-" ? "-" : `${match}%`}
+      {match === null || match === undefined || match === "-"
+        ? "-"
+        : `${match}%`}
     </span>
   );
 }
-
-
-
 
 function DashboardView({ employerName, employerId, onNavigate }) {
   const firstName = (employerName ?? "there").split(" ")[0];
@@ -96,11 +94,16 @@ function DashboardView({ employerName, employerId, onNavigate }) {
   }, [loadJobs, loadRecentApps]);
 
   const activeJobs = jobs.filter((j) => j.status === "active");
-  const totalApplications = jobs.reduce((sum, j) => sum + j.applicationCount, 0);
+  const totalApplications = jobs.reduce(
+    (sum, j) => sum + j.applicationCount,
+    0,
+  );
 
   function daysRemaining(deadline) {
     if (!deadline) return "No deadline";
-    const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil(
+      (new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24),
+    );
     return diff >= 0 ? `${diff} Days` : "Expired";
   }
 
@@ -113,23 +116,72 @@ function DashboardView({ employerName, employerId, onNavigate }) {
 
   function initialsFor(name) {
     return name
-      ? name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      ? name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
       : "S";
   }
 
+  function StatCard({ icon: Icon, value, label, tint }) {
+    return (
+      <div className="ed-stat-card">
+        <div className={`ed-stat-card__icon ed-stat-card__icon--${tint}`}>
+          <Icon size={16} />
+        </div>
+        <div className="ed-stat-card__value">{value}</div>
+        <div className="ed-stat-card__label">{label}</div>
+      </div>
+    );
+  }
+
+  function BeeStatsPanel({ breakdown, totalPooled }) {
+    return (
+      <div className="ed-card">
+        <div className="ed-card__header">
+          <span className="ed-card__title">BEE Stats</span>
+        </div>
+        <p className="ed-bee-sub">{totalPooled} applications pooled</p>
+        <div className="ed-bee-bar">
+          {breakdown.map((seg) => (
+            <span
+              key={seg.label}
+              className="ed-bee-bar__seg"
+              style={{ width: `${seg.pct}%`, background: seg.color }}
+            />
+          ))}
+        </div>
+        <div className="ed-bee-legend">
+          {breakdown.map((seg) => (
+            <div key={seg.label} className="ed-bee-legend__row">
+              <span
+                className="ed-bee-legend__dot"
+                style={{ background: seg.color }}
+              />
+              <span className="ed-bee-legend__label">{seg.label}</span>
+              <span className="ed-bee-legend__pct">{seg.pct}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="ed-dashboard">
-
       <div className="ed-welcome-row">
         <div>
           <h1 className="ed-greeting__title">Welcome, {firstName}</h1>
           <div className="ed-stats-pills">
             <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">{activeJobs.length}</span> Active Jobs
+              <span className="ed-stat-pill__num">{activeJobs.length}</span>{" "}
+              Active Jobs
             </span>
             <span className="ed-stat-pill__sep">•</span>
             <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">{totalApplications}</span> Applications
+              <span className="ed-stat-pill__num">{totalApplications}</span>{" "}
+              Applications
             </span>
           </div>
         </div>
@@ -139,25 +191,62 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         </button>
       </div>
 
+      <div className="ed-stat-cards">
+        <StatCard
+          icon={Briefcase}
+          value={activeJobs.length}
+          label="Active Jobs"
+          tint="rose"
+        />
+        <StatCard
+          icon={FileText}
+          value={totalApplications}
+          label="Total Applications"
+          tint="mint"
+        />
+        <StatCard
+          icon={Users}
+          value={interviewCount}
+          label="Interviews"
+          tint="lilac"
+        />
+        <StatCard
+          icon={Sparkles}
+          value={`${avgMatchScore}%`}
+          label="Avg. Match Score"
+          tint="sand"
+        />
+      </div>
+
       <div className="ed-main-grid">
         <div className="ed-left-col">
-
           {/* Active jobs */}
           <div className="ed-card">
             <div className="ed-card__header">
               <span className="ed-card__title">Active Jobs</span>
-              <button className="ed-link-btn" onClick={() => onNavigate("jobs")}>
+              <button
+                className="ed-link-btn"
+                onClick={() => onNavigate("jobs")}
+              >
                 View all {jobs.length} →
               </button>
             </div>
 
             <div className="ed-table-header">
-              {["Job Title", "Applications", "Days Remaining", "View"].map((h) => (
-                <span key={h} className="ed-table-th">{h}</span>
-              ))}
+              {["Job Title", "Applications", "Days Remaining", "View"].map(
+                (h) => (
+                  <span key={h} className="ed-table-th">
+                    {h}
+                  </span>
+                ),
+              )}
             </div>
 
-            {loadingJobs && <p className="ed-empty__label" style={{ padding: "16px 4px" }}>Loading...</p>}
+            {loadingJobs && (
+              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                Loading...
+              </p>
+            )}
 
             {!loadingJobs && activeJobs.length === 0 && (
               <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
@@ -169,8 +258,15 @@ function DashboardView({ employerName, employerId, onNavigate }) {
               <div key={job.id} className="ed-table-row">
                 <span className="ed-table-cell">{job.title}</span>
                 <span className="ed-table-cell">{job.applicationCount}</span>
-                <span className="ed-table-cell">{daysRemaining(job.deadline)}</span>
-                <button className="ed-view-btn" onClick={() => onNavigate("jobs")}>View →</button>
+                <span className="ed-table-cell">
+                  {daysRemaining(job.deadline)}
+                </span>
+                <button
+                  className="ed-view-btn"
+                  onClick={() => onNavigate("jobs")}
+                >
+                  View →
+                </button>
               </div>
             ))}
           </div>
@@ -183,11 +279,17 @@ function DashboardView({ employerName, employerId, onNavigate }) {
 
             <div className="ed-table-header ed-table-header--apps">
               {["Applicant", "Match Score", "Date", "Review"].map((h) => (
-                <span key={h} className="ed-table-th">{h}</span>
+                <span key={h} className="ed-table-th">
+                  {h}
+                </span>
               ))}
             </div>
 
-            {loadingApps && <p className="ed-empty__label" style={{ padding: "16px 4px" }}>Loading...</p>}
+            {loadingApps && (
+              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                Loading...
+              </p>
+            )}
 
             {!loadingApps && recentApps.length === 0 && (
               <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
@@ -198,9 +300,13 @@ function DashboardView({ employerName, employerId, onNavigate }) {
             {recentApps.map((app) => (
               <div key={app.id} className="ed-table-row ed-table-row--apps">
                 <div className="ed-applicant-cell">
-                  <Avatar initials={initialsFor(app.student?.full_name)} size={28} />
+                  <Avatar
+                    initials={initialsFor(app.student?.full_name)}
+                    size={28}
+                  />
                   <span className="ed-applicant-name">
-                    {app.student?.full_name ?? "Student"} - {app.opportunities?.title ?? "Opportunity"}
+                    {app.student?.full_name ?? "Student"} -{" "}
+                    {app.opportunities?.title ?? "Opportunity"}
                   </span>
                 </div>
                 <MatchBadge
@@ -210,12 +316,22 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                 <span className="ed-table-cell ed-table-cell--muted">
                   {new Date(app.applied_at).toLocaleDateString()}
                 </span>
-                <button className="ed-view-btn" onClick={() => setReviewingApp(app)}>
+                <button
+                  className="ed-view-btn"
+                  onClick={() => setReviewingApp(app)}
+                >
                   Review →
                 </button>
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="ed-right-col">
+          <BeeStatsPanel
+            breakdown={beeBreakdown}
+            totalPooled={beeTotalPooled}
+          />
         </div>
       </div>
 
@@ -225,7 +341,8 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           onClose={() => setShowPostForm(false)}
           onSaved={(newJob) => {
             setShowPostForm(false);
-            if (newJob) setJobs((prev) => [{ ...newJob, applicationCount: 0 }, ...prev]);
+            if (newJob)
+              setJobs((prev) => [{ ...newJob, applicationCount: 0 }, ...prev]);
           }}
         />
       )}
@@ -242,12 +359,10 @@ function DashboardView({ employerName, employerId, onNavigate }) {
   );
 }
 
-
-
 export default function EmployerDashboard() {
-  const [activeNav, setActiveNav]   = useState("dashboard");
+  const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchVal, setSearchVal]   = useState("");
+  const [searchVal, setSearchVal] = useState("");
   const [signingOut, setSigningOut] = useState(false);
 
   const { user, userProfile, loading } = useAuth();
@@ -262,10 +377,15 @@ export default function EmployerDashboard() {
   if (loading || !user) return null;
 
   const employer = {
-    name:    userProfile?.full_name    ?? "Employer",
+    name: userProfile?.full_name ?? "Employer",
     company: userProfile?.company_name ?? "Software Company",
     initials: userProfile?.full_name
-      ? userProfile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+      ? userProfile.full_name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
       : "E",
   };
 
@@ -286,13 +406,16 @@ export default function EmployerDashboard() {
 
   return (
     <div className="ed-root">
-
-
-      <aside className={`ed-sidebar${sidebarOpen ? "" : " ed-sidebar--collapsed"}`}>
-
+      <aside
+        className={`ed-sidebar${sidebarOpen ? "" : " ed-sidebar--collapsed"}`}
+      >
         <div className="ed-sidebar__brand">
           <div className="ed-sidebar__brand-inner">
-            <img src={HireMeLogo} alt="HireMe logo" className="ed-sidebar__logo-img" />
+            <img
+              src={HireMeLogo}
+              alt="HireMe logo"
+              className="ed-sidebar__logo-img"
+            />
           </div>
         </div>
 
@@ -326,7 +449,11 @@ export default function EmployerDashboard() {
 
         <div className="ed-sidebar__footer">
           {sidebarOpen && (
-            <button className="ed-signout-btn" onClick={handleSignOut} disabled={signingOut}>
+            <button
+              className="ed-signout-btn"
+              onClick={handleSignOut}
+              disabled={signingOut}
+            >
               {signingOut ? "Signing out..." : "Sign out"}
             </button>
           )}
@@ -338,7 +465,6 @@ export default function EmployerDashboard() {
           </button>
         </div>
       </aside>
-
 
       <div className="ed-main">
         <header className="ed-header">
@@ -367,8 +493,12 @@ export default function EmployerDashboard() {
           )}
           {activeNav === "jobs" && <JobsView employerId={user?.id} />}
           {activeNav === "candidates" && <CandidatesView />}
-          {activeNav === "company-profile" && <CompanyProfileView user={user} />}
-          {!["dashboard", "jobs", "candidates", "company-profile"].includes(activeNav) && (
+          {activeNav === "company-profile" && (
+            <CompanyProfileView user={user} />
+          )}
+          {!["dashboard", "jobs", "candidates", "company-profile"].includes(
+            activeNav,
+          ) && (
             <div className="ed-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="ed-empty__label">
