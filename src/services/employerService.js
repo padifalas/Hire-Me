@@ -87,12 +87,41 @@ export async function uploadCompanyLogo(file, userId) {
 }
 
 /**
+ * askk the normalize-skills Edge Function to normalize a job's required/
+ * nice-to-have tags across ANY professional domain ( - e.g.
+ * "JS" -> "JavaScript", "CRM" -> "Customer Relationship Management (CRM)".
+ */
+export async function normalizeSkillTags(requiredSkills, niceToHaveSkills) {
+  try {
+    const { data, error } = await supabase.functions.invoke("normalize-skills", {
+      body: { requiredSkills: requiredSkills || [], niceToHaveSkills: niceToHaveSkills || [] },
+    });
+
+    if (error || !data?.success) {
+      return { requiredSkillsNormalized: null, niceToHaveSkillsNormalized: null };
+    }
+
+    return {
+      requiredSkillsNormalized: data.requiredSkillsNormalized ?? null,
+      niceToHaveSkillsNormalized: data.niceToHaveSkillsNormalized ?? null,
+    };
+  } catch {
+    return { requiredSkillsNormalized: null, niceToHaveSkillsNormalized: null };
+  }
+}
+
+/**
  * create a new job opportunity.
  * @param {string} employerId
  * @param {object} jobData -
  */
 export async function createOpportunity(employerId, jobData) {
   try {
+    const { requiredSkillsNormalized, niceToHaveSkillsNormalized } = await normalizeSkillTags(
+      jobData.requiredSkills,
+      jobData.niceToHaveSkills,
+    );
+
     const { data, error } = await supabase
       .from("opportunities")
       .insert([
@@ -102,6 +131,8 @@ export async function createOpportunity(employerId, jobData) {
           description: jobData.description,
           required_skills: jobData.requiredSkills,
           nice_to_have_skills: jobData.niceToHaveSkills,
+          required_skills_normalized: requiredSkillsNormalized,
+          nice_to_have_skills_normalized: niceToHaveSkillsNormalized,
           location: jobData.location,
           job_type: jobData.jobType,
           salary_min: jobData.salaryMin || null,
@@ -130,8 +161,17 @@ export async function updateOpportunity(opportunityId, jobData) {
     const updatePayload = {};
     if (jobData.title !== undefined) updatePayload.title = jobData.title;
     if (jobData.description !== undefined) updatePayload.description = jobData.description;
-    if (jobData.requiredSkills !== undefined) updatePayload.required_skills = jobData.requiredSkills;
-    if (jobData.niceToHaveSkills !== undefined) updatePayload.nice_to_have_skills = jobData.niceToHaveSkills;
+    if (jobData.requiredSkills !== undefined || jobData.niceToHaveSkills !== undefined) {
+      updatePayload.required_skills = jobData.requiredSkills;
+      updatePayload.nice_to_have_skills = jobData.niceToHaveSkills;
+
+      const { requiredSkillsNormalized, niceToHaveSkillsNormalized } = await normalizeSkillTags(
+        jobData.requiredSkills,
+        jobData.niceToHaveSkills,
+      );
+      updatePayload.required_skills_normalized = requiredSkillsNormalized;
+      updatePayload.nice_to_have_skills_normalized = niceToHaveSkillsNormalized;
+    }
     if (jobData.location !== undefined) updatePayload.location = jobData.location;
     if (jobData.jobType !== undefined) updatePayload.job_type = jobData.jobType;
     if (jobData.salaryMin !== undefined) updatePayload.salary_min = jobData.salaryMin;
@@ -190,10 +230,9 @@ export async function closeOpportunity(opportunityId) {
 
 /**
  *  applicants for a single job posting, ordered by match score (best fit
- * first), enriched with the student's profile details so the employer can
+ * first), populatedd with the student's profile details so the employer can
  * review without leaving the page. applications.student_id embeds "users"
- * directly (FK), but student_profiles has no FK from applications, so its
- * data (skills, summary, etc.) is fetched separately and merged in - same
+
  */
 export async function getApplicantsForOpportunity(opportunityId) {
   try {
@@ -314,7 +353,7 @@ export async function getCandidates() {
 
 /**
  * recent applications across all of this employer's job postings, with the
- * real applicant name, job title, and match score computed at apply-time.
+ * real applicant name, job title, and match score computed when u apply
  */
 export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
   try {

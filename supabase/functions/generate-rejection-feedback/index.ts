@@ -19,9 +19,10 @@
 //      the employer can review/edit before it's saved via
 //      updateApplicationStatus().
 //
-//@ts-nocheck
+// @ts-nocheck
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { normalizeSkillName, resolveNormalizedSkills } from "../_shared/skillSynonyms.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -84,12 +85,11 @@ const FREE_RESOURCES: Record<string, { title: string; url: string }[]> = {
   excel: [{ title: "Microsoft Learn - Excel fundamentals", url: "https://learn.microsoft.com/en-us/training/modules/excel-create-edit-workbooks/" }],
 };
 
-function normalizeSkill(skill: string) {
-  return skill.toLowerCase().trim();
-}
-
 function resourcesForSkill(skill: string) {
-  const key = normalizeSkill(skill);
+  // normalizeSkillName also collapses aliases (e.g. "JS" -> "javascript"),
+  // so a missing skill logged as "JS" still finds the "javascript" curated
+  // resource list below, not the  google-search fallback.
+  const key = normalizeSkillName(skill);
   if (FREE_RESOURCES[key]) return FREE_RESOURCES[key];
   return [
     {
@@ -100,14 +100,25 @@ function resourcesForSkill(skill: string) {
 }
 
 
-function computeSkillGaps(studentSkills: unknown[], requiredSkills: string[], niceToHaveSkills: string[]) {
+function computeSkillGaps(
+  studentSkills: unknown[],
+  requiredSkills: string[],
+  niceToHaveSkills: string[],
+  requiredSkillsNormalized: string[] | null,
+  niceToHaveSkillsNormalized: string[] | null,
+) {
   const known = new Set(
-    (studentSkills || []).map((s: any) => (typeof s === "string" ? s : s?.skill || "").toLowerCase().trim()),
+    (studentSkills || []).map((s: any) => normalizeSkillName(typeof s === "string" ? s : s?.skill || "")),
   );
 
-  const missingRequired = (requiredSkills || []).filter((s) => !known.has(s.toLowerCase().trim()));
-  const missingNice = (niceToHaveSkills || []).filter((s) => !known.has(s.toLowerCase().trim()));
-  const matchedRequired = (requiredSkills || []).filter((s) => known.has(s.toLowerCase().trim()));
+  const required = requiredSkills || [];
+  const niceToHave = niceToHaveSkills || [];
+  const requiredNorm = resolveNormalizedSkills(required, requiredSkillsNormalized);
+  const niceToHaveNorm = resolveNormalizedSkills(niceToHave, niceToHaveSkillsNormalized);
+
+  const missingRequired = required.filter((_, i) => !known.has(requiredNorm[i]));
+  const missingNice = niceToHave.filter((_, i) => !known.has(niceToHaveNorm[i]));
+  const matchedRequired = required.filter((_, i) => known.has(requiredNorm[i]));
 
   return { missingRequired, missingNice, matchedRequired };
 }
@@ -235,7 +246,7 @@ Deno.serve(async (req) => {
 
     const { data: opportunity, error: oppError } = await supabase
       .from("opportunities")
-      .select("title, required_skills, nice_to_have_skills, employer_id")
+      .select("title, required_skills, nice_to_have_skills, required_skills_normalized, nice_to_have_skills_normalized, employer_id")
       .eq("id", application.opportunity_id)
       .single();
     if (oppError) throw oppError;
@@ -257,6 +268,8 @@ Deno.serve(async (req) => {
       studentProfile.extracted_technical_skills || [],
       opportunity.required_skills || [],
       opportunity.nice_to_have_skills || [],
+      opportunity.required_skills_normalized,
+      opportunity.nice_to_have_skills_normalized,
     );
 
     const prompt = buildPrompt({

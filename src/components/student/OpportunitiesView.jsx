@@ -4,8 +4,8 @@ import {
   getActiveOpportunities,
   getStudentApplications,
   computeMatchScore,
-  applyToOpportunity,
 } from "../../services/opportunityService";
+import ApplicationPreviewModal from "./ApplicationPreviewModal";
 
 import "./OpportunitiesView.css";
 
@@ -183,8 +183,8 @@ export default function OpportunitiesView({ user }) {
   const [location, setLocation] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [applyingId, setApplyingId] = useState(null);
   const [error, setError] = useState(null);
+  const [applyTarget, setApplyTarget] = useState(null); // { opportunity, score } | null
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -218,16 +218,13 @@ export default function OpportunitiesView({ user }) {
     return () => clearTimeout(timeout);
   }, [loadData, user]);
 
-  async function handleApply(opportunity, score) {
-    setApplyingId(opportunity.id);
-    const result = await applyToOpportunity(user.id, opportunity.id, score);
-    setApplyingId(null);
+  function handleApply(opportunity, score) {
+    setApplyTarget({ opportunity, score });
+  }
 
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
-    setAppliedIds((prev) => new Set(prev).add(opportunity.id));
+  function handleApplicationSubmitted() {
+    setAppliedIds((prev) => new Set(prev).add(applyTarget.opportunity.id));
+    setApplyTarget(null);
   }
 
   return (
@@ -285,12 +282,22 @@ export default function OpportunitiesView({ user }) {
               opportunity={opp}
               matchResult={matchResult}
               applied={appliedIds.has(opp.id)}
-              applying={applyingId === opp.id}
+              applying={false}
               onApply={handleApply}
             />
           );
         })}
       </div>
+
+      {applyTarget && (
+        <ApplicationPreviewModal
+          user={user}
+          opportunity={applyTarget.opportunity}
+          matchScore={applyTarget.score}
+          onClose={() => setApplyTarget(null)}
+          onSubmitted={handleApplicationSubmitted}
+        />
+      )}
     </div>
   );
 }

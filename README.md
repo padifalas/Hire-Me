@@ -53,9 +53,9 @@ The system benefits both **students** (by simplifying applications and tailoring
 
 | Member      | Role                                | Responsibilities                                                                                                          |
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Padi**    | Project Manager & Backend Developer | Oversees project direction, manages Firebase backend, authentication, database architecture, and deployment.              |
+| **Padi**    | Project Manager & Backend Developer | Oversees project direction, manages Supabase backend, authentication, AI LLM Integration, database architecture, and deployment.              |
 | **Jaiden**  | Frontend Developer                  | Builds responsive React interfaces, implements student/employer dashboards, and ensures smooth UX/UI integration.         |
-| **Timothy** | Systems Integration Engineer        | Integrates all platform components - AI services, and frontend workflows - ensuring smooth communication between systems. |
+| **Timothy** | Systems Integration Engineer        | Integrates all platform components - frontend workflows - ensuring smooth communication between systems. |
 
 > Team member’s GitHub profiles:
 >
@@ -76,6 +76,6 @@ The system benefits both **students** (by simplifying applications and tailoring
 
 ## Acknowledgements
 
-- **Claude API** for AI-powered skill translation & matching
-- **Firebase** for backend infrastructure
+- **Gemini & Claude API** for AI-powered skill translation & matching
+- **Supabase** for backend infrastructure
 - **University Supervisor (Andre Gopal)** for guidance and feedback
