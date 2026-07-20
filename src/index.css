@@ -15,6 +15,7 @@
 
   --color-secondary: #7e7e7e;
   --color-secondary-hover: #2a2a2a;
+  --color-secondary-active: #0f172a;
 
   /* match Scores */
   --color-match-excellent: #16a34a;
@@ -48,7 +49,7 @@
   --color-text-muted: #94a3b8;
 
   /* UI Elements */
-  --color-border: #88888882;
+  --color-border: rgba(136, 136, 136, 0.51);
   --color-border-focus: #656565;
   --color-border-error: #c1121f;
 

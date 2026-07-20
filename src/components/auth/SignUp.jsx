@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signUpWithEmail, signInWithEmail } from "../../services/authService";
 import { supabase } from "../../config/supabase";
-
+import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import "./SignUp.css";
 
@@ -106,7 +107,6 @@ export default function SignUp() {
       handleSignIn();
     }
   }
-
 
   return (
     <div className="auth-page">

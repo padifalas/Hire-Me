@@ -5,8 +5,16 @@
   justify-content: center;
   background: var(--color-bg-page);
   background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(103, 97, 153, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(101, 110, 173, 0.14) 0%, transparent 40%);
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(103, 97, 153, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(101, 110, 173, 0.14) 0%,
+      transparent 40%
+    );
   padding: 2rem 1rem;
 }
 
@@ -98,6 +106,7 @@
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.2s ease;
+  width: 90%;
 }
 
 .ps-field input:focus,
@@ -107,6 +116,39 @@
 
 .ps-required {
   color: var(--color-primary-active);
+}
+
+.ps-autocomplete {
+  position: relative;
+}
+
+.ps-autocomplete__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.ps-autocomplete__list li {
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ps-autocomplete__list li:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* Uploads */
@@ -138,7 +180,9 @@
   font-size: 0.82rem;
   color: var(--color-text-tertiary);
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .ps-dropzone:hover {
@@ -183,7 +227,10 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease, background-color 0.3s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.1s ease,
+    background-color 0.3s ease;
 }
 
 .ps-submit:hover {
@@ -230,8 +277,12 @@
 }
 
 @keyframes ps-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 560px) {

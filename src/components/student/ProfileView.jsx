@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   getStudentProfile,
   updateStudentProfile,
@@ -56,6 +56,56 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
 
 function SkillChip({ label }) {
   return <span className="pv-skill-chip">{label}</span>;
+}
+
+function AutocompleteField({ name, value, onChange, options, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const query = (value || "").trim().toLowerCase();
+  const matches = (
+    query ? options.filter((o) => o.toLowerCase().includes(query)) : options
+  ).slice(0, 6);
+
+  function handleSelect(option) {
+    onChange({ target: { name, value: option } });
+    setOpen(false);
+  }
+
+  return (
+    <div className="pv-autocomplete" ref={wrapperRef}>
+      <input
+        name={name}
+        value={value}
+        onChange={(e) => {
+          onChange(e);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {open && matches.length > 0 && (
+        <ul className="pv-autocomplete__list">
+          {matches.map((option) => (
+            <li key={option} onMouseDown={() => handleSelect(option)}>
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // Same checks as the dashboard, put it on this page as well so students can act on the changes.
@@ -284,18 +334,13 @@ export default function ProfileView({ user }) {
           <div className="pv-fields-grid">
             <div className="pv-field">
               <label>University</label>
-              <input
+              <AutocompleteField
                 name="university"
                 value={form.university}
                 onChange={handleChange}
-                list="pv-university-options"
-                autoComplete="off"
+                options={SA_UNIVERSITIES}
+                placeholder="Start typing your university..."
               />
-              <datalist id="pv-university-options">
-                {SA_UNIVERSITIES.map((u) => (
-                  <option key={u} value={u} />
-                ))}
-              </datalist>
             </div>
             <div className="pv-field">
               <label>Qualification</label>
@@ -321,18 +366,13 @@ export default function ProfileView({ user }) {
             </div>
             <div className="pv-field">
               <label>Location (city)</label>
-              <input
+              <AutocompleteField
                 name="location"
                 value={form.location}
                 onChange={handleChange}
-                list="pv-city-options"
-                autoComplete="off"
+                options={SA_CITIES}
+                placeholder="Start typing your city..."
               />
-              <datalist id="pv-city-options">
-                {SA_CITIES.map((city) => (
-                  <option key={city} value={city} />
-                ))}
-              </datalist>
             </div>
             <div className="pv-field">
               <label>Phone number</label>

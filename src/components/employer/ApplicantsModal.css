@@ -34,7 +34,7 @@
 .am-modal__header h2 {
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--primary-text-color);
   margin: 0;
 }
 
@@ -45,10 +45,14 @@
   color: #64748b;
   padding: 4px;
   border-radius: 6px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .am-close-btn:hover {
-  background: #f1f5f9;
+  background: rgba(243, 65, 0, 0.06);
+  color: var(--color-primary-active, #f34100);
 }
 
 .am-modal__body {
@@ -81,7 +85,7 @@
 }
 
 .am-card--highlighted {
-  border-color: #1e3a5f;
+  border-color: var(--border-color);
   box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.12);
 }
 
@@ -142,7 +146,7 @@
 
 .am-link-btn {
   font-size: 12.5px;
-  color: #1e3a5f;
+  color: var(--color-secondary-active);
   background: none;
   border: none;
   cursor: pointer;
@@ -152,7 +156,17 @@
   align-items: center;
   gap: 4px;
   margin-left: auto;
-  padding: 0;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.am-link-btn:hover {
+  background: rgba(243, 65, 0, 0.06);
+  color: var(--color-primary-active, #f34100);
+  text-decoration: underline;
 }
 
 .am-card__details {
@@ -163,10 +177,48 @@
   gap: 8px;
 }
 
+.am-summary-card {
+  background: rgba(254, 65, 0, 0.05);
+  border: 1px solid rgba(254, 65, 0, 0.15);
+  border-left: 3px solid var(--color-primary-active);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.am-summary-card__label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary-active);
+  margin: 0;
+}
+
 .am-summary {
   font-size: 13px;
-  color: #334155;
+  color: var(--color-text-primary);
   line-height: 1.5;
+  margin: 0;
+}
+
+.am-skills-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.am-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin: 0;
 }
 
@@ -227,6 +279,7 @@
 
 .am-card__links a:hover {
   text-decoration: underline;
+  color: #005a99;
 }
 
 .am-card__actions {
@@ -249,6 +302,9 @@
   cursor: pointer;
   font-family: inherit;
   border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .am-interview-btn {
@@ -327,6 +383,7 @@
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
+  transition: background 0.15s ease;
 }
 
 .am-generate-btn:hover {
@@ -346,6 +403,11 @@
   font-family: inherit;
   resize: vertical;
   outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.am-reject-box textarea:hover {
+  border-color: #cbd5e1;
 }
 
 .am-reject-box textarea:focus {

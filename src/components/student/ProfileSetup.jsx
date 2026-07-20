@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import {
@@ -50,6 +50,64 @@ function FileDropField({ label, required, file, onSelect, hint }) {
         )}
       </label>
       {hint && <p className="ps-file-field__hint">{hint}</p>}
+    </div>
+  );
+}
+
+function AutocompleteField({
+  name,
+  value,
+  onChange,
+  options,
+  placeholder,
+  required,
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const query = (value || "").trim().toLowerCase();
+  const matches = (
+    query ? options.filter((o) => o.toLowerCase().includes(query)) : options
+  ).slice(0, 6);
+
+  function handleSelect(option) {
+    onChange({ target: { name, value: option } });
+    setOpen(false);
+  }
+
+  return (
+    <div className="ps-autocomplete" ref={wrapperRef}>
+      <input
+        name={name}
+        value={value}
+        onChange={(e) => {
+          onChange(e);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        autoComplete="off"
+        required={required}
+      />
+      {open && matches.length > 0 && (
+        <ul className="ps-autocomplete__list">
+          {matches.map((option) => (
+            <li key={option} onMouseDown={() => handleSelect(option)}>
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -170,10 +228,11 @@ export default function ProfileSetup() {
               <div className="ps-grid">
                 <div className="ps-field">
                   <label>University *</label>
-                  <input
+                  <AutocompleteField
                     name="university"
                     value={form.university}
                     onChange={handleChange}
+                    options={SA_UNIVERSITIES}
                     placeholder="University of Witwatersrand"
                     required
                   />
@@ -204,10 +263,11 @@ export default function ProfileSetup() {
                 </div>
                 <div className="ps-field">
                   <label>Location (city) *</label>
-                  <input
+                  <AutocompleteField
                     name="location"
                     value={form.location}
                     onChange={handleChange}
+                    options={SA_CITIES}
                     placeholder="Johannesburg"
                     required
                   />

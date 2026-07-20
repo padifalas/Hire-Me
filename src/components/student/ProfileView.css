@@ -125,11 +125,52 @@
   color: #0f172a;
   font-family: inherit;
   outline: none;
+  width: 90%;
+  transition: border-color 0.15s ease;
+}
+
+.pv-field input:hover,
+.pv-field select:hover {
+  border-color: #94a3b8;
 }
 
 .pv-field input:focus,
 .pv-field select:focus {
   border-color: #0077c8;
+}
+
+.pv-autocomplete {
+  position: relative;
+}
+
+.pv-autocomplete__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.pv-autocomplete__list li {
+  padding: 7px 10px;
+  font-size: 13px;
+  color: #334155;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pv-autocomplete__list li:hover {
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .pv-save-message {
@@ -149,6 +190,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  transition: opacity 0.15s ease;
 }
 
 .pv-save-btn:disabled {
@@ -242,6 +284,11 @@
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.pv-ai-btn:hover {
+  opacity: 0.92;
 }
 
 /* Progress */
@@ -318,7 +365,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-primary-active, #fe4100);
+  color: var(--color-primary-active);
   margin: 0 0 10px;
 }
 

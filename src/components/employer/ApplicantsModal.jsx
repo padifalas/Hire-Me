@@ -9,7 +9,15 @@ import { APPLICATION_STATUS_LABELS } from "../../services/opportunityService";
 
 import "./ApplicantsModal.css";
 
-import { X, GraduationCap, MapPin, FileDown, CheckCircle2, XCircle, Sparkles } from "lucide-react";
+import {
+  X,
+  GraduationCap,
+  MapPin,
+  FileDown,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
+} from "lucide-react";
 
 function matchColor(score) {
   if (score === null || score === undefined) return "#94a3b8";
@@ -28,7 +36,9 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
   const [generateError, setGenerateError] = useState(null);
 
   const profile = applicant.profile;
-  const statusMeta = APPLICATION_STATUS_LABELS[applicant.status] ?? APPLICATION_STATUS_LABELS.submitted;
+  const statusMeta =
+    APPLICATION_STATUS_LABELS[applicant.status] ??
+    APPLICATION_STATUS_LABELS.submitted;
 
   async function handleStatus(newStatus, fb = null) {
     setBusy(true);
@@ -39,8 +49,9 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
       setRejecting(false);
       setFeedback("");
     } else {
-
-      alert(result.error || "Couldn't update this application. Please try again.");
+      alert(
+        result.error || "Couldn't update this application. Please try again.",
+      );
     }
   }
 
@@ -71,14 +82,18 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
     <div className={`am-card${highlighted ? " am-card--highlighted" : ""}`}>
       <div className="am-card__top">
         <div>
-          <div className="am-card__name">{applicant.student?.full_name ?? "Student"}</div>
+          <div className="am-card__name">
+            {applicant.student?.full_name ?? "Student"}
+          </div>
           {profile && (
             <div className="am-card__meta">
-              <GraduationCap size={12} /> {profile.degree_program || "-"} · {profile.university || "-"}
+              <GraduationCap size={12} /> {profile.degree_program || "-"} ·{" "}
+              {profile.university || "-"}
               {profile.location && (
                 <>
                   {" "}
-                  · <MapPin size={11} className="am-inline-icon" /> {profile.location}
+                  · <MapPin size={11} className="am-inline-icon" />{" "}
+                  {profile.location}
                 </>
               )}
             </div>
@@ -97,29 +112,54 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
       </div>
 
       <div className="am-card__status-row">
-        <span className="am-status-badge" style={{ color: statusMeta.color, background: statusMeta.bg }}>
+        <span
+          className="am-status-badge"
+          style={{ color: statusMeta.color, background: statusMeta.bg }}
+        >
           {statusMeta.label}
         </span>
         <span className="am-card__date">
-          Applied {applicant.applied_at ? new Date(applicant.applied_at).toLocaleDateString() : "-"}
+          Applied{" "}
+          {applicant.applied_at
+            ? new Date(applicant.applied_at).toLocaleDateString()
+            : "-"}
         </span>
-        <button type="button" className="am-link-btn" onClick={() => setExpanded((e) => !e)}>
+        <button
+          type="button"
+          className="am-link-btn"
+          onClick={() => setExpanded((e) => !e)}
+        >
           {expanded ? "Hide profile" : "View profile"}
         </button>
       </div>
 
       {expanded && (
         <div className="am-card__details">
-          {!profile && <p className="am-empty-inline">This student hasn't finished their profile yet.</p>}
-          {profile?.professional_summary && <p className="am-summary">{profile.professional_summary}</p>}
+          {!profile && (
+            <p className="am-empty-inline">
+              This student hasn't finished their profile yet.
+            </p>
+          )}
+
+          {profile?.professional_summary && (
+            <div className="am-summary-card">
+              <p className="am-summary-card__label">
+                <Sparkles size={12} /> Profile summary
+              </p>
+              <p className="am-summary">{profile.professional_summary}</p>
+            </div>
+          )}
 
           {profile?.extracted_technical_skills?.length > 0 && (
-            <div className="am-chip-row">
-              {profile.extracted_technical_skills.map((s, i) => (
-                <span key={i} className="am-chip">
-                  {typeof s === "string" ? s : s.skill}
-                </span>
-              ))}
+            <div className="am-skills-block">
+              <p className="am-section-label">Skills</p>
+              <div className="am-chip-row">
+                {profile.extracted_technical_skills.map((s, i) => (
+                  <span key={i} className="am-chip">
+                    {typeof s === "string" ? s : s.skill}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -132,7 +172,11 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
 
           <div className="am-card__links">
             {profile?.cv_url && (
-              <button type="button" className="am-link-btn" onClick={handleViewCv}>
+              <button
+                type="button"
+                className="am-link-btn"
+                onClick={handleViewCv}
+              >
                 <FileDown size={13} /> View CV
               </button>
             )}
@@ -159,9 +203,17 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
       {rejecting ? (
         <div className="am-reject-box">
           <div className="am-reject-box__header">
-            <span className="am-reject-box__label">Feedback for the student (optional)</span>
-            <button type="button" className="am-generate-btn" onClick={handleGenerateFeedback} disabled={generating || busy}>
-              <Sparkles size={12} /> {generating ? "Generating..." : "Generate AI suggestions"}
+            <span className="am-reject-box__label">
+              Feedback for the student (optional)
+            </span>
+            <button
+              type="button"
+              className="am-generate-btn"
+              onClick={handleGenerateFeedback}
+              disabled={generating || busy}
+            >
+              <Sparkles size={12} />{" "}
+              {generating ? "Generating..." : "Generate AI suggestions"}
             </button>
           </div>
           <textarea
@@ -172,7 +224,12 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
           />
           {generateError && <p className="am-error">{generateError}</p>}
           <div className="am-card__actions">
-            <button type="button" className="am-cancel-btn" onClick={() => setRejecting(false)} disabled={busy}>
+            <button
+              type="button"
+              className="am-cancel-btn"
+              onClick={() => setRejecting(false)}
+              disabled={busy}
+            >
               Cancel
             </button>
             <button
@@ -188,17 +245,32 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
       ) : (
         <div className="am-card__actions">
           {!["interview", "hired", "rejected"].includes(applicant.status) && (
-            <button type="button" className="am-interview-btn" onClick={() => handleStatus("interview")} disabled={busy}>
+            <button
+              type="button"
+              className="am-interview-btn"
+              onClick={() => handleStatus("interview")}
+              disabled={busy}
+            >
               Request interview
             </button>
           )}
           {applicant.status !== "hired" && (
-            <button type="button" className="am-accept-btn" onClick={() => handleStatus("hired")} disabled={busy}>
+            <button
+              type="button"
+              className="am-accept-btn"
+              onClick={() => handleStatus("hired")}
+              disabled={busy}
+            >
               <CheckCircle2 size={13} /> Accept
             </button>
           )}
           {applicant.status !== "rejected" && (
-            <button type="button" className="am-reject-btn" onClick={() => setRejecting(true)} disabled={busy}>
+            <button
+              type="button"
+              className="am-reject-btn"
+              onClick={() => setRejecting(true)}
+              disabled={busy}
+            >
               <XCircle size={13} /> Reject
             </button>
           )}
@@ -208,7 +280,12 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
   );
 }
 
-export default function ApplicantsModal({ opportunityId, jobTitle, highlightApplicationId, onClose }) {
+export default function ApplicantsModal({
+  opportunityId,
+  jobTitle,
+  highlightApplicationId,
+  onClose,
+}) {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -224,7 +301,11 @@ export default function ApplicantsModal({ opportunityId, jobTitle, highlightAppl
   }, [opportunityId]);
 
   function handleStatusChange(applicationId, updatedApplication) {
-    setApplicants((prev) => prev.map((a) => (a.id === applicationId ? { ...a, ...updatedApplication } : a)));
+    setApplicants((prev) =>
+      prev.map((a) =>
+        a.id === applicationId ? { ...a, ...updatedApplication } : a,
+      ),
+    );
   }
 
   return (
