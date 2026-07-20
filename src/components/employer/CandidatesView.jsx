@@ -9,12 +9,36 @@ import {
   GraduationCap,
   MapPin,
   Sparkles,
-  FileDown,
+  FileText,
+  ChevronRight,
   Users,
 } from "lucide-react";
 
 function skillLabel(s) {
   return typeof s === "string" ? s : (s?.skill ?? "");
+}
+
+// Stable per-candidate avatar color, keyed off id so it doesn't change
+// between renders/reloads for the same candidate.
+const AVATAR_PALETTE = [
+  { bg: "#dbeafe", color: "#1d4ed8" }, // blue
+  { bg: "#cffafe", color: "#0891b2" }, // teal
+  { bg: "#dcfce7", color: "#16a34a" }, // green
+  { bg: "#fef3c7", color: "#b45309" }, // orange
+];
+
+function avatarStyleFor(id) {
+  const hash = String(id ?? "")
+    .split("")
+    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+
+function matchColor(score) {
+  if (score === null || score === undefined) return "#94a3b8";
+  if (score >= 75) return "#16A34A";
+  if (score >= 50) return "#DC8F00";
+  return "#DC2626";
 }
 
 function CandidateCard({ candidate }) {
@@ -32,6 +56,15 @@ function CandidateCard({ candidate }) {
 
   const skills = candidate.extracted_technical_skills || [];
   const hasAiProfile = candidate.ai_processing_status === "completed";
+  const avatarStyle = avatarStyleFor(candidate.id);
+
+  // ASSUMPTION: candidate.match_score isn't confirmed to exist yet on the
+  // getCandidates() response - this renders only if present, so nothing
+  // breaks if the field isn't there. Swap the field name here once the
+  // real source (best match across active jobs? profile strength? etc.)
+  // is confirmed.
+  const hasMatchScore =
+    candidate.match_score !== null && candidate.match_score !== undefined;
 
   async function handleViewCv() {
     if (!candidate.cv_url) return;
@@ -51,9 +84,21 @@ function CandidateCard({ candidate }) {
   return (
     <div className="cd-card">
       <div className="cd-card__top">
-        <div className="cd-avatar">{initials}</div>
+        <div
+          className="cd-avatar"
+          style={{ background: avatarStyle.bg, color: avatarStyle.color }}
+        >
+          {initials}
+        </div>
         <div className="cd-card__heading">
-          <div className="cd-card__name">{candidate.full_name}</div>
+          <div className="cd-card__name-row">
+            <span className="cd-card__name">{candidate.full_name}</span>
+            {hasAiProfile && (
+              <span className="cd-ai-badge">
+                <Sparkles size={11} /> AI profile
+              </span>
+            )}
+          </div>
           <div className="cd-card__meta">
             <GraduationCap size={12} /> {candidate.degree_program || "-"}
             {candidate.graduation_year
@@ -66,9 +111,16 @@ function CandidateCard({ candidate }) {
             </div>
           )}
         </div>
-        {hasAiProfile && (
-          <span className="cd-ai-badge">
-            <Sparkles size={11} /> AI profile
+        {hasMatchScore && (
+          <span
+            className="cd-match-badge"
+            style={{
+              background: matchColor(candidate.match_score) + "18",
+              color: matchColor(candidate.match_score),
+              border: `1px solid ${matchColor(candidate.match_score)}33`,
+            }}
+          >
+            {candidate.match_score}%
           </span>
         )}
       </div>
@@ -100,11 +152,15 @@ function CandidateCard({ candidate }) {
           className="cd-link-btn"
           onClick={() => setExpanded((e) => !e)}
         >
-          {expanded ? "Show less" : "View more"}
+          {expanded ? "Show less" : "View profile"} <ChevronRight size={13} />
         </button>
         {candidate.cv_url && (
-          <button type="button" className="cd-link-btn" onClick={handleViewCv}>
-            <FileDown size={13} /> View CV
+          <button
+            type="button"
+            className="cd-link-btn cd-link-btn--muted"
+            onClick={handleViewCv}
+          >
+            <FileText size={13} /> View CV
           </button>
         )}
       </div>

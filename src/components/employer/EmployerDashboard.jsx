@@ -27,6 +27,8 @@ import {
   Menu,
   Search,
   Plus,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -124,6 +126,28 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           .toUpperCase()
       : "S";
   }
+
+  const interviewCount = recentApps.filter(
+    (a) => a.status === "interview",
+  ).length;
+
+  const scoredApps = recentApps.filter(
+    (a) => a.match_score !== null && a.match_score !== undefined,
+  );
+  const avgMatchScore = scoredApps.length
+    ? Math.round(
+        scoredApps.reduce((sum, a) => sum + a.match_score, 0) /
+          scoredApps.length,
+      )
+    : 0;
+
+  const beeBreakdown = [
+    { label: "Black/African", pct: 0, color: "#dc4c1e" },
+    { label: "Coloured", pct: 0, color: "#f0a500" },
+    { label: "Indian", pct: 0, color: "#f4c542" },
+    { label: "White", pct: 0, color: "#d1d5db" },
+  ];
+  const beeTotalPooled = 0;
 
   function StatCard({ icon: Icon, value, label, tint }) {
     return (

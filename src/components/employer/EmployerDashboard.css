@@ -2,14 +2,14 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: #f8fafc;
+  background: var(--color-bg-page);
   font-family: "Manrope", sans-serif;
 }
 
 .ed-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: #fff;
+  width: 250px;
+  min-width: 250px;
+  background: var(--color-bg-sidebar);
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
@@ -116,13 +116,13 @@
 }
 
 .ed-nav-btn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: color-mix(in srgb, var(--color-primary-active) 12%, white);
+  color: var(--color-primary-active);
 }
 
 .ed-nav-btn--active {
-  background: #eff6ff;
-  color: #1e3a5f;
+  background: color-mix(in srgb, var(--color-primary-active) 12%, white);
+  color: var(--color-primary-active);
   font-weight: 600;
 }
 
@@ -185,7 +185,7 @@
 .ed-header {
   height: 54px;
   min-height: 54px;
-  background: #fff;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8fafc;
+  background: var(--color-bg-page);
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 0 12px;
@@ -257,7 +257,6 @@
   display: flex;
   flex-direction: column;
   gap: 22px;
-  max-width: 1100px;
 }
 
 /* Welcome row */
@@ -280,7 +279,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #3b82f6;
+  color: var(--color-primary-active);
   font-weight: 500;
 }
 
@@ -296,7 +295,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #1e3a5f;
+  background: #0f172a;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -332,7 +331,7 @@
 }
 
 .ed-card {
-  background: #fff;
+  background: var(--color-bg-card);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 18px 20px;
@@ -355,7 +354,7 @@
   background: transparent;
   border: none;
   font-size: 12.5px;
-  color: #3b82f6;
+  color: var(--color-primary-active);
   cursor: pointer;
   padding: 0;
   font-weight: 500;
@@ -420,7 +419,7 @@
   background: transparent;
   border: none;
   font-size: 12.5px;
-  color: #3b82f6;
+  color: var(--color-primary-active);
   cursor: pointer;
   font-weight: 500;
   padding: 0;
@@ -486,7 +485,7 @@
 }
 
 .ed-stat-card {
-  background: #fff;
+  background: var(--color-bg-card);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 16px;
