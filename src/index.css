@@ -11,7 +11,7 @@
   /* primary  Colors */
   --color-primary: #f8f7f2;
   --color-primary-hover: #e2e2e2;
-  --color-primary-active: #fe4100;
+  --color-primary-active: #f34100;
 
   --color-secondary: #7e7e7e;
   --color-secondary-hover: #2a2a2a;
@@ -38,15 +38,17 @@
   /* backgrounds */
   --color-bg-page: #f8f7f2;
   --color-bg-card: #ffffff;
-  --color-bg-sidebar: #f8f7f2;
+  --color-sd-sidebar: #ffffff;
+  --color-ed-sidebar: #f8f7f2;
 
   /* text colors */
   --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
+  --color-text-secondary: #747373;
   --color-text-tertiary: #bababa;
+  --color-text-muted: #94a3b8;
 
   /* UI Elements */
-  --color-border: #cacaca;
+  --color-border: #88888882;
   --color-border-focus: #656565;
   --color-border-error: #c1121f;
 
@@ -88,12 +90,22 @@
 
 body {
   margin: 0;
-  font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Sora", "Manrope", sans-serif;
 }
 

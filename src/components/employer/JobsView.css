@@ -15,13 +15,13 @@
 .jv-title {
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0 0 4px;
 }
 
 .jv-subtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -29,7 +29,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #1e3a5f;
+  background: #0f172a;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -41,12 +41,12 @@
 }
 
 .jv-post-btn:hover {
-  background: #163156;
+  background: #0f172acc;
 }
 
 .jv-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 10px 20px 6px;
 }
@@ -55,13 +55,12 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 70px;
   padding: 10px 4px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .jv-table-th {
   font-size: 11.5px;
-  font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -71,7 +70,7 @@
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 70px;
   align-items: center;
   padding: 13px 4px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .jv-table-row:last-child {
@@ -80,16 +79,16 @@
 
 .jv-table-cell {
   font-size: 13px;
-  color: #334155;
+  color: var(--color-text-secondary);
 }
 
 .jv-table-cell--title {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .jv-table-cell--muted {
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .jv-status-badge {
@@ -135,7 +134,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: #1e3a5f;
+  color: var(--color-primary-active);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;

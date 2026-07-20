@@ -14,19 +14,19 @@
 .cpv-title {
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .cpv-subtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 4px 0 0;
 }
 
 .cpv-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 22px 24px;
   display: flex;
@@ -94,11 +94,11 @@
 .cpv-field input,
 .cpv-field select,
 .cpv-field textarea {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 9px 11px;
   font-size: 13.5px;
-  color: #1e293b;
+  color: var(--color-text-primary);
   font-family: inherit;
   outline: none;
   resize: vertical;

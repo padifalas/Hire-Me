@@ -13,13 +13,13 @@
 .cd-title {
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .cd-subtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -35,7 +35,7 @@
   align-items: center;
   gap: 8px;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 9px 14px;
 }
@@ -45,7 +45,7 @@
   background: transparent;
   outline: none;
   font-size: 13.5px;
-  color: #1e293b;
+  color: var(--color-text-primary);
   width: 100%;
   font-family: inherit;
 }
@@ -58,7 +58,7 @@
 
 .cd-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 16px;
   display: flex;
@@ -94,12 +94,12 @@
 .cd-card__name {
   font-weight: 700;
   font-size: 14px;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .cd-card__meta {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -112,7 +112,7 @@
   gap: 4px;
   font-size: 10.5px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #6856be;
   background: #f5f3ff;
   border: 1px solid #ede9fe;
   padding: 3px 8px;
@@ -122,7 +122,7 @@
 
 .cd-summary {
   font-size: 13px;
-  color: #334155;
+  color: var(--color-text-primary);
   line-height: 1.5;
   margin: 0;
 }
@@ -151,7 +151,7 @@
 
 .cd-chip--muted {
   background: transparent;
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .cd-card__actions {
@@ -162,7 +162,7 @@
 
 .cd-link-btn {
   font-size: 12.5px;
-  color: #1e3a5f;
+  color: var(--color-primary-active);
   background: none;
   border: none;
   cursor: pointer;
