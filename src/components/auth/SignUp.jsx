@@ -7,6 +7,36 @@ import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import "./SignUp.css";
 
+const PASSWORD_RULES = [
+  { label: "At least 8 characters", test: (pw) => pw.length >= 8 },
+  { label: "One uppercase letter", test: (pw) => /[A-Z]/.test(pw) },
+  { label: "One number", test: (pw) => /[0-9]/.test(pw) },
+  { label: "One special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+];
+
+function PasswordChecklist({ password }) {
+  return (
+    <ul className="password-checklist">
+      {PASSWORD_RULES.map((rule) => {
+        const met = rule.test(password);
+        return (
+          <li
+            key={rule.label}
+            className={`password-checklist__item${met ? " password-checklist__item--met" : ""}`}
+          >
+            {met ? (
+              <CheckCircle2 size={13} />
+            ) : (
+              <span className="password-checklist__dot" />
+            )}
+            {rule.label}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export default function SignUp() {
   const [mode, setMode] = useState("signin");
   const [formData, setFormData] = useState({
@@ -18,6 +48,7 @@ export default function SignUp() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -112,8 +143,7 @@ export default function SignUp() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <span className="logo-text">HireMe</span>
-          <span className="logo-dot">.</span>
+          <img src={HireMeLogo} alt="HireMe logo" className="auth-logo__img" />
         </div>
 
         <div className="auth-tabs">
@@ -152,7 +182,7 @@ export default function SignUp() {
                   id="fullName"
                   name="fullName"
                   type="text"
-                  placeholder="Jane Doe"
+                  placeholder="André Gopal"
                   value={formData.fullName}
                   onChange={handleChange}
                   required
@@ -193,16 +223,30 @@ export default function SignUp() {
           <div className="form-group">
             <label htmlFor="password">Password</label>
 
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-            />
+            <div className="password-input-wrap">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+
+            {mode === "signup" && (
+              <PasswordChecklist password={formData.password} />
+            )}
           </div>
 
           {error && <p className="auth-error">{error}</p>}
