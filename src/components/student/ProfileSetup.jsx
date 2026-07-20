@@ -8,6 +8,7 @@ import {
 } from "../../services/documentService";
 
 import "./ProfileSetup.css";
+import { SA_UNIVERSITIES } from "../../utils/suggestionList";
 
 import { UploadCloud, FileText, CheckCircle2, Loader2 } from "lucide-react";
 
@@ -80,7 +81,12 @@ export default function ProfileSetup() {
   }
 
   function validate() {
-    if (!form.university || !form.qualification || !form.location || !form.phone) {
+    if (
+      !form.university ||
+      !form.qualification ||
+      !form.location ||
+      !form.phone
+    ) {
       return "Please fill in university, qualification, location, and phone number.";
     }
     if (!cvFile) {
@@ -113,14 +119,22 @@ export default function ProfileSetup() {
 
       let transcriptText = "";
       if (transcriptFile) {
-        const transcriptResult = await uploadDocument(transcriptFile, user.id, "transcript");
+        const transcriptResult = await uploadDocument(
+          transcriptFile,
+          user.id,
+          "transcript",
+        );
         if (!transcriptResult.success) throw new Error(transcriptResult.error);
         transcriptText = transcriptResult.extractedText;
       }
 
       // 3. Kick off AI skill extraction + project translation
       setCurrentStep("extracting");
-      const aiResult = await triggerSkillExtraction(user.id, cvResult.extractedText, transcriptText);
+      const aiResult = await triggerSkillExtraction(
+        user.id,
+        cvResult.extractedText,
+        transcriptText,
+      );
       if (!aiResult.success) throw new Error(aiResult.error);
 
       setCurrentStep("done");
@@ -141,7 +155,9 @@ export default function ProfileSetup() {
           </span>
           <h1 className="ps-title">Complete your profile</h1>
           <p className="ps-subtitle">
-            {userProfile?.full_name ? `Hi ${userProfile.full_name.split(" ")[0]}, ` : ""}
+            {userProfile?.full_name
+              ? `Hi ${userProfile.full_name.split(" ")[0]}, `
+              : ""}
             this helps us match you with the right opportunities and turn your
             coursework into skills employers understand.
           </p>
@@ -174,9 +190,15 @@ export default function ProfileSetup() {
                 </div>
                 <div className="ps-field">
                   <label>Graduation year *</label>
-                  <select name="graduationYear" value={form.graduationYear} onChange={handleChange}>
+                  <select
+                    name="graduationYear"
+                    value={form.graduationYear}
+                    onChange={handleChange}
+                  >
                     {GRAD_YEARS.map((y) => (
-                      <option key={y} value={y}>{y}</option>
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
                     ))}
                   </select>
                 </div>

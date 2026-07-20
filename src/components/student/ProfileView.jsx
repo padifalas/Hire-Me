@@ -8,6 +8,7 @@ import {
 } from "../../services/documentService";
 
 import "./ProfileView.css";
+import { SA_UNIVERSITIES, SA_CITIES } from "../../utils/suggestionList";
 
 import {
   UploadCloud,
@@ -31,7 +32,9 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
   return (
     <div className="pv-file-field">
       <label className="pv-file-field__label">{label}</label>
-      <label className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}>
+      <label
+        className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}
+      >
         <input
           type="file"
           accept=".pdf,.docx"
@@ -43,7 +46,8 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
           {file ? file.name : currentFileName || "No file uploaded yet"}
         </span>
         <span className="pv-dropzone__action">
-          <UploadCloud size={14} /> {currentFileName || file ? "Replace" : "Upload"}
+          <UploadCloud size={14} />{" "}
+          {currentFileName || file ? "Replace" : "Upload"}
         </span>
       </label>
     </div>
@@ -52,6 +56,67 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
 
 function SkillChip({ label }) {
   return <span className="pv-skill-chip">{label}</span>;
+}
+
+// Same checks as the dashboard, put it on this page as well so students can act on the changes.
+function buildChecklist(profile) {
+  return [
+    {
+      label: "University & qualification",
+      done: Boolean(profile.university && profile.degree_program),
+    },
+    {
+      label: "Location & phone number",
+      done: Boolean(profile.location && profile.phone),
+    },
+    { label: "CV uploaded", done: Boolean(profile.cv_url) },
+    {
+      label: "Academic transcript uploaded",
+      done: Boolean(profile.transcript_url),
+    },
+    {
+      label: "LinkedIn, GitHub, or portfolio link",
+      done: Boolean(
+        profile.linkedin_url || profile.github_url || profile.portfolio_url,
+      ),
+    },
+    {
+      label: "AI analysis run on your documents",
+      done: profile.ai_processing_status === "completed",
+    },
+  ];
+}
+
+function ChecklistCard({ profile }) {
+  const items = buildChecklist(profile);
+  const remaining = items.filter((i) => !i.done);
+
+  if (remaining.length === 0) return null;
+
+  return (
+    <div className="pv-checklist-card">
+      <p className="pv-checklist-card__title">Strengthen your profile</p>
+      <p className="pv-checklist-card__hint">
+        Employers see completed profiles first - here's what's left:
+      </p>
+
+      <ul className="pv-checklist">
+        {items.map((item) => (
+          <li
+            key={item.label}
+            className={`pv-checklist__item${item.done ? " pv-checklist__item--done" : ""}`}
+          >
+            {item.done ? (
+              <CheckCircle2 size={14} />
+            ) : (
+              <span className="pv-checklist__dot" />
+            )}
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export default function ProfileView({ user }) {
@@ -68,6 +133,17 @@ export default function ProfileView({ user }) {
   const [aiRunning, setAiRunning] = useState(false);
   const [aiStep, setAiStep] = useState(null);
   const [aiError, setAiError] = useState(null);
+
+  const [expandedProjects, setExpandedProjects] = useState(new Set());
+
+  function toggleProject(i) {
+    setExpandedProjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -128,22 +204,35 @@ export default function ProfileView({ user }) {
       }
 
       if (newTranscriptFile) {
-        const res = await uploadDocument(newTranscriptFile, user.id, "transcript");
+        const res = await uploadDocument(
+          newTranscriptFile,
+          user.id,
+          "transcript",
+        );
         if (!res.success) throw new Error(res.error);
         transcriptPath = res.path;
         transcriptText = res.extractedText;
       } else if (transcriptPath) {
-        const res = await extractTextFromStoredDocument("transcript", transcriptPath);
+        const res = await extractTextFromStoredDocument(
+          "transcript",
+          transcriptPath,
+        );
         if (!res.success) throw new Error(res.error);
         transcriptText = res.text;
       }
 
       if (!cvText && !transcriptText) {
-        throw new Error("Upload a CV or transcript before running AI analysis.");
+        throw new Error(
+          "Upload a CV or transcript before running AI analysis.",
+        );
       }
 
       setAiStep("extracting");
-      const aiResult = await triggerSkillExtraction(user.id, cvText, transcriptText);
+      const aiResult = await triggerSkillExtraction(
+        user.id,
+        cvText,
+        transcriptText,
+      );
       if (!aiResult.success) throw new Error(aiResult.error);
 
       setAiStep("done");
@@ -167,7 +256,11 @@ export default function ProfileView({ user }) {
   }
 
   if (!profile || !form) {
-    return <div className="pv-loading">Couldn't load your profile. Try refreshing.</div>;
+    return (
+      <div className="pv-loading">
+        Couldn't load your profile. Try refreshing.
+      </div>
+    );
   }
 
   const hasResults = profile.ai_processing_status === "completed";
@@ -177,33 +270,69 @@ export default function ProfileView({ user }) {
     <div className="pv-root">
       <div className="pv-header">
         <h1 className="pv-title">My Profile</h1>
-        <p className="pv-subtitle">Update your details and re-run AI analysis any time.</p>
+        <p className="pv-subtitle">
+          Update your details and re-run AI analysis any time.
+        </p>
       </div>
 
+      <ChecklistCard profile={profile} />
+
       <div className="pv-grid-layout">
-        {/* u can edit these fields */}
+        {/* tried editing these fields */}
         <form onSubmit={handleSaveFields} className="pv-card">
           <h2 className="pv-card__title">Academic & contact details</h2>
           <div className="pv-fields-grid">
             <div className="pv-field">
               <label>University</label>
-              <input name="university" value={form.university} onChange={handleChange} />
+              <input
+                name="university"
+                value={form.university}
+                onChange={handleChange}
+                list="pv-university-options"
+                autoComplete="off"
+              />
+              <datalist id="pv-university-options">
+                {SA_UNIVERSITIES.map((u) => (
+                  <option key={u} value={u} />
+                ))}
+              </datalist>
             </div>
             <div className="pv-field">
               <label>Qualification</label>
-              <input name="qualification" value={form.qualification} onChange={handleChange} />
+              <input
+                name="qualification"
+                value={form.qualification}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Graduation year</label>
-              <select name="graduationYear" value={form.graduationYear} onChange={handleChange}>
+              <select
+                name="graduationYear"
+                value={form.graduationYear}
+                onChange={handleChange}
+              >
                 {GRAD_YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="pv-field">
               <label>Location (city)</label>
-              <input name="location" value={form.location} onChange={handleChange} />
+              <input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                list="pv-city-options"
+                autoComplete="off"
+              />
+              <datalist id="pv-city-options">
+                {SA_CITIES.map((city) => (
+                  <option key={city} value={city} />
+                ))}
+              </datalist>
             </div>
             <div className="pv-field">
               <label>Phone number</label>
@@ -211,15 +340,27 @@ export default function ProfileView({ user }) {
             </div>
             <div className="pv-field">
               <label>LinkedIn URL</label>
-              <input name="linkedinUrl" value={form.linkedinUrl} onChange={handleChange} />
+              <input
+                name="linkedinUrl"
+                value={form.linkedinUrl}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>GitHub URL</label>
-              <input name="githubUrl" value={form.githubUrl} onChange={handleChange} />
+              <input
+                name="githubUrl"
+                value={form.githubUrl}
+                onChange={handleChange}
+              />
             </div>
             <div className="pv-field">
               <label>Portfolio website</label>
-              <input name="portfolioUrl" value={form.portfolioUrl} onChange={handleChange} />
+              <input
+                name="portfolioUrl"
+                value={form.portfolioUrl}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -259,7 +400,8 @@ export default function ProfileView({ user }) {
               )}
               {hasFailed && (
                 <p className="pv-ai-status pv-ai-status--failed">
-                  <AlertCircle size={14} /> Last analysis failed: {profile.ai_processing_error}
+                  <AlertCircle size={14} /> Last analysis failed:{" "}
+                  {profile.ai_processing_error}
                 </p>
               )}
               {aiError && (
@@ -307,7 +449,12 @@ export default function ProfileView({ user }) {
           <h2 className="pv-card__title">AI-generated profile summary</h2>
 
           {profile.professional_summary && (
-            <p className="pv-summary">{profile.professional_summary}</p>
+            <div className="pv-summary-card">
+              <p className="pv-summary-card__label">
+                <Sparkles size={13} /> AI-generated summary
+              </p>
+              <p className="pv-summary">{profile.professional_summary}</p>
+            </div>
           )}
 
           {profile.extracted_technical_skills?.length > 0 && (
@@ -336,20 +483,40 @@ export default function ProfileView({ user }) {
             <div className="pv-results-section">
               <h3 className="pv-results-section__title">Projects</h3>
               <div className="pv-projects">
-                {profile.translated_projects.map((p, i) => (
-                  <div key={i} className="pv-project-card">
-                    <div className="pv-project-card__title">{p.professional_title}</div>
-                    <div className="pv-project-card__original">
-                      Originally: {p.original_title}
+                {profile.translated_projects.map((p, i) => {
+                  const isExpanded = expandedProjects.has(i);
+                  const isLong = (p.description?.length ?? 0) > 140;
+
+                  return (
+                    <div key={i} className="pv-project-card">
+                      <div className="pv-project-card__title">
+                        {p.professional_title}
+                      </div>
+                      <div className="pv-project-card__original">
+                        Originally: {p.original_title}
+                      </div>
+                      <p
+                        className={`pv-project-card__desc${!isExpanded && isLong ? " pv-project-card__desc--clamped" : ""}`}
+                      >
+                        {p.description}
+                      </p>
+                      {isLong && (
+                        <button
+                          type="button"
+                          className="pv-project-card__toggle"
+                          onClick={() => toggleProject(i)}
+                        >
+                          {isExpanded ? "Show less" : "Show more"}
+                        </button>
+                      )}
+                      <div className="pv-chip-row">
+                        {p.skills_demonstrated?.map((s, j) => (
+                          <SkillChip key={j} label={s} />
+                        ))}
+                      </div>
                     </div>
-                    <p className="pv-project-card__desc">{p.description}</p>
-                    <div className="pv-chip-row">
-                      {p.skills_demonstrated?.map((s, j) => (
-                        <SkillChip key={j} label={s} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

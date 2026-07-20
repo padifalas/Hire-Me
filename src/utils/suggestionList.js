@@ -1,0 +1,56 @@
+// Suggestion list that powers <datalist> autocomplete on university
+// and location fields across student profile forms.
+// Not enforced options, the inputs will stay plain text fields for now
+// so students at intitutions not on this list can still type theirs in.
+
+export const SA_UNIVERSITIES = [
+  "University of Cape Town",
+  "University of the Witwatersrand",
+  "Stellenbosch University",
+  "University of Pretoria",
+  "University of Johannesburg",
+  "University of KwaZulu-Natal",
+  "Rhodes University",
+  "North-West University",
+  "University of the Western Cape",
+  "University of South Africa (UNISA)",
+  "Nelson Mandela University",
+  "University of the Free State",
+  "Tshwane University of Technology",
+  "Cape Peninsula University of Technology",
+  "Durban University of Technology",
+  "Vaal University of Technology",
+  "Central University of Technology",
+  "Mangosuthu University of Technology",
+  "Sol Plaatje University",
+  "University of Mpumalanga",
+  "University of Venda",
+  "University of Limpopo",
+  "University of Zululand",
+  "Walter Sisulu University",
+  "Sefako Makgatho Health Sciences University",
+  "University of Fort Hare",
+];
+
+export const SA_CITIES = [
+  "Johannesburg",
+  "Cape Town",
+  "Durban",
+  "Pretoria",
+  "Port Elizabeth (Gqeberha)",
+  "Bloemfontein",
+  "East London",
+  "Polokwane",
+  "Nelspruit (Mbombela)",
+  "Kimberley",
+  "Pietermaritzburg",
+  "Rustenburg",
+  "George",
+  "Potchefstroom",
+  "Stellenbosch",
+  "Soweto",
+  "Centurion",
+  "Sandton",
+  "Vanderbijlpark",
+  "Welkom",
+];
