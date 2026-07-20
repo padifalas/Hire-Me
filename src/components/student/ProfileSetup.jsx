@@ -8,7 +8,7 @@ import {
 } from "../../services/documentService";
 
 import "./ProfileSetup.css";
-import { SA_UNIVERSITIES } from "../../utils/suggestionList";
+import { SA_UNIVERSITIES, SA_CITIES } from "../../utils/suggestionList";
 
 import { UploadCloud, FileText, CheckCircle2, Loader2 } from "lucide-react";
 

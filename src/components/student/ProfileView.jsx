@@ -31,10 +31,6 @@ const STEPS = [
 function FileDropField({ label, currentFileName, file, onSelect }) {
   return (
     <div className="pv-file-field">
-      <label className="pv-file-field__label">{label}</label>
-      <label
-        className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}
-      >
       <label
         className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}
       >
@@ -49,8 +45,6 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
           {file ? file.name : currentFileName || "No file uploaded yet"}
         </span>
         <span className="pv-dropzone__action">
-          <UploadCloud size={14} />{" "}
-          {currentFileName || file ? "Replace" : "Upload"}
           <UploadCloud size={14} />{" "}
           {currentFileName || file ? "Replace" : "Upload"}
         </span>
@@ -264,11 +258,7 @@ export default function ProfileView({ user }) {
           user.id,
           "transcript",
         );
-        const res = await uploadDocument(
-          newTranscriptFile,
-          user.id,
-          "transcript",
-        );
+
         if (!res.success) throw new Error(res.error);
         transcriptPath = res.path;
         transcriptText = res.extractedText;
@@ -277,18 +267,12 @@ export default function ProfileView({ user }) {
           "transcript",
           transcriptPath,
         );
-        const res = await extractTextFromStoredDocument(
-          "transcript",
-          transcriptPath,
-        );
+
         if (!res.success) throw new Error(res.error);
         transcriptText = res.text;
       }
 
       if (!cvText && !transcriptText) {
-        throw new Error(
-          "Upload a CV or transcript before running AI analysis.",
-        );
         throw new Error(
           "Upload a CV or transcript before running AI analysis.",
         );
@@ -300,11 +284,7 @@ export default function ProfileView({ user }) {
         cvText,
         transcriptText,
       );
-      const aiResult = await triggerSkillExtraction(
-        user.id,
-        cvText,
-        transcriptText,
-      );
+
       if (!aiResult.success) throw new Error(aiResult.error);
 
       setAiStep("done");
@@ -333,11 +313,6 @@ export default function ProfileView({ user }) {
         Couldn't load your profile. Try refreshing.
       </div>
     );
-    return (
-      <div className="pv-loading">
-        Couldn't load your profile. Try refreshing.
-      </div>
-    );
   }
 
   const hasResults = profile.ai_processing_status === "completed";
@@ -347,9 +322,6 @@ export default function ProfileView({ user }) {
     <div className="pv-root">
       <div className="pv-header">
         <h1 className="pv-title">My Profile</h1>
-        <p className="pv-subtitle">
-          Update your details and re-run AI analysis any time.
-        </p>
         <p className="pv-subtitle">
           Update your details and re-run AI analysis any time.
         </p>
@@ -379,11 +351,6 @@ export default function ProfileView({ user }) {
                 value={form.qualification}
                 onChange={handleChange}
               />
-              <input
-                name="qualification"
-                value={form.qualification}
-                onChange={handleChange}
-              />
             </div>
             <div className="pv-field">
               <label>Graduation year</label>
@@ -392,15 +359,7 @@ export default function ProfileView({ user }) {
                 value={form.graduationYear}
                 onChange={handleChange}
               >
-              <select
-                name="graduationYear"
-                value={form.graduationYear}
-                onChange={handleChange}
-              >
                 {GRAD_YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
                   <option key={y} value={y}>
                     {y}
                   </option>
@@ -428,11 +387,6 @@ export default function ProfileView({ user }) {
                 value={form.linkedinUrl}
                 onChange={handleChange}
               />
-              <input
-                name="linkedinUrl"
-                value={form.linkedinUrl}
-                onChange={handleChange}
-              />
             </div>
             <div className="pv-field">
               <label>GitHub URL</label>
@@ -441,19 +395,9 @@ export default function ProfileView({ user }) {
                 value={form.githubUrl}
                 onChange={handleChange}
               />
-              <input
-                name="githubUrl"
-                value={form.githubUrl}
-                onChange={handleChange}
-              />
             </div>
             <div className="pv-field">
               <label>Portfolio website</label>
-              <input
-                name="portfolioUrl"
-                value={form.portfolioUrl}
-                onChange={handleChange}
-              />
               <input
                 name="portfolioUrl"
                 value={form.portfolioUrl}
@@ -498,8 +442,6 @@ export default function ProfileView({ user }) {
               )}
               {hasFailed && (
                 <p className="pv-ai-status pv-ai-status--failed">
-                  <AlertCircle size={14} /> Last analysis failed:{" "}
-                  {profile.ai_processing_error}
                   <AlertCircle size={14} /> Last analysis failed:{" "}
                   {profile.ai_processing_error}
                 </p>
