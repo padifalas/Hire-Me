@@ -33,6 +33,11 @@ import {
   Clock,
   CheckCircle2,
   Circle,
+  Sparkles,
+  SlidersHorizontal,
+  ClipboardList,
+  LogOut,
+  X,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -45,9 +50,49 @@ const NAV_ITEMS = [
 
 /* Small components used throughout the student dashboard page */
 
+// Rotating avatar color, stable per company name - same approach used on
+// the Opportunities and Candidates pages for visual consistency.
+const AVATAR_PALETTE = [
+  { bg: "#dbeafe", color: "#1d4ed8" },
+  { bg: "#fee2e2", color: "#dc2626" },
+  { bg: "#dcfce7", color: "#16a34a" },
+  { bg: "#fef3c7", color: "#b45309" },
+  { bg: "#f5f3ff", color: "#7c3aed" },
+];
+
+function avatarStyleFor(key) {
+  const hash = String(key ?? "")
+    .split("")
+    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+
+// Handles both "Takealot" (single word -> first 2 chars) and "Patrick
+// Zonda" (multi-word -> first letter of each, up to 2) so single-word
+// company names don't collapse to a single letter.
+function getInitials(name) {
+  if (!name) return "";
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 function CompanyLogo({ src, company, size = 32 }) {
+  const style = avatarStyleFor(company);
+  const initials = getInitials(company);
   return (
-    <div className="sd-company-logo" style={{ width: size, height: size }}>
+    <div
+      className="sd-company-logo"
+      style={{
+        width: size,
+        height: size,
+        background: src ? undefined : style.bg,
+      }}
+    >
       {src ? (
         <img
           src={src}
@@ -55,7 +100,14 @@ function CompanyLogo({ src, company, size = 32 }) {
           className="sd-company-logo__img"
         />
       ) : (
-        <Building2 size={Math.round(size * 0.5)} color="#94a3b8" />
+        <span
+          className="sd-company-logo__initials"
+          style={{ color: style.color, fontSize: size * 0.38 }}
+        >
+          {initials || (
+            <Building2 size={Math.round(size * 0.5)} color="#94a3b8" />
+          )}
+        </span>
       )}
     </div>
   );
@@ -71,7 +123,7 @@ function MatchBadge({ match, color }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {match}% match
+      {match}%
     </span>
   );
 }
@@ -106,6 +158,46 @@ function ChecklistItem({ label, done }) {
       <span>{label}</span>
     </div>
   );
+}
+
+// Matches the real output of the generate-rejection-feedback Edge Function
+// exactly (confirmed against its source):
+//   <message paragraph>
+//
+//   Free resources to help close the gap:
+//   - skillA: [Title 1](url1), [Title 2](url2)
+//   - skillB: [Title 3](url3)
+//
+// Each "- skill: ..." line can carry one or more comma-separated markdown
+// links. The skill name is plain text before the colon, NOT inside the
+// link - so each resource is rendered as "Skill: Title" with only the
+// title portion actually clickable... matching the "Node.js: freeCodeCamp -
+// APIs and Microservices" style bullets in the design.
+function parseFeedback(text) {
+  const headingMatch = text.match(/free resources[^:\n]*:/i);
+  if (!headingMatch) {
+    return { intro: text, resources: [] };
+  }
+
+  const intro = text.slice(0, headingMatch.index).trim();
+  const resourceBlock = text.slice(headingMatch.index + headingMatch[0].length);
+
+  const resources = [];
+  const linePattern = /^-\s*([^:\n]+):\s*(.+)$/gm;
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
+  let lineMatch;
+  while ((lineMatch = linePattern.exec(resourceBlock)) !== null) {
+    const skill = lineMatch[1].trim();
+    const linksPart = lineMatch[2];
+    let linkMatch;
+    linkPattern.lastIndex = 0;
+    while ((linkMatch = linkPattern.exec(linksPart)) !== null) {
+      resources.push({ skill, title: linkMatch[1], url: linkMatch[2] });
+    }
+  }
+
+  return { intro, resources };
 }
 
 function renderFeedbackText(text) {
@@ -217,6 +309,13 @@ function buildActivityFeed(recentApps, newMatchCount) {
         color: "#7c3aed",
         date: app.applied_at,
       });
+    } else if (app.status === "hired") {
+      items.push({
+        id: `${app.id}-hired`,
+        text: `Congratulations! ${company} hired you for ${role}`,
+        color: "#16a34a",
+        date: app.applied_at,
+      });
     }
   }
 
@@ -264,7 +363,7 @@ function MatchRow({ opportunity, matchResult, onNavigate }) {
             size={34}
           />
           <div>
-            <div className="sd-app-row__role">{opportunity.title}</div>
+            <div className="sd-app-row__role--strong">{opportunity.title}</div>
             <div className="sd-app-row__sub-line">
               {company}
               {opportunity.location ? ` · ${opportunity.location}` : ""}
@@ -295,26 +394,23 @@ function AppRow({ app, showFeedback = false }) {
     APPLICATION_STATUS_LABELS.submitted;
   const company = app.employer?.company_name ?? "Company";
   const role = app.opportunities?.title ?? "Opportunity";
+  const feedback =
+    showFeedback && app.status === "rejected" && app.rejection_feedback
+      ? parseFeedback(app.rejection_feedback)
+      : null;
 
   return (
     <div className="sd-app-row">
       <div className="sd-app-row__grid">
-        <div className="sd-app-row__title-cell">
-          <CompanyLogo
-            src={app.employer?.logo_url}
-            company={company}
-            size={28}
-          />
-          <span className="sd-app-row__role">{role}</span>
-        </div>
         <div className="sd-app-row__company-cell">
           <CompanyLogo
             src={app.employer?.logo_url}
             company={company}
-            size={20}
+            size={32}
           />
           <span className="sd-app-row__company-name">{company}</span>
         </div>
+        <span className="sd-app-row__role">{role}</span>
         <div className="sd-app-row__date">
           {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : "-"}
         </div>
@@ -325,19 +421,39 @@ function AppRow({ app, showFeedback = false }) {
         />
       </div>
 
-      {showFeedback && app.status === "rejected" && app.rejection_feedback && (
+      {feedback && (
         <div className="sd-ai-feedback">
-          <div className="sd-ai-feedback__inner">
-            <span className="sd-ai-feedback__icon">✦</span>
-            <div>
-              <div className="sd-ai-feedback__title">
-                Feedback from the employer
-              </div>
-              <div className="sd-ai-feedback__body sd-ai-feedback__body--wrap">
-                {renderFeedbackText(app.rejection_feedback)}
-              </div>
-            </div>
+          <div className="sd-ai-feedback__title">
+            <Sparkles size={14} /> Feedback from employer
           </div>
+          <p className="sd-ai-feedback__intro">
+            {renderFeedbackText(feedback.intro)}
+          </p>
+
+          {feedback.resources.length > 0 && (
+            <>
+              <div className="sd-ai-feedback__divider" />
+              <div className="sd-ai-feedback__resources-title">
+                Free resources to close the gap:
+              </div>
+              <ul className="sd-ai-feedback__resources">
+                {feedback.resources.map((r, i) => (
+                  <li key={i}>
+                    <span className="sd-ai-feedback__arrow">→</span>{" "}
+                    <span className="sd-ai-feedback__skill">{r.skill}:</span>{" "}
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sd-feedback-link"
+                    >
+                      {r.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -346,9 +462,11 @@ function AppRow({ app, showFeedback = false }) {
 
 /*table header */
 
-function TableHeader({ columns }) {
+function TableHeader({ columns, variant = "default" }) {
   return (
-    <div className="sd-table-header">
+    <div
+      className={`sd-table-header${variant === "match" ? " sd-table-header--match" : ""}`}
+    >
       {columns.map((h) => (
         <span key={h} className="sd-table-th">
           {h}
@@ -523,7 +641,10 @@ function DashboardView({ studentName, user, onNavigate }) {
             </button>
           </div>
 
-          <TableHeader columns={["Company", "Role", "Match", "Apply"]} />
+          <TableHeader
+            columns={["Company / Role", "Match", "Apply"]}
+            variant="match"
+          />
 
           {loading && <p className="sd-empty__label">Loading...</p>}
           {!loading && topMatches.length === 0 && (
@@ -605,6 +726,7 @@ function DashboardView({ studentName, user, onNavigate }) {
 
 function ApplicationsView({ user }) {
   const [activeTab, setActiveTab] = useState("All");
+  const [sortBy, setSortBy] = useState("date"); // "date" | "status"
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -632,49 +754,100 @@ function ApplicationsView({ user }) {
       ? applications
       : applications.filter((a) => a.status === activeTab);
 
+  const sorted = useMemo(() => {
+    const list = [...filtered];
+    if (sortBy === "date") {
+      list.sort(
+        (a, b) => new Date(b.applied_at ?? 0) - new Date(a.applied_at ?? 0),
+      );
+    } else {
+      list.sort((a, b) => (a.status ?? "").localeCompare(b.status ?? ""));
+    }
+    return list;
+  }, [filtered, sortBy]);
+
+  // "Under Review" in the tab pills covers both a freshly submitted
+  // application and one an employer has explicitly marked as under review -
+  // summing both status keys here for the subtitle highlight.
+  const underReviewCount =
+    (tabCounts.submitted ?? 0) + (tabCounts.under_review ?? 0);
+
   return (
     <div className="sd-applications">
-      <div>
-        <h1 className="sd-applications__title">My Applications</h1>
-        <p className="sd-applications__sub">
-          {loading
-            ? "Loading..."
-            : `You have a total of ${applications.length} application${applications.length === 1 ? "" : "s"}`}
-        </p>
+      <div className="sd-applications__header-row">
+        <div>
+          <h1 className="sd-applications__title">My Applications</h1>
+          <p className="sd-applications__sub">
+            {loading ? (
+              "Loading..."
+            ) : (
+              <>
+                {applications.length} total application
+                {applications.length === 1 ? "" : "s"}
+                {underReviewCount > 0 && (
+                  <>
+                    {" · "}
+                    <span className="sd-applications__sub-highlight">
+                      {underReviewCount} under review
+                    </span>
+                  </>
+                )}
+              </>
+            )}
+          </p>
+        </div>
+        <div className="sd-sort-toggle">
+          <SlidersHorizontal size={13} />
+          <span className="sd-sort-toggle__label">Sort by:</span>
+          <button
+            className={`sd-sort-toggle__btn${sortBy === "date" ? " sd-sort-toggle__btn--active" : ""}`}
+            onClick={() => setSortBy("date")}
+          >
+            Date
+          </button>
+          <button
+            className={`sd-sort-toggle__btn${sortBy === "status" ? " sd-sort-toggle__btn--active" : ""}`}
+            onClick={() => setSortBy("status")}
+          >
+            Status
+          </button>
+        </div>
+      </div>
+
+      <div className="sd-tabs">
+        {tabs.map((tab) => {
+          const label =
+            tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
+          const count = tab === "All" ? applications.length : tabCounts[tab];
+          return (
+            <button
+              key={tab}
+              className={`sd-tab${tab === activeTab ? " sd-tab--active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {label}
+              {Boolean(count) && <span className="sd-tab__count">{count}</span>}
+            </button>
+          );
+        })}
       </div>
 
       <div className="sd-card">
-        <div className="sd-notif-header">
-          <h3 className="sd-notif-header__title">Applications</h3>
-        </div>
-
-        <div className="sd-tabs">
-          {tabs.map((tab) => {
-            const label =
-              tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
-            const count = tab === "All" ? applications.length : tabCounts[tab];
-            return (
-              <button
-                key={tab}
-                className={`sd-tab${tab === activeTab ? " sd-tab--active" : ""}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {label}
-                {Boolean(count) && (
-                  <span className="sd-tab__count">{count}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         <TableHeader columns={["Company", "Role", "Date Applied", "Status"]} />
-        {!loading && filtered.length === 0 && (
-          <p className="sd-empty__label" style={{ padding: "16px 4px" }}>
-            No applications here yet.
-          </p>
+        {!loading && sorted.length === 0 && (
+          <div className="sd-applications-empty">
+            <div className="sd-applications-empty__icon">
+              <ClipboardList size={22} />
+            </div>
+            <p className="sd-applications-empty__title">No applications here</p>
+            <p className="sd-applications-empty__sub">
+              {activeTab === "All"
+                ? "You haven't applied anywhere yet."
+                : `Applications matching "${activeTab === "All" ? "" : (APPLICATION_STATUS_LABELS[activeTab]?.label ?? activeTab)}" will appear here.`}
+            </p>
+          </div>
         )}
-        {filtered.map((app) => (
+        {sorted.map((app) => (
           <AppRow key={app.id} app={app} showFeedback />
         ))}
       </div>
@@ -689,6 +862,8 @@ function StudentDashboard() {
 
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
+
+  const profileStrength = computeProfileStrength(userProfile);
 
   useEffect(() => {
     if (!loading && !user) navigate("/");
@@ -734,10 +909,23 @@ function StudentDashboard() {
           <div className="sd-sidebar__user">
             <div className="sd-sidebar__avatar">{student.initials}</div>
             {sidebarOpen && (
-              <div>
-                <div className="sd-sidebar__user-name">{student.name}</div>
-                <div className="sd-sidebar__user-sub">
-                  Student · {student.university}
+              <div className="sd-sidebar__user-info">
+                <div className="sd-sidebar__user-row">
+                  <div>
+                    <div className="sd-sidebar__user-name">{student.name}</div>
+                    <div className="sd-sidebar__user-sub">
+                      Student · {student.university}
+                    </div>
+                  </div>
+                  <span className="sd-sidebar__user-pct">
+                    {profileStrength}% profile
+                  </span>
+                </div>
+                <div className="sd-sidebar__progress-track">
+                  <div
+                    className="sd-sidebar__progress-fill"
+                    style={{ width: `${profileStrength}%` }}
+                  />
                 </div>
               </div>
             )}
@@ -761,6 +949,7 @@ function StudentDashboard() {
         <div className="sd-sidebar__footer">
           {sidebarOpen && (
             <button className="sd-signout-btn" onClick={handleSignOut}>
+              <LogOut size={15} />
               Sign out
             </button>
           )}
@@ -768,7 +957,7 @@ function StudentDashboard() {
             className="sd-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
           >
-            <Menu size={18} />
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </aside>

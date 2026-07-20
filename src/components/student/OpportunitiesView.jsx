@@ -49,16 +49,20 @@ function avatarStyleFor(key) {
   return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
 }
 
+function getInitials(name) {
+  if (!name) return "";
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 function CompanyMark({ name }) {
   const style = avatarStyleFor(name);
-  const initials = name
-    ? name
-        .split(" ")
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "";
+  const initials = getInitials(name);
   return (
     <div
       className="ov-company-mark"
