@@ -140,26 +140,17 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
               This student hasn't finished their profile yet.
             </p>
           )}
-
           {profile?.professional_summary && (
-            <div className="am-summary-card">
-              <p className="am-summary-card__label">
-                <Sparkles size={12} /> Profile summary
-              </p>
-              <p className="am-summary">{profile.professional_summary}</p>
-            </div>
+            <p className="am-summary">{profile.professional_summary}</p>
           )}
 
           {profile?.extracted_technical_skills?.length > 0 && (
-            <div className="am-skills-block">
-              <p className="am-section-label">Skills</p>
-              <div className="am-chip-row">
-                {profile.extracted_technical_skills.map((s, i) => (
-                  <span key={i} className="am-chip">
-                    {typeof s === "string" ? s : s.skill}
-                  </span>
-                ))}
-              </div>
+            <div className="am-chip-row">
+              {profile.extracted_technical_skills.map((s, i) => (
+                <span key={i} className="am-chip am-chip--technical">
+                  {typeof s === "string" ? s : s.skill}
+                </span>
+              ))}
             </div>
           )}
 

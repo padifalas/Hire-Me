@@ -52,8 +52,14 @@
 
 .cd-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 14px;
+}
+
+@media (max-width: 720px) {
+  .cd-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .cd-card {
@@ -73,22 +79,27 @@
 }
 
 .cd-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 13px;
-  color: #1d4ed8;
+  font-size: 14px;
 }
 
 .cd-card__heading {
   flex: 1;
   min-width: 0;
+}
+
+.cd-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cd-card__name {
@@ -112,12 +123,21 @@
   gap: 4px;
   font-size: 10.5px;
   font-weight: 700;
-  color: #6856be;
-  background: #f5f3ff;
-  border: 1px solid #ede9fe;
+  color: var(--color-primary-active);
+  background: color-mix(in srgb, var(--color-primary-active) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--color-primary-active) 25%, white);
   padding: 3px 8px;
   border-radius: 20px;
   white-space: nowrap;
+}
+
+.cd-match-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cd-summary {
@@ -141,23 +161,29 @@
 }
 
 .cd-chip {
-  background: #f1f5f9;
-  color: #475569;
   font-size: 11px;
   padding: 3px 9px;
   border-radius: 20px;
   font-weight: 500;
 }
 
+.cd-chip--technical {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .cd-chip--muted {
-  background: transparent;
-  color: var(--color-text-muted);
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
 }
 
 .cd-card__actions {
   display: flex;
   gap: 14px;
   margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .cd-link-btn {
@@ -170,8 +196,13 @@
   font-family: inherit;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   padding: 0;
+}
+
+.cd-link-btn--muted {
+  color: #64748b;
+  font-weight: 500;
 }
 
 .cd-error {

@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1100px;
 }
 
 .jv-header {
@@ -42,6 +41,62 @@
 
 .jv-post-btn:hover {
   background: #0f172acc;
+}
+
+/* Filter pills */
+.jv-filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jv-filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.jv-filter-pill:hover {
+  background: #f8fafc;
+}
+
+.jv-filter-pill--active {
+  background: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+  color: #fff;
+}
+
+.jv-filter-pill__count {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 99px;
+  padding: 0 6px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.jv-filter-pill--active .jv-filter-pill__count {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.jv-empty-inline {
+  padding: 16px 4px;
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 .jv-card {
@@ -91,6 +146,11 @@
   color: var(--color-text-muted);
 }
 
+.jv-table-cell--expired {
+  color: var(--color-primary-active);
+  font-weight: 500;
+}
+
 .jv-status-badge {
   display: inline-flex;
   align-items: center;
@@ -136,8 +196,7 @@
   font-weight: 600;
   color: var(--color-primary-active);
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
 }
 
 .jv-applicants-link:disabled {
