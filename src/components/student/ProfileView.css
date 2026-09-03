@@ -480,6 +480,97 @@
   font-family: inherit;
 }
 
+.pv-bee-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.pv-bee-card--collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.pv-bee-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin: 0 0 4px;
+}
+
+.pv-bee-card__hint {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.pv-bee-card--collapsed .pv-bee-card__hint {
+  margin-bottom: 0;
+}
+
+.pv-bee-card__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+  margin: 0 0 2px;
+}
+
+.pv-bee-card__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pv-bee-card__select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-family: inherit;
+  min-width: 160px;
+}
+
+.pv-bee-card__save-btn {
+  padding: 8px 16px;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pv-bee-card__save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pv-bee-card__decline-btn,
+.pv-bee-card__change-btn {
+  padding: 8px 12px;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 @media (max-width: 900px) {
   .pv-grid-layout {
     grid-template-columns: 1fr;

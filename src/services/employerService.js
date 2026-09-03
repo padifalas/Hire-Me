@@ -1,11 +1,14 @@
-
 // does employer company profile management and job opportunity posting.
 
 import { supabase } from "../config/supabase";
 
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
-const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-
+const ALLOWED_LOGO_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+];
 
 export async function getEmployerProfile(userId) {
   try {
@@ -69,9 +72,9 @@ export async function uploadCompanyLogo(file, userId) {
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("company-logos")
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("company-logos").getPublicUrl(fileName);
 
     const { error: updateError } = await supabase
       .from("employer_profiles")
@@ -93,12 +96,21 @@ export async function uploadCompanyLogo(file, userId) {
  */
 export async function normalizeSkillTags(requiredSkills, niceToHaveSkills) {
   try {
-    const { data, error } = await supabase.functions.invoke("normalize-skills", {
-      body: { requiredSkills: requiredSkills || [], niceToHaveSkills: niceToHaveSkills || [] },
-    });
+    const { data, error } = await supabase.functions.invoke(
+      "normalize-skills",
+      {
+        body: {
+          requiredSkills: requiredSkills || [],
+          niceToHaveSkills: niceToHaveSkills || [],
+        },
+      },
+    );
 
     if (error || !data?.success) {
-      return { requiredSkillsNormalized: null, niceToHaveSkillsNormalized: null };
+      return {
+        requiredSkillsNormalized: null,
+        niceToHaveSkillsNormalized: null,
+      };
     }
 
     return {
@@ -117,10 +129,11 @@ export async function normalizeSkillTags(requiredSkills, niceToHaveSkills) {
  */
 export async function createOpportunity(employerId, jobData) {
   try {
-    const { requiredSkillsNormalized, niceToHaveSkillsNormalized } = await normalizeSkillTags(
-      jobData.requiredSkills,
-      jobData.niceToHaveSkills,
-    );
+    const { requiredSkillsNormalized, niceToHaveSkillsNormalized } =
+      await normalizeSkillTags(
+        jobData.requiredSkills,
+        jobData.niceToHaveSkills,
+      );
 
     const { data, error } = await supabase
       .from("opportunities")
@@ -160,26 +173,37 @@ export async function updateOpportunity(opportunityId, jobData) {
   try {
     const updatePayload = {};
     if (jobData.title !== undefined) updatePayload.title = jobData.title;
-    if (jobData.description !== undefined) updatePayload.description = jobData.description;
-    if (jobData.requiredSkills !== undefined || jobData.niceToHaveSkills !== undefined) {
+    if (jobData.description !== undefined)
+      updatePayload.description = jobData.description;
+    if (
+      jobData.requiredSkills !== undefined ||
+      jobData.niceToHaveSkills !== undefined
+    ) {
       updatePayload.required_skills = jobData.requiredSkills;
       updatePayload.nice_to_have_skills = jobData.niceToHaveSkills;
 
-      const { requiredSkillsNormalized, niceToHaveSkillsNormalized } = await normalizeSkillTags(
-        jobData.requiredSkills,
-        jobData.niceToHaveSkills,
-      );
+      const { requiredSkillsNormalized, niceToHaveSkillsNormalized } =
+        await normalizeSkillTags(
+          jobData.requiredSkills,
+          jobData.niceToHaveSkills,
+        );
       updatePayload.required_skills_normalized = requiredSkillsNormalized;
       updatePayload.nice_to_have_skills_normalized = niceToHaveSkillsNormalized;
     }
-    if (jobData.location !== undefined) updatePayload.location = jobData.location;
+    if (jobData.location !== undefined)
+      updatePayload.location = jobData.location;
     if (jobData.jobType !== undefined) updatePayload.job_type = jobData.jobType;
-    if (jobData.salaryMin !== undefined) updatePayload.salary_min = jobData.salaryMin;
-    if (jobData.salaryMax !== undefined) updatePayload.salary_max = jobData.salaryMax;
-    if (jobData.deadline !== undefined) updatePayload.deadline = jobData.deadline;
+    if (jobData.salaryMin !== undefined)
+      updatePayload.salary_min = jobData.salaryMin;
+    if (jobData.salaryMax !== undefined)
+      updatePayload.salary_max = jobData.salaryMax;
+    if (jobData.deadline !== undefined)
+      updatePayload.deadline = jobData.deadline;
     if (jobData.status !== undefined) updatePayload.status = jobData.status;
-    if (jobData.beePreference !== undefined) updatePayload.bee_preference = jobData.beePreference;
-    if (jobData.remoteOption !== undefined) updatePayload.remote_option = jobData.remoteOption;
+    if (jobData.beePreference !== undefined)
+      updatePayload.bee_preference = jobData.beePreference;
+    if (jobData.remoteOption !== undefined)
+      updatePayload.remote_option = jobData.remoteOption;
     updatePayload.updated_at = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -270,7 +294,11 @@ export async function getApplicantsForOpportunity(opportunityId) {
   }
 }
 
-export async function updateApplicationStatus(applicationId, status, feedback = null) {
+export async function updateApplicationStatus(
+  applicationId,
+  status,
+  feedback = null,
+) {
   try {
     const updatePayload = { status };
     if (status === "rejected" && feedback) {
@@ -291,15 +319,18 @@ export async function updateApplicationStatus(applicationId, status, feedback = 
   }
 }
 
-
 export async function generateRejectionFeedback(applicationId) {
   try {
-    const { data, error } = await supabase.functions.invoke("generate-rejection-feedback", {
-      body: { applicationId },
-    });
+    const { data, error } = await supabase.functions.invoke(
+      "generate-rejection-feedback",
+      {
+        body: { applicationId },
+      },
+    );
 
     if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || "Couldn't generate feedback");
+    if (!data?.success)
+      throw new Error(data?.error || "Couldn't generate feedback");
 
     return { success: true, feedback: data.feedback };
   } catch (error) {
@@ -380,4 +411,54 @@ export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
   } catch (error) {
     return { success: false, error: error.message };
   }
+}
+
+export async function getEmployerBeeStats(employerId) {
+  //Only the students that have consented will show up with a
+  //category and everyone else will show up in a general "pooled"
+  //category. This is to protect the privacy of students who have
+  //not consented to share their data with employers.
+  const { data, error } = await supabase
+    .from("applications")
+    .select(
+      `
+      id,
+      student_profiles!inner (
+      race_category,
+      bee_disclosure_consent_at
+      ), 
+      opportunities!inner (
+        employer_id
+      )
+    `,
+    )
+    .eq("opportunities.employer_id", employerId);
+
+  if (error) return { success: false, error: error.message };
+
+  const categories = ["black_african", "coloured", "indian", "pooled", "white"];
+  const counts = Object.fromEntries(categories.map((c) => [c, 0]));
+  let consentedTotal = 0;
+
+  for (const app of data) {
+    const cat = app.student_profiles?.race_category;
+    const consented = app.student_profiles?.bee_disclosure_consent_at;
+    if (consented && categories.includes(cat)) {
+      counts[cat]++;
+      consentedTotal++;
+    }
+  }
+
+  const breakdown = Object.fromEntries(
+    categories.map((c) => [
+      c,
+      consentedTotal > 0 ? (counts[c] / consentedTotal) * 100 : 0,
+    ]),
+  );
+  return {
+    success: true,
+    totalPooled: consentedTotal, //counts the consented applications
+    totalApplications: data.length,
+    breakdown,
+  };
 }

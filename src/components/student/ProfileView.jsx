@@ -28,6 +28,14 @@ const STEPS = [
   { key: "done", label: "Done" },
 ];
 
+const BEE_CATEGORIES = [
+  { value: "black_african", label: "Black / African" },
+  { value: "coloured", label: "Coloured" },
+  { value: "indian", label: "Indian" },
+  { value: "white", label: "White" },
+  { value: "other", label: "Other" },
+];
+
 function FileDropField({ label, currentFileName, file, onSelect }) {
   return (
     <div className="pv-file-field">
@@ -168,6 +176,94 @@ function ChecklistCard({ profile }) {
   );
 }
 
+function BeeDisclosureCard({ raceCategory, consentedAt, onSave, saving }) {
+  const [editing, setEditing] = useState(!consentedAt);
+  const [selected, setSelected] = useState(raceCategory ?? "");
+
+  const hasAnswered = Boolean(consentedAt);
+  const answeredLabel =
+    raceCategory === "prefer_not_to_say"
+      ? "You've opted out"
+      : (BEE_CATEGORIES.find((c) => c.value === raceCategory)?.label ??
+        "Shared");
+
+  if (!editing && hasAnswered) {
+    return (
+      <div className="pv-bee-card pv-bee-card--collapsed">
+        <div>
+          <p className="pv-bee-card__status">
+            <CheckCircle2 size={14} /> {answeredLabel} for B-BBEE reporting
+          </p>
+          <p className="pv-bee-card__hint">
+            Only shown to employers as anonymised totals, never as
+            per-applicant.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="pv-bee-card__change-btn"
+          onClick={() => setEditing(true)}
+        >
+          Change
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pv-bee-card">
+      <p className="pv-bee-card__title">
+        Help employers report on B-BBEE compliance
+      </p>
+      <p className="pv-bee-card__hint">
+        Optional. If you share this, employers only ever see anonymized totals
+        across all applicants to a job - never your individual answer.
+      </p>
+
+      <div className="pv-bee-card__row">
+        <select
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          className="pv-bee-card__select"
+        >
+          <option value="" disabled>
+            Select your category
+          </option>
+          {BEE_CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+
+        <button
+          type="button"
+          className="pv-bee-card__save-btn"
+          disabled={!selected || saving}
+          onClick={() => {
+            onSave(selected);
+            setEditing(false);
+          }}
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+
+        <button
+          type="button"
+          className="pv-bee-card__decline-btn"
+          disabled={saving}
+          onClick={() => {
+            onSave("prefer_not_to_say");
+            setEditing(false);
+          }}
+        >
+          Prefer not to say
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileView({ user }) {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(null);
@@ -184,6 +280,28 @@ export default function ProfileView({ user }) {
   const [aiError, setAiError] = useState(null);
 
   const [expandedProjects, setExpandedProjects] = useState(new Set());
+
+  const [savingBee, setSavingBee] = useState(false);
+
+  async function handleSaveBeeCategory(category) {
+    setSavingBee(true);
+    const result = await updateStudentProfile(user.id, {
+      raceCategory: category,
+      beeDisclosureConsentedAt: new Date().toISOString(),
+    });
+    setSavingBee(false);
+    if (result.success) {
+      setProfile((prev) => ({
+        ...prev,
+        race_category: category,
+        bee_disclosure_consented_at: new Date().toISOString(),
+      }));
+    } else {
+      setSaveMessage(
+        result.error || "Failed to save B-BBEE category. Please try again.",
+      );
+    }
+  }
 
   function toggleProject(i) {
     setExpandedProjects((prev) => {
@@ -328,6 +446,13 @@ export default function ProfileView({ user }) {
       </div>
 
       <ChecklistCard profile={profile} />
+
+      <BeeDisclosureCard
+        raceCategory={profile.race_category}
+        consentedAt={profile.bee_disclosure_consented_at}
+        onSave={handleSaveBeeCategory}
+        saving={savingBee}
+      />
 
       <div className="pv-grid-layout">
         {/* tried editing these fields */}

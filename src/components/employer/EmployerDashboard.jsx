@@ -29,6 +29,7 @@ import {
   Plus,
   FileText,
   Sparkles,
+  X,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -141,13 +142,42 @@ function DashboardView({ employerName, employerId, onNavigate }) {
       )
     : 0;
 
+  const [beeStats, setBeeStats] = useState({ totalPooled: 0, breakdown: {} });
+  const [loadingBee, setLoadingBee] = useState(true);
+
+  const loadBeeStats = useCallback(async () => {
+    setLoadingBee(true);
+    const result = await getEmployerBeeStats(employerId);
+    if (result.success) {
+      setBeeStats({
+        totalPooled: result.totalPooled,
+        breakdown: result.breakdown,
+      });
+    }
+    setLoadingBee(false);
+  }, [employerId]);
+
+  useEffect(() => {
+    loadJobs();
+    loadRecentApps();
+    loadBeeStats();
+  }, [loadJobs, loadRecentApps, loadBeeStats]);
+
   const beeBreakdown = [
-    { label: "Black/African", pct: 0, color: "#dc4c1e" },
-    { label: "Coloured", pct: 0, color: "#f0a500" },
-    { label: "Indian", pct: 0, color: "#f4c542" },
-    { label: "White", pct: 0, color: "#d1d5db" },
+    {
+      label: "Black/African",
+      pct: beeStats.breakdown.black_african ?? 0,
+      color: "#dc4c1e",
+    },
+    {
+      label: "Coloured",
+      pct: beeStats.breakdown.coloured ?? 0,
+      color: "#f0a500",
+    },
+    { label: "Indian", pct: beeStats.breakdown.indian ?? 0, color: "#f4c542" },
+    { label: "White", pct: beeStats.breakdown.white ?? 0, color: "#d1d5db" },
+    { label: "Other", pct: beeStats.breakdown.other ?? 0, color: "#6b7280" },
   ];
-  const beeTotalPooled = 0;
 
   function StatCard({ icon: Icon, value, label, tint }) {
     return (
@@ -484,8 +514,9 @@ export default function EmployerDashboard() {
           <button
             className="ed-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <Menu size={18} />
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </aside>

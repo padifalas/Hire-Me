@@ -1,8 +1,6 @@
 //HANDLED CV + academic transcript upload (PDF/DOCX), client-side text
 // extraction, and triggering the `extract-skills` Edge Function.
 
-
-
 import { supabase } from "../config/supabase";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
@@ -12,7 +10,6 @@ const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-
 
 export function setupPdfWorker() {
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -68,7 +65,6 @@ export async function extractTextFromFile(file) {
     }
     return trimmed;
   } catch (err) {
-
     throw new Error(`Could not read "${file.name}": ${err.message}`);
   }
 }
@@ -140,14 +136,19 @@ export async function getDocumentSignedUrl(docType, storagePath) {
  * @param {string} cvText
  * @param {string} transcriptText
  */
-export async function triggerSkillExtraction(studentId, cvText, transcriptText) {
+export async function triggerSkillExtraction(
+  studentId,
+  cvText,
+  transcriptText,
+) {
   try {
     const { data, error } = await supabase.functions.invoke("extract-skills", {
       body: { studentId, cvText, transcriptText },
     });
 
     if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || "Skill extraction failed");
+    if (!data?.success)
+      throw new Error(data?.error || "Skill extraction failed");
 
     return { success: true, data: data.data };
   } catch (error) {
@@ -191,7 +192,10 @@ function blobToFileLike(blob, storagePath) {
  */
 export async function extractTextFromStoredDocument(docType, storagePath) {
   if (!storagePath) {
-    return { success: false, error: `No ${docType} on file yet - upload one first.` };
+    return {
+      success: false,
+      error: `No ${docType} on file yet - upload one first.`,
+    };
   }
 
   // Compatibility shim: if this profile still has a full public URL saved
@@ -220,7 +224,9 @@ export async function extractTextFromStoredDocument(docType, storagePath) {
 
   try {
     const bucket = docType === "cv" ? "cvs" : "transcripts";
-    const { data, error } = await supabase.storage.from(bucket).download(cleanPath);
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .download(cleanPath);
     if (error) {
       throw new Error(
         `${error.message || "Download failed"} (bucket: "${bucket}", path: "${cleanPath}"). ` +
@@ -238,19 +244,29 @@ export async function extractTextFromStoredDocument(docType, storagePath) {
 
 export async function updateStudentProfile(userId, profileData) {
   try {
+    const updates = {
+      university: profileData.university,
+      degree_program: profileData.qualification,
+      graduation_year: profileData.graduationYear,
+      location: profileData.location,
+      phone: profileData.phone,
+      linkedin_url: profileData.linkedinUrl || null,
+      github_url: profileData.githubUrl || null,
+      portfolio_url: profileData.portfolioUrl || null,
+      profile_completed: true,
+    };
+
+    if ("raceCategory" in profileData) {
+      updates.race_category = profileData.raceCategory;
+    }
+    if ("beeDisclosureConsentedAt" in profileData) {
+      updates.bee_disclosure_consented_at =
+        profileData.beeDisclosureConsentedAt;
+    }
+
     const { error } = await supabase
       .from("student_profiles")
-      .update({
-        university: profileData.university,
-        degree_program: profileData.qualification,
-        graduation_year: profileData.graduationYear,
-        location: profileData.location,
-        phone: profileData.phone,
-        linkedin_url: profileData.linkedinUrl || null,
-        github_url: profileData.githubUrl || null,
-        portfolio_url: profileData.portfolioUrl || null,
-        profile_completed: true,
-      })
+      .update(updates)
       .eq("id", userId);
 
     if (error) throw error;
