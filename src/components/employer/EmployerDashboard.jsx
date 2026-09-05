@@ -14,6 +14,7 @@ import CandidatesView from "./CandidatesView.jsx";
 import {
   getEmployerOpportunities,
   getRecentApplicationsForEmployer,
+  getEmployerBeeStats,
 } from "../../services/employerService";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
@@ -384,7 +385,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         <div className="ed-right-col">
           <BeeStatsPanel
             breakdown={beeBreakdown}
-            totalPooled={beeTotalPooled}
+            totalPooled={beeStats.totalPooled}
           />
         </div>
       </div>
