@@ -41,6 +41,8 @@ const NAV_ITEMS = [
   { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
 
+const BEE_MIN_POOL_SIZE = 5;
+
 function Avatar({ initials, size = 32 }) {
   return (
     <div
@@ -193,33 +195,49 @@ function DashboardView({ employerName, employerId, onNavigate }) {
   }
 
   function BeeStatsPanel({ breakdown, totalPooled }) {
+    const hasEnoughData = totalPooled >= BEE_MIN_POOL_SIZE;
+
     return (
       <div className="ed-card">
         <div className="ed-card__header">
           <span className="ed-card__title">BEE Stats</span>
         </div>
-        <p className="ed-bee-sub">{totalPooled} applications pooled</p>
-        <div className="ed-bee-bar">
-          {breakdown.map((seg) => (
-            <span
-              key={seg.label}
-              className="ed-bee-bar__seg"
-              style={{ width: `${seg.pct}%`, background: seg.color }}
-            />
-          ))}
-        </div>
-        <div className="ed-bee-legend">
-          {breakdown.map((seg) => (
-            <div key={seg.label} className="ed-bee-legend__row">
-              <span
-                className="ed-bee-legend__dot"
-                style={{ background: seg.color }}
-              />
-              <span className="ed-bee-legend__label">{seg.label}</span>
-              <span className="ed-bee-legend__pct">{seg.pct}%</span>
+
+        {!hasEnoughData ? (
+          <div className="ed-bee-empty">
+            <p className="ed-bee-empty__title">Not enough data yet</p>
+            <p className="ed-bee-empty__hint">
+              {totalPooled === 0
+                ? "No applications have shared this information yet."
+                : `Only ${totalPooled} applications have shared this information so far. We show a breakdown once at least ${BEE_MIN_POOL_SIZE} responses are in, to keep individual answers private.`}
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="ed-bee-sub">{totalPooled} applications pooled</p>
+            <div className="ed-bee-bar">
+              {breakdown.map((seg) => (
+                <span
+                  key={seg.label}
+                  className="ed-bee-bar__seg"
+                  style={{ width: `${seg.pct}%`, background: seg.color }}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="ed-bee-legend">
+              {breakdown.map((seg) => (
+                <div key={seg.label} className="ed-bee-legend__row">
+                  <span
+                    className="ed-bee-legend__dot"
+                    style={{ background: seg.color }}
+                  />
+                  <span className="ed-bee-legend__label">{seg.label}</span>
+                  <span className="ed-bee-legend__pct">{seg.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   }

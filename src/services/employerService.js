@@ -425,7 +425,7 @@ export async function getEmployerBeeStats(employerId) {
       id,
       student_profiles!inner (
       race_category,
-      bee_disclosure_consent_at
+      bee_disclosure_consented_at
       ), 
       opportunities!inner (
         employer_id
