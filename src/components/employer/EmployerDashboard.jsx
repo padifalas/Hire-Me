@@ -11,6 +11,7 @@ import CompanyProfileView from "./CompanyProfileView.jsx";
 import JobPostingForm from "./JobPostingForm.jsx";
 import ApplicantsModal from "./ApplicantsModal.jsx";
 import CandidatesView from "./CandidatesView.jsx";
+import EmployerProfileView from "./EmployerProfileView.jsx";
 import {
   getEmployerOpportunities,
   getRecentApplicationsForEmployer,
@@ -31,10 +32,13 @@ import {
   FileText,
   Sparkles,
   X,
+  LogOut,
+  User,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+  { icon: User, label: "My Profile", id: "profile" },
   { icon: Briefcase, label: "My Jobs", id: "jobs" },
   { icon: Users, label: "Candidates", id: "candidates" },
   { icon: BarChart2, label: "Analytics", id: "analytics" },
@@ -437,6 +441,7 @@ export default function EmployerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
   const [signingOut, setSigningOut] = useState(false);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
@@ -494,7 +499,17 @@ export default function EmployerDashboard() {
 
         <div className="ed-sidebar__nav">
           <div className="ed-sidebar__user">
-            <div className="ed-sidebar__avatar">{employer.initials}</div>
+            <div className="ed-sidebar__avatar">
+              {userProfile?.avatar_url ? (
+                <img
+                  src={userProfile.avatar_url}
+                  alt=""
+                  className="ed-sidebar__avatar-img"
+                />
+              ) : (
+                employer.initials
+              )}
+            </div>
             {sidebarOpen && (
               <div>
                 <div className="ed-sidebar__user-name">{employer.name}</div>
@@ -524,19 +539,52 @@ export default function EmployerDashboard() {
           {sidebarOpen && (
             <button
               className="ed-signout-btn"
-              onClick={handleSignOut}
+              onClick={() => setConfirmingSignOut(true)}
               disabled={signingOut}
             >
-              {signingOut ? "Signing out..." : "Sign out"}
+              <LogOut size={15} />
+              Sign Out
             </button>
           )}
+
           <button
             className="ed-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
-            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            <Menu size={18} />
           </button>
+
+          {confirmingSignOut && (
+            <div
+              className="ed-signout-popover-backdrop"
+              onClick={() => setConfirmingSignOut(false)}
+            >
+              <div
+                className="ed-signout-popover"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className="ed-signout-popover__text">
+                  Are you sure you want to sign out?
+                </p>
+                <div className="ed-signout-popover__actions">
+                  <button
+                    className="ed-signout-confirm__no"
+                    onClick={() => setConfirmingSignOut(false)}
+                    disabled={signingOut}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="ed-signout-confirm__yes"
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                  >
+                    {signingOut ? "Signing out..." : "Yes, sign out"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -565,14 +613,19 @@ export default function EmployerDashboard() {
               onNavigate={setActiveNav}
             />
           )}
+          {activeNav === "profile" && <EmployerProfileView user={user} />}
           {activeNav === "jobs" && <JobsView employerId={user?.id} />}
           {activeNav === "candidates" && <CandidatesView />}
           {activeNav === "company-profile" && (
             <CompanyProfileView user={user} />
           )}
-          {!["dashboard", "jobs", "candidates", "company-profile"].includes(
-            activeNav,
-          ) && (
+          {![
+            "dashboard",
+            "profile",
+            "jobs",
+            "candidates",
+            "company-profile",
+          ].includes(activeNav) && (
             <div className="ed-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="ed-empty__label">

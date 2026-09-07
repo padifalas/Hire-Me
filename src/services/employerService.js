@@ -436,13 +436,13 @@ export async function getEmployerBeeStats(employerId) {
 
   if (error) return { success: false, error: error.message };
 
-  const categories = ["black_african", "coloured", "indian", "pooled", "white"];
+  const categories = ["black_african", "coloured", "indian", "white", "other"];
   const counts = Object.fromEntries(categories.map((c) => [c, 0]));
   let consentedTotal = 0;
 
   for (const app of data) {
     const cat = app.student_profiles?.race_category;
-    const consented = app.student_profiles?.bee_disclosure_consent_at;
+    const consented = app.student_profiles?.bee_disclosure_consented_at;
     if (consented && categories.includes(cat)) {
       counts[cat]++;
       consentedTotal++;
@@ -452,7 +452,7 @@ export async function getEmployerBeeStats(employerId) {
   const breakdown = Object.fromEntries(
     categories.map((c) => [
       c,
-      consentedTotal > 0 ? (counts[c] / consentedTotal) * 100 : 0,
+      consentedTotal > 0 ? Math.round((counts[c] / consentedTotal) * 100) : 0,
     ]),
   );
   return {

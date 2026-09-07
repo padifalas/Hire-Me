@@ -25,14 +25,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authTimedOut, setAuthTimedOut] = useState(false);
 
+  async function refreshUserProfile() {
+    if (!user) return;
+    const result = await getUserProfile(user.id);
+    if (result.success) setUserProfile(result.profile);
+  }
+
   useEffect(() => {
     let cancelled = false;
 
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
-        console.warn(
-          "[auth] onAuthStateChange did not resolve within 8s",
-        );
+        console.warn("[auth] onAuthStateChange did not resolve within 8s");
         setAuthTimedOut(true);
         setLoading(false);
       }
@@ -76,11 +80,21 @@ export const AuthProvider = ({ children }) => {
     user,
     userProfile,
     loading,
+    refreshUserProfile,
   };
 
   if (loading) {
-
-    return <div style={{ padding: 24, fontFamily: "'Manrope', sans-serif", color: "#64748b" }}>Loading HireMe...</div>;
+    return (
+      <div
+        style={{
+          padding: 24,
+          fontFamily: "'Manrope', sans-serif",
+          color: "#64748b",
+        }}
+      >
+        Loading HireMe...
+      </div>
+    );
   }
 
   return (

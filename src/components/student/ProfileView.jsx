@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../../contexts/authContext";
+import { uploadAvatar, updateUserProfile } from "../../services/authService";
 import {
   getStudentProfile,
   updateStudentProfile,
@@ -17,6 +19,7 @@ import {
   Loader2,
   AlertCircle,
   Sparkles,
+  User as UserIcon,
 } from "lucide-react";
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -264,7 +267,38 @@ function BeeDisclosureCard({ raceCategory, consentedAt, onSave, saving }) {
   );
 }
 
+function AvatarCard({ avatarUrl, fullName, onSelect, preview, saving }) {
+  const displayed = preview || avatarUrl;
+  return (
+    <div className="pv-avatar-card">
+      <label className="pv-avatar-dropzone">
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
+          hidden
+        />
+        {displayed ? (
+          <img src={displayed} alt="Profile" />
+        ) : (
+          <UserIcon size={22} />
+        )}
+      </label>
+      <div>
+        <p className="pv-avatar-card__name">{fullName || "Your name"}</p>
+        <p className="pv-avatar-card__hint">
+          {saving
+            ? "Uploading..."
+            : "Click the circle to upload a photo (max 2MB)"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileView({ user }) {
+  const { refreshUserProfile } = useAuth();
+
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -282,6 +316,10 @@ export default function ProfileView({ user }) {
   const [expandedProjects, setExpandedProjects] = useState(new Set());
 
   const [savingBee, setSavingBee] = useState(false);
+
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   async function handleSaveBeeCategory(category) {
     setSavingBee(true);
@@ -433,6 +471,22 @@ export default function ProfileView({ user }) {
     );
   }
 
+  async function handleAvatarSelect(file) {
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+
+    setSavingAvatar(true);
+    const result = await uploadAvatar(file, user.id);
+    setSavingAvatar(false);
+
+    if (result.success) {
+      await refreshUserProfile(); // updates sidebar immediately
+    } else {
+      setSaveMessage(result.error || "Failed to upload photo.");
+    }
+  }
+
   const hasResults = profile.ai_processing_status === "completed";
   const hasFailed = profile.ai_processing_status === "failed";
 
@@ -446,6 +500,14 @@ export default function ProfileView({ user }) {
       </div>
 
       <ChecklistCard profile={profile} />
+
+      <AvatarCard
+        avatarUrl={profile.avatar_url}
+        fullName={profile.full_name}
+        onSelect={handleAvatarSelect}
+        preview={avatarPreview}
+        saving={savingAvatar}
+      />
 
       <BeeDisclosureCard
         raceCategory={profile.race_category}

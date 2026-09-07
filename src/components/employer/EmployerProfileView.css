@@ -1,0 +1,146 @@
+.epv-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.epv-header {
+  margin-bottom: 4px;
+}
+
+.epv-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.epv-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.epv-loading {
+  padding: 40px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.epv-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 480px;
+}
+
+.epv-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.epv-avatar-dropzone {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.epv-avatar-dropzone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.epv-avatar-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.epv-avatar-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.epv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.epv-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.epv-field input {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 13.5px;
+  font-family: inherit;
+}
+
+.epv-field input:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.epv-field-hint {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.epv-save-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #16a34a;
+  margin: 0;
+}
+
+.epv-error {
+  font-size: 13px;
+  color: #dc2626;
+  margin: 0;
+}
+
+.epv-save-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #0f172a;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: flex-start;
+}
+
+.epv-save-btn:hover {
+  opacity: 0.9;
+}
+
+.epv-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

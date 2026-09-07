@@ -88,6 +88,13 @@
   color: #1d4ed8;
 }
 
+.sd-sidebar__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .sd-sidebar__user-name {
   font-size: 13px;
   font-weight: 600;
@@ -915,6 +922,75 @@
   font-size: 13px;
   color: #94a3b8;
   margin: 0;
+}
+
+.sd-signout-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.sd-signout-popover {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: 320px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+}
+
+.sd-signout-popover__text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 18px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sd-signout-popover__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sd-signout-confirm__yes,
+.sd-signout-confirm__no {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.sd-signout-confirm__yes {
+  background: #c1121f;
+  color: #fff;
+}
+
+.sd-signout-confirm__yes:hover {
+  opacity: 0.9;
+}
+
+.sd-signout-confirm__no {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.sd-signout-confirm__no:hover {
+  background: #e2e8f0;
+}
+
+.sd-signout-confirm__yes:disabled,
+.sd-signout-confirm__no:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1000px) {

@@ -859,6 +859,8 @@ function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchVal, setSearchVal] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   const { user, userProfile, loading } = useAuth();
   const navigate = useNavigate();
@@ -885,8 +887,16 @@ function StudentDashboard() {
   };
 
   async function handleSignOut() {
-    await signOut();
-    navigate("/");
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const result = await signOut();
+      if (!result.success) {
+        console.error("Sign out failed:", result.error);
+      }
+    } finally {
+      navigate("/");
+    }
   }
 
   return (
@@ -907,7 +917,17 @@ function StudentDashboard() {
 
         <div className="sd-sidebar__nav">
           <div className="sd-sidebar__user">
-            <div className="sd-sidebar__avatar">{student.initials}</div>
+            <div className="sd-sidebar__avatar">
+              {userProfile?.avatar_url ? (
+                <img
+                  src={userProfile.avatar_url}
+                  alt=""
+                  className="sd-sidebar__avatar-img"
+                />
+              ) : (
+                student.initials
+              )}
+            </div>
             {sidebarOpen && (
               <div className="sd-sidebar__user-info">
                 <div className="sd-sidebar__user-row">
@@ -948,7 +968,11 @@ function StudentDashboard() {
 
         <div className="sd-sidebar__footer">
           {sidebarOpen && (
-            <button className="sd-signout-btn" onClick={handleSignOut}>
+            <button
+              className="sd-signout-btn"
+              onClick={() => setConfirmingSignOut(true)}
+              disabled={signingOut}
+            >
               <LogOut size={15} />
               Sign out
             </button>
@@ -959,6 +983,38 @@ function StudentDashboard() {
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
+
+          {confirmingSignOut && (
+            <div
+              className="sd-signout=popover-backdrop"
+              onClick={() => setConfirmingSignOut(false)}
+            >
+              <div
+                className="sd-signout-popover"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className="sd-signout-popover__text">
+                  Are you sure you want to sign out?
+                </p>
+                <div className="sd-signout-popover__actions">
+                  <button
+                    className="sd-signout-confirm__no"
+                    onClick={() => setConfirmingSignOut(false)}
+                    disabled={signingOut}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="sd-signout-confirm__yes"
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                  >
+                    {signingOut ? "Signing out..." : "Yes, sign out"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
