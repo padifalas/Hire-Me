@@ -4,9 +4,8 @@ import {
   getActiveOpportunities,
   getStudentApplications,
   computeMatchScore,
-  applyToOpportunity,
 } from "../../services/opportunityService";
-
+import ApplicationPreviewModal from "./ApplicationPreviewModal";
 import "./OpportunitiesView.css";
 
 import {
@@ -289,6 +288,7 @@ export default function OpportunitiesView({ user }) {
   const [loading, setLoading] = useState(true);
   const [applyingId, setApplyingId] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -328,18 +328,8 @@ export default function OpportunitiesView({ user }) {
     return () => clearTimeout(timeout);
   }, [loadData, user]);
 
-  async function handleApply(opportunity, score) {
-    setApplyingId(opportunity.id);
-    const result = await applyToOpportunity(user.id, opportunity.id, score);
-    setApplyingId(null);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
-    setAppliedMap((prev) =>
-      new Map(prev).set(opportunity.id, new Date().toISOString()),
-    );
+  function handleApply(opportunity, score) {
+    setSelectedOpportunity({ opportunity, score });
   }
 
   const scored = opportunities
@@ -418,6 +408,23 @@ export default function OpportunitiesView({ user }) {
           />
         ))}
       </div>
+      {selectedOpportunity && (
+        <ApplicationPreviewModal
+          user={user}
+          opportunity={selectedOpportunity.opportunity}
+          matchScore={selectedOpportunity.score}
+          onClose={() => setSelectedOpportunity(null)}
+          onSubmitted={() => {
+            setAppliedMap((prev) =>
+              new Map(prev).set(
+                selectedOpportunity.opportunity.id,
+                new Date().toISOString(),
+              ),
+            );
+            setSelectedOpportunity(null);
+          }}
+        />
+      )}
     </div>
   );
 }
