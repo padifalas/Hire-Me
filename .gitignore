@@ -26,7 +26,8 @@ dist-ssr
 .env
 .env.local
 
-# Academic/portfolio deliverables — not part of the app,
+# stuff not part of the app,
 *.docx
 ~$*.docx
 HireMe_Case_Study.md
+/test-data/cvs
