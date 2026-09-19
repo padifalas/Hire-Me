@@ -25,7 +25,7 @@ The system benefits both **students** (by simplifying applications and tailoring
   - Direct messaging & recruitment analytics
 
 - **AI Capabilities**
-  - Claude API for skill extraction, semantic matching, and cover letter generation
+  - Gemini API for skill extraction, semantic matching, and cover letter generation
   - Sentiment analysis for cultural fit
   - Feedback-driven improvement loop
 
@@ -34,10 +34,10 @@ The system benefits both **students** (by simplifying applications and tailoring
 ## Tech Stack
 
 - **Frontend:** React (responsive design, CSS styling)
-- **Backend:** Firebase (Authentication, Firestore, Cloud Storage, Cloud Functions, Hosting)
-- **AI Integration:** Claude API via RESTful HTTP calls
+- **Backend:** Supabase (Authentication, Firestore, Cloud Storage, Cloud Functions, Hosting)
+- **AI Integration:** Gemini API via RESTful HTTP calls
 - **Version Control:** GitHub (feature branch workflow, PR reviews)
-- **Deployment:** Firebase Hosting with global CDN & HTTPS
+- **Deployment:** Supabase Hosting with global CDN & HTTPS
 
 ---
 
