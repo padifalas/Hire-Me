@@ -1,7 +1,7 @@
 //HANDLED CV + academic transcript upload (PDF/DOCX), client-side text
 // extraction, and triggering the `extract-skills` Edge Function.
 
-import { supabase } from "../config/supabase";
+import { supabase, invokeEdgeFunction } from "../config/supabase";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
@@ -142,8 +142,10 @@ export async function triggerSkillExtraction(
   transcriptText,
 ) {
   try {
-    const { data, error } = await supabase.functions.invoke("extract-skills", {
-      body: { studentId, cvText, transcriptText },
+    const { data, error } = await invokeEdgeFunction("extract-skills", {
+      studentId,
+      cvText,
+      transcriptText,
     });
 
     if (error) throw error;

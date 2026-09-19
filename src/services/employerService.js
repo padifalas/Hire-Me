@@ -1,6 +1,6 @@
 // does employer company profile management and job opportunity posting.
 
-import { supabase } from "../config/supabase";
+import { supabase, invokeEdgeFunction } from "../config/supabase";
 
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_LOGO_TYPES = [
@@ -96,15 +96,10 @@ export async function uploadCompanyLogo(file, userId) {
  */
 export async function normalizeSkillTags(requiredSkills, niceToHaveSkills) {
   try {
-    const { data, error } = await supabase.functions.invoke(
-      "normalize-skills",
-      {
-        body: {
-          requiredSkills: requiredSkills || [],
-          niceToHaveSkills: niceToHaveSkills || [],
-        },
-      },
-    );
+    const { data, error } = await invokeEdgeFunction("normalize-skills", {
+      requiredSkills: requiredSkills || [],
+      niceToHaveSkills: niceToHaveSkills || [],
+    });
 
     if (error || !data?.success) {
       return {
@@ -321,12 +316,9 @@ export async function updateApplicationStatus(
 
 export async function generateRejectionFeedback(applicationId) {
   try {
-    const { data, error } = await supabase.functions.invoke(
-      "generate-rejection-feedback",
-      {
-        body: { applicationId },
-      },
-    );
+    const { data, error } = await invokeEdgeFunction("generate-rejection-feedback", {
+      applicationId,
+    });
 
     if (error) throw error;
     if (!data?.success)

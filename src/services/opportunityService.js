@@ -2,7 +2,7 @@
 // score against the student's AI-extracted skills, and submitting
 // applications.
 
-import { supabase } from "../config/supabase";
+import { supabase, invokeEdgeFunction } from "../config/supabase";
 import { normalizeSkillName, resolveNormalizedSkills } from "../utils/skillSynonyms";
 
 /**
@@ -154,8 +154,9 @@ export function computeMatchScore(extractedTechnicalSkills, opportunity) {
  */
 export async function generateCoverLetter(studentId, opportunityId) {
   try {
-    const { data, error } = await supabase.functions.invoke("generate-cover-letter", {
-      body: { studentId, opportunityId },
+    const { data, error } = await invokeEdgeFunction("generate-cover-letter", {
+      studentId,
+      opportunityId,
     });
 
     if (error) throw error;
@@ -168,26 +169,22 @@ export async function generateCoverLetter(studentId, opportunityId) {
 }
 
 /**
- * Submit an application...Stores the match score at time of application so
- * it's a stable historical record even if the student's skills change later.
+ * Submit an application. The match score stored on it is computed
+ * server-side by the submit-application Edge Function from the student's
+ * real skills and the opportunity's real requirements - it is deliberately
+ * NOT taken from this client (computeMatchScore above is only used for the
+ * live "X% match" display while browsing, never for what gets stored).
  */
-export async function applyToOpportunity(studentId, opportunityId, matchScore, coverLetter = null) {
+export async function applyToOpportunity(studentId, opportunityId, coverLetter = null) {
   try {
-    const { error } = await supabase.from("applications").insert([
-      {
-        student_id: studentId,
-        opportunity_id: opportunityId,
-        match_score: matchScore,
-        cover_letter: coverLetter,
-      },
-    ]);
+    const { data, error } = await invokeEdgeFunction("submit-application", {
+      studentId,
+      opportunityId,
+      coverLetter,
+    });
 
-    if (error) {
-      if (error.code === "23505") {
-        throw new Error("You've already applied to this opportunity.");
-      }
-      throw error;
-    }
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || "Couldn't submit your application");
 
     return { success: true };
   } catch (error) {

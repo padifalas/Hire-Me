@@ -5,7 +5,7 @@ import "./ApplicationPreviewModal.css";
 
 import { X, Sparkles, RotateCcw } from "lucide-react";
 
-export default function ApplicationPreviewModal({ user, opportunity, matchScore, onClose, onSubmitted }) {
+export default function ApplicationPreviewModal({ user, opportunity, onClose, onSubmitted }) {
   const [coverLetter, setCoverLetter] = useState("");
   const [generating, setGenerating] = useState(true);
   const [genError, setGenError] = useState(null);
@@ -33,7 +33,7 @@ export default function ApplicationPreviewModal({ user, opportunity, matchScore,
   async function handleSubmit() {
     setSubmitting(true);
     setSubmitError(null);
-    const result = await applyToOpportunity(user.id, opportunity.id, matchScore, coverLetter || null);
+    const result = await applyToOpportunity(user.id, opportunity.id, coverLetter || null);
     setSubmitting(false);
 
     if (!result.success) {

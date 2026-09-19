@@ -412,7 +412,6 @@ export default function OpportunitiesView({ user }) {
         <ApplicationPreviewModal
           user={user}
           opportunity={selectedOpportunity.opportunity}
-          matchScore={selectedOpportunity.score}
           onClose={() => setSelectedOpportunity(null)}
           onSubmitted={() => {
             setAppliedMap((prev) =>
