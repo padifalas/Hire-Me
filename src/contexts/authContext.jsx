@@ -99,11 +99,39 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {/* {authTimedOut && (
-        <div style={{ background: "#fef2f2", color: "#991b1b", padding: "8px 16px", fontSize: 13, textAlign: "center" }}>
-          Sign-in check timed out.  use a separate browser profile/icongito - refresh to try again.
+      {authTimedOut && (
+        <div
+          style={{
+            background: "#fef2f2",
+            color: "#991b1b",
+            padding: "8px 16px",
+            fontSize: 13,
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          Sign-in check timed out - your connection may be slow or interrupted.
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "#991b1b",
+              fontWeight: 700,
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Refresh
+          </button>
         </div>
-      )} */}
+      )}
       {children}
     </AuthContext.Provider>
   );

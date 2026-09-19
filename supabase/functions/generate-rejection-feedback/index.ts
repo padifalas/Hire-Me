@@ -24,6 +24,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { normalizeSkillName, resolveNormalizedSkills } from "../_shared/skillSynonyms.ts";
 import { requireUser, requireSelf, AuthError } from "../_shared/auth.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -32,10 +33,6 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const PROVIDER = GEMINI_API_KEY ? "gemini" : "claude";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // put real, free resources per skill - keyed by a normalized skill name.
 // rather than AI-generated, so every link // is guaranteed to actually wor cos againnn... i dont trust ai links
@@ -219,6 +216,8 @@ Do not include any links, bullet points, or headings - just the message text, no
 }
 
 Deno.serve(async (req) => {
+  const CORS_HEADERS = corsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
   }

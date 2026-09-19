@@ -23,14 +23,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { normalizeSkillName, resolveNormalizedSkills } from "../_shared/skillSynonyms.ts";
 import { requireUser, requireSelf, AuthError } from "../_shared/auth.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // Mirrors computeMatchScore in src/services/opportunityService.js exactly -
 // keep the two in sync the same way _shared/skillSynonyms.ts is kept in
@@ -65,6 +62,8 @@ function computeMatchScore(
 }
 
 Deno.serve(async (req) => {
+  const CORS_HEADERS = corsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
   }

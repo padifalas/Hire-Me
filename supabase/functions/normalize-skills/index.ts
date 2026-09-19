@@ -23,16 +23,13 @@
 // @ts-nocheck
 
 import { requireUser, AuthError } from "../_shared/auth.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 const PROVIDER = GEMINI_API_KEY ? "gemini" : "claude";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 function buildPrompt(requiredSkills: string[], niceToHaveSkills: string[]) {
   return `
@@ -124,6 +121,8 @@ async function callLLM(requiredSkills: string[], niceToHaveSkills: string[]) {
 }
 
 Deno.serve(async (req) => {
+  const CORS_HEADERS = corsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
   }
