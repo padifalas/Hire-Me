@@ -14,7 +14,14 @@ const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export const signUpWithEmail = async (email, password, userData) => {
   try {
-    // this to Create auth user
+    // the auth user AND its public.users / student_profiles /
+    // employer_profiles row are all created atomically by the
+    // handle_new_user() Postgres trigger now (see
+    // supabase/migrations/20260919174259_auto_create_profile_on_signup.sql).
+    // iff the profile insert fails, the trigger raises and the whole
+    // auth.users insert rolls back with it - so unlike the old three
+    // separate client-side inserts this used to be, there's no window
+    // where an auth user exists with no matching profile row.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -28,39 +35,11 @@ export const signUpWithEmail = async (email, password, userData) => {
 
     if (authError) throw authError;
 
-    // this one to Create user profile
-    const { error: profileError } = await supabase.from("users").insert([
-      {
-        id: authData.user.id,
-        email: authData.user.email,
-        full_name: userData.fullName,
-        role: userData.role,
-      },
-    ]);
-
-    if (profileError) throw profileError;
-
-    // alsoooo this one to Create role-specific profile
-    if (userData.role === "student") {
-      const { error: studentError } = await supabase
-        .from("student_profiles")
-        .insert([{ id: authData.user.id }]);
-
-      if (studentError) throw studentError;
-    } else if (userData.role === "employer") {
-      const { error: employerError } = await supabase
-        .from("employer_profiles")
-        .insert([
-          {
-            id: authData.user.id,
-            company_name: userData.companyName || "Company Name",
-          },
-        ]);
-
-      if (employerError) throw employerError;
-    }
-
-    return { success: true, user: authData.user };
+    // authData.session is null when the project requires email
+    // confirmation (no active session until the link is clicked) - the
+    // caller uses this to decide whether it can navigate straight into
+    // the app or has to show the "check your email" message instead.
+    return { success: true, user: authData.user, session: authData.session };
   } catch (error) {
     return { success: false, error: error.message };
   }

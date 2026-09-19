@@ -72,8 +72,21 @@ export default function SignUp() {
       return;
     }
 
-    setMessage("Account created! Check your email to confirm your account.");
+    if (!result.session) {
+      // for when mail confirmation is required on this project - there is no
+      // session yet to act on, so this is as far as we can take them
+      // until they click the link in their inbox.
+      setMessage("Account created! Check your email to confirm your account.");
+      setLoading(false);
+      return;
+    }
+
+    // sign in immediately (when email confirmation off). handle_new_user
+    // has already created their profile row atomically as part of
+    // sign-up, so skip the Sign In tab entirely and take them straight
+    // into setup.
     setLoading(false);
+    navigate(formData.role === "employer" ? "/employer-profile-setup" : "/profile-setup");
   }
 
   async function handleSignIn() {

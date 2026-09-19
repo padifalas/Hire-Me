@@ -443,16 +443,13 @@ export default function EmployerDashboard() {
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
-  // prevents that fucky JobsView/CompanyProfileView/DashboardView from ever receiving
-  //  null employerId on a hard refresh
-  useEffect(() => {
-    if (!loading && !user) navigate("/");
-  }, [loading, user, navigate]);
-
-  if (loading || !user) return null;
+  // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
+  // ProtectedRoute.jsx) - this component only ever mounts once that has
+  // already confirmed a signed-in employer, so JobsView/CompanyProfileView/
+  // DashboardView never see a null employerId here.
 
   const employer = {
     name: userProfile?.full_name ?? "Employer",

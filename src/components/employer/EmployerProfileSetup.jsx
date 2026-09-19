@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import { updateEmployerProfile, uploadCompanyLogo } from "../../services/employerService";
@@ -15,8 +15,12 @@ const INDUSTRIES = [
 const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
 export default function EmployerProfileSetup() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  // authh guard now lives in <ProtectedRoute> (src/components/auth/
+  // ProtectedRoute.jsx) - this component only ever mounts once that has
+  // already confirmed a signed-in employer.
 
   const [form, setForm] = useState({
     companyName: "",
@@ -32,10 +36,6 @@ export default function EmployerProfileSetup() {
 
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !user) navigate("/");
-  }, [loading, user, navigate]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -80,8 +80,6 @@ export default function EmployerProfileSetup() {
       setSubmitting(false);
     }
   }
-
-  if (loading || !user) return null;
 
   return (
     <div className="ps-page">

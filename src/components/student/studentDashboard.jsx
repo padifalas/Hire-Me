@@ -160,7 +160,7 @@ function ChecklistItem({ label, done }) {
   );
 }
 
-// Matches the real output of the generate-rejection-feedback Edge Function
+// matches the real output of the generate-rejection-feedback Edge Function
 // exactly (confirmed against its source):
 //   <message paragraph>
 //
@@ -862,16 +862,14 @@ function StudentDashboard() {
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const profileStrength = computeProfileStrength(userProfile);
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/");
-  }, [loading, user, navigate]);
-
-  if (loading || !user) return null;
+  // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
+  // ProtectedRoute.jsx) - this component only ever mounts once that has
+  // already confirmed a signed-in student.
 
   const student = {
     name: userProfile?.full_name ?? "Student",
