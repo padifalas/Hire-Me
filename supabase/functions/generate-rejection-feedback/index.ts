@@ -23,6 +23,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { normalizeSkillName, resolveNormalizedSkills } from "../_shared/skillSynonyms.ts";
+import { requireUser, requireSelf, AuthError } from "../_shared/auth.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -235,6 +236,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    const user = await requireUser(req);
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: application, error: appError } = await supabase
@@ -250,6 +253,8 @@ Deno.serve(async (req) => {
       .eq("id", application.opportunity_id)
       .single();
     if (oppError) throw oppError;
+
+    requireSelf(user, opportunity.employer_id, "application");
 
     const { data: employerProfile } = await supabase
       .from("employer_profiles")
@@ -302,7 +307,10 @@ Deno.serve(async (req) => {
     console.error("generate-rejection-feedback error:", error);
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      {
+        status: error instanceof AuthError ? error.status : 500,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      },
     );
   }
 });

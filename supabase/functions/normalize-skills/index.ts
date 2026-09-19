@@ -22,6 +22,8 @@
 //
 // @ts-nocheck
 
+import { requireUser, AuthError } from "../_shared/auth.ts";
+
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
@@ -131,6 +133,8 @@ Deno.serve(async (req) => {
       throw new Error("No LLM provider configured. Set GEMINI_API_KEY (free) or ANTHROPIC_API_KEY (paid) as a secret.");
     }
 
+    await requireUser(req);
+
     const { requiredSkills, niceToHaveSkills } = await req.json();
     const required = requiredSkills || [];
     const niceToHave = niceToHaveSkills || [];
@@ -167,7 +171,10 @@ Deno.serve(async (req) => {
     // table rather than blocking job posting
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      {
+        status: error instanceof AuthError ? error.status : 500,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      },
     );
   }
 });
