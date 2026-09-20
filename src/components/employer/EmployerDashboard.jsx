@@ -12,10 +12,12 @@ import JobPostingForm from "./JobPostingForm.jsx";
 import ApplicantsModal from "./ApplicantsModal.jsx";
 import CandidatesView from "./CandidatesView.jsx";
 import EmployerProfileView from "./EmployerProfileView.jsx";
+import AnalyticsView from "./AnalyticsView.jsx";
 import {
   getEmployerOpportunities,
   getRecentApplicationsForEmployer,
   getEmployerBeeStats,
+  BEE_MIN_POOL_SIZE,
 } from "../../services/employerService";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
@@ -44,8 +46,6 @@ const NAV_ITEMS = [
   { icon: BarChart2, label: "Analytics", id: "analytics" },
   { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
-
-const BEE_MIN_POOL_SIZE = 5;
 
 function Avatar({ initials, size = 32 }) {
   return (
@@ -613,6 +613,7 @@ export default function EmployerDashboard() {
           {activeNav === "profile" && <EmployerProfileView user={user} />}
           {activeNav === "jobs" && <JobsView employerId={user?.id} />}
           {activeNav === "candidates" && <CandidatesView />}
+          {activeNav === "analytics" && <AnalyticsView employerId={user?.id} />}
           {activeNav === "company-profile" && (
             <CompanyProfileView user={user} />
           )}
@@ -621,6 +622,7 @@ export default function EmployerDashboard() {
             "profile",
             "jobs",
             "candidates",
+            "analytics",
             "company-profile",
           ].includes(activeNav) && (
             <div className="ed-empty">

@@ -295,7 +295,10 @@ export async function updateApplicationStatus(
   feedback = null,
 ) {
   try {
-    const updatePayload = { status };
+    const updatePayload = {
+      status,
+      status_updated_at: new Date().toISOString(),
+    };
     if (status === "rejected" && feedback) {
       updatePayload.rejection_feedback = feedback;
     }
@@ -316,9 +319,12 @@ export async function updateApplicationStatus(
 
 export async function generateRejectionFeedback(applicationId) {
   try {
-    const { data, error } = await invokeEdgeFunction("generate-rejection-feedback", {
-      applicationId,
-    });
+    const { data, error } = await invokeEdgeFunction(
+      "generate-rejection-feedback",
+      {
+        applicationId,
+      },
+    );
 
     if (error) throw error;
     if (!data?.success)
@@ -453,4 +459,161 @@ export async function getEmployerBeeStats(employerId) {
     totalApplications: data.length,
     breakdown,
   };
+}
+
+export const BEE_MIN_POOL_SIZE = 5;
+
+function monthKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function lastNMonths(n) {
+  const out = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      key: monthKey(d),
+      label: d.toLocaleString("en-ZA", { month: "short" }),
+    });
+  }
+  return out;
+}
+
+function pctChange(current, previous) {
+  if (!previous) return null;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+const EMPTY_ANALYTICS = {
+  totalApplications: 0,
+  avgMatchScore: 0,
+  offerRate: 0,
+  avgTimeToReview: null,
+  deltas: {
+    applications: null,
+    matchScore: null,
+    offerRate: null,
+    timeToReview: null,
+  },
+  applicationsOverTime: [],
+  scoreDistribution: [
+    { label: "0-39", count: 0 },
+    { label: "40-59", count: 0 },
+    { label: "60-79", count: 0 },
+    { label: "80-100", count: 0 },
+  ],
+};
+
+export async function getEmployerAnalytics(employerId) {
+  try {
+    const { data: opps, error: oppError } = await supabase
+      .from("opportunities")
+      .select("id")
+      .eq("employer_id", employerId);
+
+    if (oppError) throw oppError;
+
+    const opportunityIds = opps.map((o) => o.id);
+    if (opportunityIds.length === 0) {
+      return { success: true, analytics: EMPTY_ANALYTICS };
+    }
+
+    const { data: applications, error } = await supabase
+      .from("applications")
+      .select("id, status, applied_at, match_score, status_updated_at")
+      .in("opportunity_id", opportunityIds);
+
+    if (error) throw error;
+
+    const now = new Date();
+    const thisMonth = monthKey(now);
+    const prevMonth = monthKey(
+      new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    );
+
+    const inMonth = (app, key) =>
+      app.applied_at && monthKey(new Date(app.applied_at)) === key;
+
+    const currentApps = applications.filter((a) => inMonth(a, thisMonth));
+    const previousApps = applications.filter((a) => inMonth(a, prevMonth));
+
+    const avgScore = (list) => {
+      const scored = list.filter(
+        (a) => a.match_score !== null && a.match_score !== undefined,
+      );
+      if (scored.length === 0) return 0;
+      return Math.round(
+        scored.reduce((sum, a) => sum + a.match_score, 0) / scored.length,
+      );
+    };
+
+    const offerRateOf = (list) => {
+      if (list.length === 0) return 0;
+      const hired = list.filter((a) => a.status === "hired").length;
+      return Math.round((hired / list.length) * 100);
+    };
+
+    const timeToReviewOf = (list) => {
+      const reviewed = list.filter((a) => a.applied_at && a.status_updated_at);
+      if (reviewed.length === 0) return null;
+      const totalDays = reviewed.reduce((sum, a) => {
+        const diff = new Date(a.status_updated_at) - new Date(a.applied_at);
+        return sum + diff / (1000 * 60 * 60 * 24);
+      }, 0);
+      return Math.round((totalDays / reviewed.length) * 10) / 10;
+    };
+
+    const months = lastNMonths(6);
+    const applicationsOverTime = months.map((m) => ({
+      label: m.label,
+      value: applications.filter((a) => inMonth(a, m.key)).length,
+    }));
+
+    const buckets = [
+      { label: "0-39", min: 0, max: 39 },
+      { label: "40-59", min: 40, max: 59 },
+      { label: "60-79", min: 60, max: 79 },
+      { label: "80-100", min: 80, max: 100 },
+    ];
+    const scoreDistribution = buckets.map((b) => ({
+      label: b.label,
+      count: applications.filter(
+        (a) =>
+          a.match_score !== null &&
+          a.match_score != undefined &&
+          a.match_score >= b.min &&
+          a.match_score <= b.max,
+      ).length,
+    }));
+
+    const currentTtr = timeToReviewOf(currentApps);
+    const previousTtr = timeToReviewOf(previousApps);
+
+    return {
+      success: true,
+      analytics: {
+        totalApplications: applications.length,
+        avgMatchScore: avgScore(applications),
+        offerRate: offerRateOf(applications),
+        avgTimeToReview: timeToReviewOf(applications),
+        deltas: {
+          applications: pctChange(currentApps.length, previousApps.length),
+          matchScore: pctChange(avgScore(currentApps), avgScore(previousApps)),
+          offerRate: pctChange(
+            offerRateOf(currentApps),
+            offerRateOf(previousApps),
+          ),
+          timeToReview:
+            currentTtr !== null && previousTtr !== null
+              ? pctChange(currentTtr, previousTtr)
+              : null,
+        },
+        applicationsOverTime,
+        scoreDistribution,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
