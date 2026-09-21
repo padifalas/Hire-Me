@@ -18,6 +18,9 @@ import ProfileView from "./ProfileView.jsx";
 import OpportunitiesView from "./OpportunitiesView.jsx";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
+import ProfileReminder from "./ProfileReminder.jsx";
+import "./ProfileReminder.css";
+
 import {
   Briefcase,
   Lightbulb,
@@ -540,185 +543,199 @@ function DashboardView({ studentName, user, onNavigate }) {
   );
 
   return (
-    <div className="sd-dashboard">
-      <div>
-        <h1 className="sd-greeting__title">Good day, {firstName}</h1>
-        <div className="sd-stats-pills">
-          <span className="sd-stat-pill">
-            <span className="sd-stat-pill__num">{strongMatchCount}</span>{" "}
-            Matches
-          </span>
-          <span className="sd-stat-pill__sep">·</span>
-          <span className="sd-stat-pill">
-            <span className="sd-stat-pill__num">{applicationsSent}</span>{" "}
-            Applications
-          </span>
-          <span className="sd-stat-pill__sep">·</span>
-          <span className="sd-stat-pill sd-stat-pill--green">
-            <span className="sd-stat-pill__num">{underReviewCount}</span> Under
-            Review
-          </span>
-        </div>
-      </div>
-
-      <div className="sd-stat-cards">
-        <StatCard
-          icon={Percent}
-          tint="mint"
-          value={`${profileStrength}%`}
-          label="Profile Strength"
-          sub={
-            incompleteCount > 0
-              ? `${incompleteCount} item${incompleteCount === 1 ? "" : "s"} incomplete`
-              : "Complete"
-          }
-        />
-        <StatCard
-          icon={FileText}
-          tint="grey"
-          value={applicationsSent}
-          label="Applications Sent"
-        />
-        <StatCard
-          icon={TrendingUp}
-          tint="sand"
-          value={`${avgMatchScore}%`}
-          label="Avg Match Score"
-        />
-        <StatCard
-          icon={Clock}
-          tint="lilac"
-          value={underReviewCount}
-          label="Under Review"
-          sub={
-            recentApps.find(
-              (a) => a.status === "submitted" || a.status === "under_review",
-            )?.opportunities?.title
-          }
-        />
-      </div>
-
-      <div className="sd-card">
-        <div className="sd-profile-strength__header">
-          <div>
-            <span className="sd-profile-strength__label">Profile Strength</span>
-            <p className="sd-profile-strength__hint">
-              {profileStrength >= 90
-                ? "Your profile is in great shape."
-                : "Add more projects to push past 90% and unlock better matches"}
-            </p>
+    <>
+      {" "}
+      <ProfileReminder
+        userId={user.id}
+        profile={profile}
+        onGoToProfile={() => onNavigate("profile")}
+      />
+      <div className="sd-dashboard">
+        <div>
+          <h1 className="sd-greeting__title">Good day, {firstName}</h1>
+          <div className="sd-stats-pills">
+            <span className="sd-stat-pill">
+              <span className="sd-stat-pill__num">{strongMatchCount}</span>{" "}
+              Matches
+            </span>
+            <span className="sd-stat-pill__sep">·</span>
+            <span className="sd-stat-pill">
+              <span className="sd-stat-pill__num">{applicationsSent}</span>{" "}
+              Applications
+            </span>
+            <span className="sd-stat-pill__sep">·</span>
+            <span className="sd-stat-pill sd-stat-pill--green">
+              <span className="sd-stat-pill__num">{underReviewCount}</span>{" "}
+              Under Review
+            </span>
           </div>
-          <span className="sd-profile-strength__pct sd-profile-strength__pct--big">
-            {profileStrength}%
-          </span>
         </div>
-        <div className="sd-profile-strength__bar-track">
-          <div
-            className="sd-profile-strength__bar-fill"
-            style={{ width: `${profileStrength}%` }}
+
+        <div className="sd-stat-cards">
+          <StatCard
+            icon={Percent}
+            tint="mint"
+            value={`${profileStrength}%`}
+            label="Profile Strength"
+            sub={
+              incompleteCount > 0
+                ? `${incompleteCount} item${incompleteCount === 1 ? "" : "s"} incomplete`
+                : "Complete"
+            }
           />
-        </div>
-        <div className="sd-checklist-row">
-          {checklist.map((item) => (
-            <ChecklistItem
-              key={item.label}
-              label={item.label}
-              done={item.done}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="sd-two-col-row">
-        <div className="sd-card">
-          <div className="sd-section-header">
-            <h2 className="sd-section-header__title">Top matches for you</h2>
-            <button
-              className="sd-link-btn"
-              onClick={() => onNavigate("opportunities")}
-            >
-              View all {strongMatchCount} →
-            </button>
-          </div>
-
-          <TableHeader
-            columns={["Company / Role", "Match", "Apply"]}
-            variant="match"
+          <StatCard
+            icon={FileText}
+            tint="grey"
+            value={applicationsSent}
+            label="Applications Sent"
           />
-
-          {loading && <p className="sd-empty__label">Loading...</p>}
-          {!loading && topMatches.length === 0 && (
-            <p className="sd-empty__label">
-              No active opportunities yet - check back soon.
-            </p>
-          )}
-
-          {topMatches.map((m) => (
-            <MatchRow
-              key={m.opportunity.id}
-              opportunity={m.opportunity}
-              matchResult={m}
-              onNavigate={onNavigate}
-            />
-          ))}
+          <StatCard
+            icon={TrendingUp}
+            tint="sand"
+            value={`${avgMatchScore}%`}
+            label="Avg Match Score"
+          />
+          <StatCard
+            icon={Clock}
+            tint="lilac"
+            value={underReviewCount}
+            label="Under Review"
+            sub={
+              recentApps.find(
+                (a) => a.status === "submitted" || a.status === "under_review",
+              )?.opportunities?.title
+            }
+          />
         </div>
 
         <div className="sd-card">
-          <div className="sd-section-header">
-            <h2 className="sd-section-header__title">Recent Activity</h2>
-            <button
-              className="sd-link-btn"
-              onClick={() => onNavigate("notifications")}
-            >
-              View all
-            </button>
+          <div className="sd-profile-strength__header">
+            <div>
+              <span className="sd-profile-strength__label">
+                Profile Strength
+              </span>
+              <p className="sd-profile-strength__hint">
+                {profileStrength >= 90
+                  ? "Your profile is in great shape."
+                  : "Add more projects to push past 90% and unlock better matches"}
+              </p>
+            </div>
+            <span className="sd-profile-strength__pct sd-profile-strength__pct--big">
+              {profileStrength}%
+            </span>
           </div>
-
-          {activityFeed.length === 0 && (
-            <p className="sd-empty__label">No recent activity yet.</p>
-          )}
-
-          <div className="sd-activity-list">
-            {activityFeed.map((item) => (
-              <div key={item.id} className="sd-activity-row">
-                <span
-                  className="sd-activity-dot"
-                  style={{ background: item.color + "22", color: item.color }}
-                />
-                <div>
-                  <div className="sd-activity-text">{item.text}</div>
-                  {item.date && (
-                    <div className="sd-activity-time">{timeAgo(item.date)}</div>
-                  )}
-                </div>
-                <span className="sd-activity-alert" />
-              </div>
+          <div className="sd-profile-strength__bar-track">
+            <div
+              className="sd-profile-strength__bar-fill"
+              style={{ width: `${profileStrength}%` }}
+            />
+          </div>
+          <div className="sd-checklist-row">
+            {checklist.map((item) => (
+              <ChecklistItem
+                key={item.label}
+                label={item.label}
+                done={item.done}
+              />
             ))}
           </div>
         </div>
-      </div>
 
-      <div className="sd-card">
-        <div className="sd-section-header">
-          <h2 className="sd-section-header__title">Recent Applications</h2>
-          <button
-            className="sd-link-btn"
-            onClick={() => onNavigate("applications")}
-          >
-            View all {recentApps.length} →
-          </button>
+        <div className="sd-two-col-row">
+          <div className="sd-card">
+            <div className="sd-section-header">
+              <h2 className="sd-section-header__title">Top matches for you</h2>
+              <button
+                className="sd-link-btn"
+                onClick={() => onNavigate("opportunities")}
+              >
+                View all {strongMatchCount} →
+              </button>
+            </div>
+
+            <TableHeader
+              columns={["Company / Role", "Match", "Apply"]}
+              variant="match"
+            />
+
+            {loading && <p className="sd-empty__label">Loading...</p>}
+            {!loading && topMatches.length === 0 && (
+              <p className="sd-empty__label">
+                No active opportunities yet - check back soon.
+              </p>
+            )}
+
+            {topMatches.map((m) => (
+              <MatchRow
+                key={m.opportunity.id}
+                opportunity={m.opportunity}
+                matchResult={m}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+
+          <div className="sd-card">
+            <div className="sd-section-header">
+              <h2 className="sd-section-header__title">Recent Activity</h2>
+              <button
+                className="sd-link-btn"
+                onClick={() => onNavigate("notifications")}
+              >
+                View all
+              </button>
+            </div>
+
+            {activityFeed.length === 0 && (
+              <p className="sd-empty__label">No recent activity yet.</p>
+            )}
+
+            <div className="sd-activity-list">
+              {activityFeed.map((item) => (
+                <div key={item.id} className="sd-activity-row">
+                  <span
+                    className="sd-activity-dot"
+                    style={{ background: item.color + "22", color: item.color }}
+                  />
+                  <div>
+                    <div className="sd-activity-text">{item.text}</div>
+                    {item.date && (
+                      <div className="sd-activity-time">
+                        {timeAgo(item.date)}
+                      </div>
+                    )}
+                  </div>
+                  <span className="sd-activity-alert" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <TableHeader columns={["Company", "Role", "Date Applied", "Status"]} />
-        {!loading && recentApps.length === 0 && (
-          <p className="sd-empty__label" style={{ padding: "16px 4px" }}>
-            You haven't applied anywhere yet.
-          </p>
-        )}
-        {recentApps.map((app) => (
-          <AppRow key={app.id} app={app} />
-        ))}
+
+        <div className="sd-card">
+          <div className="sd-section-header">
+            <h2 className="sd-section-header__title">Recent Applications</h2>
+            <button
+              className="sd-link-btn"
+              onClick={() => onNavigate("applications")}
+            >
+              View all {recentApps.length} →
+            </button>
+          </div>
+          <TableHeader
+            columns={["Company", "Role", "Date Applied", "Status"]}
+          />
+          {!loading && recentApps.length === 0 && (
+            <p className="sd-empty__label" style={{ padding: "16px 4px" }}>
+              You haven't applied anywhere yet.
+            </p>
+          )}
+          {recentApps.map((app) => (
+            <AppRow key={app.id} app={app} />
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
