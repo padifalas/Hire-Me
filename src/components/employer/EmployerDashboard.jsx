@@ -548,7 +548,7 @@ export default function EmployerDashboard() {
             className="ed-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
           >
-            <Menu size={18} />
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
           {confirmingSignOut && (

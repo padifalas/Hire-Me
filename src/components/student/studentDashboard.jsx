@@ -984,7 +984,7 @@ function StudentDashboard() {
 
           {confirmingSignOut && (
             <div
-              className="sd-signout=popover-backdrop"
+              className="sd-signout-popover-backdrop"
               onClick={() => setConfirmingSignOut(false)}
             >
               <div
