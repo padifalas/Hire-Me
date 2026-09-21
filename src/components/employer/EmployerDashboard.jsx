@@ -21,6 +21,9 @@ import {
 } from "../../services/employerService";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
+import CompanyProfileReminder from "./CompanyProfileReminder.jsx";
+import "../student/ProfileReminder.css"; // shared styles with student reminder toast
+
 import {
   LayoutDashboard,
   Briefcase,
@@ -246,193 +249,203 @@ function DashboardView({ employerName, employerId, onNavigate }) {
     );
   }
   return (
-    <div className="ed-dashboard">
-      <div className="ed-welcome-row">
-        <div>
-          <h1 className="ed-greeting__title">Welcome, {firstName}</h1>
-          <div className="ed-stats-pills">
-            <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">{activeJobs.length}</span>{" "}
-              Active Jobs
-            </span>
-            <span className="ed-stat-pill__sep">•</span>
-            <span className="ed-stat-pill">
-              <span className="ed-stat-pill__num">{totalApplications}</span>{" "}
-              Applications
-            </span>
+    <>
+      {" "}
+      <CompanyProfileReminder
+        employerId={employerId}
+        onGoToProfile={() => onNavigate("company-profile")}
+      />
+      <div className="ed-dashboard">
+        <div className="ed-welcome-row">
+          <div>
+            <h1 className="ed-greeting__title">Welcome, {firstName}</h1>
+            <div className="ed-stats-pills">
+              <span className="ed-stat-pill">
+                <span className="ed-stat-pill__num">{activeJobs.length}</span>{" "}
+                Active Jobs
+              </span>
+              <span className="ed-stat-pill__sep">•</span>
+              <span className="ed-stat-pill">
+                <span className="ed-stat-pill__num">{totalApplications}</span>{" "}
+                Applications
+              </span>
+            </div>
           </div>
+
+          <button className="ed-post-btn" onClick={() => setShowPostForm(true)}>
+            <Plus size={14} /> Post new job
+          </button>
         </div>
 
-        <button className="ed-post-btn" onClick={() => setShowPostForm(true)}>
-          <Plus size={14} /> Post new job
-        </button>
-      </div>
+        <div className="ed-stat-cards">
+          <StatCard
+            icon={Briefcase}
+            value={activeJobs.length}
+            label="Active Jobs"
+            tint="rose"
+          />
+          <StatCard
+            icon={FileText}
+            value={totalApplications}
+            label="Total Applications"
+            tint="mint"
+          />
+          <StatCard
+            icon={Users}
+            value={interviewCount}
+            label="Interviews"
+            tint="lilac"
+          />
+          <StatCard
+            icon={Sparkles}
+            value={`${avgMatchScore}%`}
+            label="Avg. Match Score"
+            tint="sand"
+          />
+        </div>
 
-      <div className="ed-stat-cards">
-        <StatCard
-          icon={Briefcase}
-          value={activeJobs.length}
-          label="Active Jobs"
-          tint="rose"
-        />
-        <StatCard
-          icon={FileText}
-          value={totalApplications}
-          label="Total Applications"
-          tint="mint"
-        />
-        <StatCard
-          icon={Users}
-          value={interviewCount}
-          label="Interviews"
-          tint="lilac"
-        />
-        <StatCard
-          icon={Sparkles}
-          value={`${avgMatchScore}%`}
-          label="Avg. Match Score"
-          tint="sand"
-        />
-      </div>
-
-      <div className="ed-main-grid">
-        <div className="ed-left-col">
-          {/* Active jobs */}
-          <div className="ed-card">
-            <div className="ed-card__header">
-              <span className="ed-card__title">Active Jobs</span>
-              <button
-                className="ed-link-btn"
-                onClick={() => onNavigate("jobs")}
-              >
-                View all {jobs.length} →
-              </button>
-            </div>
-
-            <div className="ed-table-header">
-              {["Job Title", "Applications", "Days Remaining", "View"].map(
-                (h) => (
-                  <span key={h} className="ed-table-th">
-                    {h}
-                  </span>
-                ),
-              )}
-            </div>
-
-            {loadingJobs && (
-              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                Loading...
-              </p>
-            )}
-
-            {!loadingJobs && activeJobs.length === 0 && (
-              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                No active jobs yet - post your first one above.
-              </p>
-            )}
-
-            {activeJobs.slice(0, 5).map((job) => (
-              <div key={job.id} className="ed-table-row">
-                <span className="ed-table-cell">{job.title}</span>
-                <span className="ed-table-cell">{job.applicationCount}</span>
-                <span className="ed-table-cell">
-                  {daysRemaining(job.deadline)}
-                </span>
+        <div className="ed-main-grid">
+          <div className="ed-left-col">
+            {/* Active jobs */}
+            <div className="ed-card">
+              <div className="ed-card__header">
+                <span className="ed-card__title">Active Jobs</span>
                 <button
-                  className="ed-view-btn"
+                  className="ed-link-btn"
                   onClick={() => onNavigate("jobs")}
                 >
-                  View →
+                  View all {jobs.length} →
                 </button>
               </div>
-            ))}
-          </div>
 
-          {/* Recent applications */}
-          <div className="ed-card">
-            <div className="ed-card__header">
-              <span className="ed-card__title">Recent Applications</span>
-            </div>
+              <div className="ed-table-header">
+                {["Job Title", "Applications", "Days Remaining", "View"].map(
+                  (h) => (
+                    <span key={h} className="ed-table-th">
+                      {h}
+                    </span>
+                  ),
+                )}
+              </div>
 
-            <div className="ed-table-header ed-table-header--apps">
-              {["Applicant", "Match Score", "Date", "Review"].map((h) => (
-                <span key={h} className="ed-table-th">
-                  {h}
-                </span>
+              {loadingJobs && (
+                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                  Loading...
+                </p>
+              )}
+
+              {!loadingJobs && activeJobs.length === 0 && (
+                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                  No active jobs yet - post your first one above.
+                </p>
+              )}
+
+              {activeJobs.slice(0, 5).map((job) => (
+                <div key={job.id} className="ed-table-row">
+                  <span className="ed-table-cell">{job.title}</span>
+                  <span className="ed-table-cell">{job.applicationCount}</span>
+                  <span className="ed-table-cell">
+                    {daysRemaining(job.deadline)}
+                  </span>
+                  <button
+                    className="ed-view-btn"
+                    onClick={() => onNavigate("jobs")}
+                  >
+                    View →
+                  </button>
+                </div>
               ))}
             </div>
 
-            {loadingApps && (
-              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                Loading...
-              </p>
-            )}
-
-            {!loadingApps && recentApps.length === 0 && (
-              <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                No applications yet.
-              </p>
-            )}
-
-            {recentApps.map((app) => (
-              <div key={app.id} className="ed-table-row ed-table-row--apps">
-                <div className="ed-applicant-cell">
-                  <Avatar
-                    initials={initialsFor(app.student?.full_name)}
-                    size={28}
-                  />
-                  <span className="ed-applicant-name">
-                    {app.student?.full_name ?? "Student"} -{" "}
-                    {app.opportunities?.title ?? "Opportunity"}
-                  </span>
-                </div>
-                <MatchBadge
-                  match={app.match_score ?? "-"}
-                  color={matchColor(app.match_score)}
-                />
-                <span className="ed-table-cell ed-table-cell--muted">
-                  {new Date(app.applied_at).toLocaleDateString()}
-                </span>
-                <button
-                  className="ed-view-btn"
-                  onClick={() => setReviewingApp(app)}
-                >
-                  Review →
-                </button>
+            {/* Recent applications */}
+            <div className="ed-card">
+              <div className="ed-card__header">
+                <span className="ed-card__title">Recent Applications</span>
               </div>
-            ))}
+
+              <div className="ed-table-header ed-table-header--apps">
+                {["Applicant", "Match Score", "Date", "Review"].map((h) => (
+                  <span key={h} className="ed-table-th">
+                    {h}
+                  </span>
+                ))}
+              </div>
+
+              {loadingApps && (
+                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                  Loading...
+                </p>
+              )}
+
+              {!loadingApps && recentApps.length === 0 && (
+                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                  No applications yet.
+                </p>
+              )}
+
+              {recentApps.map((app) => (
+                <div key={app.id} className="ed-table-row ed-table-row--apps">
+                  <div className="ed-applicant-cell">
+                    <Avatar
+                      initials={initialsFor(app.student?.full_name)}
+                      size={28}
+                    />
+                    <span className="ed-applicant-name">
+                      {app.student?.full_name ?? "Student"} -{" "}
+                      {app.opportunities?.title ?? "Opportunity"}
+                    </span>
+                  </div>
+                  <MatchBadge
+                    match={app.match_score ?? "-"}
+                    color={matchColor(app.match_score)}
+                  />
+                  <span className="ed-table-cell ed-table-cell--muted">
+                    {new Date(app.applied_at).toLocaleDateString()}
+                  </span>
+                  <button
+                    className="ed-view-btn"
+                    onClick={() => setReviewingApp(app)}
+                  >
+                    Review →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="ed-right-col">
+            <BeeStatsPanel
+              breakdown={beeBreakdown}
+              totalPooled={beeStats.totalPooled}
+            />
           </div>
         </div>
 
-        <div className="ed-right-col">
-          <BeeStatsPanel
-            breakdown={beeBreakdown}
-            totalPooled={beeStats.totalPooled}
+        {showPostForm && (
+          <JobPostingForm
+            employerId={employerId}
+            onClose={() => setShowPostForm(false)}
+            onSaved={(newJob) => {
+              setShowPostForm(false);
+              if (newJob)
+                setJobs((prev) => [
+                  { ...newJob, applicationCount: 0 },
+                  ...prev,
+                ]);
+            }}
           />
-        </div>
+        )}
+
+        {reviewingApp && (
+          <ApplicantsModal
+            opportunityId={reviewingApp.opportunity_id}
+            jobTitle={reviewingApp.opportunities?.title}
+            highlightApplicationId={reviewingApp.id}
+            onClose={() => setReviewingApp(null)}
+          />
+        )}
       </div>
-
-      {showPostForm && (
-        <JobPostingForm
-          employerId={employerId}
-          onClose={() => setShowPostForm(false)}
-          onSaved={(newJob) => {
-            setShowPostForm(false);
-            if (newJob)
-              setJobs((prev) => [{ ...newJob, applicationCount: 0 }, ...prev]);
-          }}
-        />
-      )}
-
-      {reviewingApp && (
-        <ApplicantsModal
-          opportunityId={reviewingApp.opportunity_id}
-          jobTitle={reviewingApp.opportunities?.title}
-          highlightApplicationId={reviewingApp.id}
-          onClose={() => setReviewingApp(null)}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
