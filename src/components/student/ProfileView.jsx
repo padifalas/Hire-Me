@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/authContext";
-import { uploadAvatar, updateUserProfile } from "../../services/authService";
+import { uploadAvatar } from "../../services/authService";
 import {
   getStudentProfile,
   updateStudentProfile,
@@ -39,7 +39,7 @@ const BEE_CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
-function FileDropField({ label, currentFileName, file, onSelect }) {
+function FileDropField({ currentFileName, file, onSelect }) {
   return (
     <div className="pv-file-field">
       <label
@@ -317,7 +317,7 @@ export default function ProfileView({ user }) {
 
   const [savingBee, setSavingBee] = useState(false);
 
-  const [avatarFile, setAvatarFile] = useState(null);
+  const [setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
 

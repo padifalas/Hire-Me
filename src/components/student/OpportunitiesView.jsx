@@ -286,7 +286,7 @@ export default function OpportunitiesView({ user }) {
   const [scoreBucket, setScoreBucket] = useState("all");
 
   const [loading, setLoading] = useState(true);
-  const [applyingId, setApplyingId] = useState(null);
+  const [applyingId] = useState(null);
   const [error, setError] = useState(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
 
