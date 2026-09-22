@@ -29,6 +29,7 @@ import {
   Bell,
   Menu,
   Search,
+  Upload,
   Building2,
   Percent,
   TrendingUp,

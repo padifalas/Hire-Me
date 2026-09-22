@@ -5,7 +5,7 @@
 //  thee getSession function checks for an active session on initial load, and the onAuthStateChange listener ensures that any changes in authentication status are reflected in the context.
 //  useAuth hook allows components to easily access the authentication state and user profile information.
 
-import { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import { supabase } from "../config/supabase";
 import { getUserProfile } from "../services/authService";
 
