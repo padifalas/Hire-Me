@@ -270,7 +270,7 @@ export async function getApplicantsForOpportunity(opportunityId) {
       const { data: profiles, error: profileError } = await supabase
         .from("student_profiles")
         .select(
-          "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, cv_url, linkedin_url, github_url, portfolio_url",
+          "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, cv_url, cv_file_name, transcript_url, transcript_file_name, linkedin_url, github_url, portfolio_url",
         )
         .in("id", studentIds);
 
@@ -289,31 +289,29 @@ export async function getApplicantsForOpportunity(opportunityId) {
   }
 }
 
-export async function updateApplicationStatus(
-  applicationId,
-  status,
-  feedback = null,
-) {
+export async function updateApplicationStatus(applicationId, status) {
   try {
-    const updatePayload = {
-      status,
-      status_updated_at: new Date().toISOString(),
-    };
-    if (status === "rejected" && feedback) {
-      updatePayload.rejection_feedback = feedback;
-    }
-
     const { data, error } = await supabase
       .from("applications")
-      .update(updatePayload)
+      .update({
+        status,
+        status_updated_at: new Date().toISOString(),
+      })
       .eq("id", applicationId)
       .select()
       .single();
 
     if (error) throw error;
-    return { success: true, application: data };
+
+    return {
+      success: true,
+      application: data,
+    };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 }
 
@@ -348,7 +346,7 @@ export async function getCandidates() {
     const { data: profiles, error } = await supabase
       .from("student_profiles")
       .select(
-        "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, ai_processing_status, cv_url",
+        "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, ai_processing_status, cv_url, cv_file_name, transcript_url, transcript_file_name",
       )
       .eq("profile_completed", true)
       .order("graduation_year", { ascending: false });
@@ -356,24 +354,41 @@ export async function getCandidates() {
     if (error) throw error;
 
     const studentIds = profiles.map((p) => p.id);
+
     let usersById = {};
+    let matchScoresByStudentId = {};
 
     if (studentIds.length > 0) {
+      // Get user information
       const { data: users, error: userError } = await supabase
         .from("users")
         .select("id, full_name, email")
         .in("id", studentIds);
 
       if (userError) throw userError;
+
       usersById = Object.fromEntries(users.map((u) => [u.id, u]));
+
+      // Get match scores
+      const { data: applications, error: applicationError } = await supabase
+        .from("applications")
+        .select("student_id, match_score")
+        .in("student_id", studentIds);
+
+      if (applicationError) throw applicationError;
+
+      matchScoresByStudentId = Object.fromEntries(
+        applications.map((a) => [a.student_id, a.match_score]),
+      );
     }
 
     const candidates = profiles.map((p) => ({
       ...p,
       full_name: usersById[p.id]?.full_name ?? "Student",
       email: usersById[p.id]?.email ?? null,
-    }));
 
+      match_score: matchScoresByStudentId[p.id] ?? null,
+    }));
     return { success: true, candidates };
   } catch (error) {
     return { success: false, error: error.message };

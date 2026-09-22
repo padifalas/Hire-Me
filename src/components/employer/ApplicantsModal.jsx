@@ -4,8 +4,8 @@ import {
   updateApplicationStatus,
   generateRejectionFeedback,
 } from "../../services/employerService";
-import { getDocumentSignedUrl } from "../../services/documentService";
 import { APPLICATION_STATUS_LABELS } from "../../services/opportunityService";
+import DocumentViewerModal from "../shared/DocumentViewerModal.jsx";
 
 import "./ApplicantsModal.css";
 
@@ -31,11 +31,12 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
   const [rejecting, setRejecting] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
-  const [cvError, setCvError] = useState(null);
+  const [viewingDoc, setViewingDoc] = useState(null); // { docType, storagePath, fileName }
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
 
   const profile = applicant.profile;
+  const studentName = applicant.student?.full_name ?? "Student";
   const statusMeta =
     APPLICATION_STATUS_LABELS[applicant.status] ??
     APPLICATION_STATUS_LABELS.submitted;
@@ -67,24 +68,11 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
     }
   }
 
-  async function handleViewCv() {
-    if (!profile?.cv_url) return;
-    setCvError(null);
-    const result = await getDocumentSignedUrl("cv", profile.cv_url);
-    if (result.success) {
-      window.open(result.url, "_blank", "noopener,noreferrer");
-    } else {
-      setCvError(result.error);
-    }
-  }
-
   return (
     <div className={`am-card${highlighted ? " am-card--highlighted" : ""}`}>
       <div className="am-card__top">
         <div>
-          <div className="am-card__name">
-            {applicant.student?.full_name ?? "Student"}
-          </div>
+          <div className="am-card__name">{studentName}</div>
           {profile && (
             <div className="am-card__meta">
               <GraduationCap size={12} /> {profile.degree_program || "-"} ·{" "}
@@ -166,9 +154,30 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
               <button
                 type="button"
                 className="am-link-btn"
-                onClick={handleViewCv}
+                onClick={() =>
+                  setViewingDoc({
+                    docType: "cv",
+                    storagePath: profile.cv_url,
+                    fileName: profile.cv_file_name,
+                  })
+                }
               >
                 <FileDown size={13} /> View CV
+              </button>
+            )}
+            {profile?.transcript_url && (
+              <button
+                type="button"
+                className="am-link-btn"
+                onClick={() =>
+                  setViewingDoc({
+                    docType: "transcript",
+                    storagePath: profile.transcript_url,
+                    fileName: profile.transcript_file_name,
+                  })
+                }
+              >
+                <FileDown size={13} /> View transcript
               </button>
             )}
             {profile?.linkedin_url && (
@@ -187,7 +196,6 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
               </a>
             )}
           </div>
-          {cvError && <p className="am-error">{cvError}</p>}
         </div>
       )}
 
@@ -266,6 +274,16 @@ function ApplicantCard({ applicant, highlighted, onStatusChange }) {
             </button>
           )}
         </div>
+      )}
+
+      {viewingDoc && (
+        <DocumentViewerModal
+          docType={viewingDoc.docType}
+          storagePath={viewingDoc.storagePath}
+          fileName={viewingDoc.fileName}
+          subjectName={studentName}
+          onClose={() => setViewingDoc(null)}
+        />
       )}
     </div>
   );
