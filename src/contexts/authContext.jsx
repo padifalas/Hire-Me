@@ -5,19 +5,10 @@
 //  thee getSession function checks for an active session on initial load, and the onAuthStateChange listener ensures that any changes in authentication status are reflected in the context.
 //  useAuth hook allows components to easily access the authentication state and user profile information.
 
-import { createContext, useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../config/supabase";
 import { getUserProfile } from "../services/authService";
-
-const AuthContext = createContext();
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("da useAuth must be used within AuthProvider");
-  }
-  return context;
-};
+import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -50,6 +41,7 @@ export const AuthProvider = ({ children }) => {
           setUser(session.user);
 
           const result = await getUserProfile(session.user.id);
+
           if (!cancelled && result.success) {
             setUserProfile(result.profile);
           }
@@ -58,8 +50,6 @@ export const AuthProvider = ({ children }) => {
           setUserProfile(null);
         }
       } catch (err) {
-        //  error hereso app stuck on a
-        // blank screen with no clue why.
         console.error("[auth] onAuthStateChange handler threw:", err);
       } finally {
         if (!cancelled) {

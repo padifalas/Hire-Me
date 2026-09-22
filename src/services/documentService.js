@@ -65,7 +65,9 @@ export async function extractTextFromFile(file) {
     }
     return trimmed;
   } catch (err) {
-    throw new Error(`Could not read "${file.name}": ${err.message}`);
+    throw new Error(`Could not read "${file.name}": ${err.message}`, {
+      cause: err,
+    });
   }
 }
 
@@ -233,6 +235,9 @@ export async function extractTextFromStoredDocument(docType, storagePath) {
       throw new Error(
         `${error.message || "Download failed"} (bucket: "${bucket}", path: "${cleanPath}"). ` +
           `If this file was uploaded before the storage migration, please re-upload it.`,
+        {
+          cause: error,
+        },
       );
     }
 
