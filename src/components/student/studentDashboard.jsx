@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 
-import { useAuth } from "../../contexts/authContext";
-import { signOut } from "../../services/authService";
+import { useAuth } from "../../contexts/authContext.jsx";
+import { signOut } from "../../services/authService.js";
 import { useNavigate } from "react-router-dom";
-import { getStudentProfile } from "../../services/documentService";
+import { getStudentProfile } from "../../services/documentService.js";
 import {
   getActiveOpportunities,
   getStudentApplicationsWithDetails,
   computeMatchScore,
   APPLICATION_STATUS_LABELS,
-} from "../../services/opportunityService";
+} from "../../services/opportunityService.js";
 
 import "./StudentDashboard.css";
 import Footer from "../layout/footer.jsx";
