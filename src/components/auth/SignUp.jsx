@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signUpWithEmail, signInWithEmail } from "../../services/authService";
 import { supabase } from "../../config/supabase";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
 import "./SignUp.css";
+import "../legal/Legal.css";
 
 const PASSWORD_RULES = [
   { label: "At least 8 characters", test: (pw) => pw.length >= 8 },
@@ -49,6 +50,7 @@ export default function SignUp() {
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const navigate = useNavigate();
 
@@ -57,6 +59,12 @@ export default function SignUp() {
   }
 
   async function handleSignUp() {
+    // Backstop for the `required` checkbox in case the form is submitted another way.
+    if (!acceptedTerms) {
+      setError("Please accept the Terms & Conditions and Privacy Policy to continue.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setMessage(null);
@@ -262,6 +270,29 @@ export default function SignUp() {
             )}
           </div>
 
+          {mode === "signup" && (
+            <label className="auth-consent" htmlFor="acceptedTerms">
+              <input
+                id="acceptedTerms"
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                required
+              />
+              <span>
+                I’m 18 or older and I agree to the{" "}
+                <Link to="/terms" target="_blank" rel="noopener noreferrer">
+                  Terms &amp; Conditions
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </Link>
+                , including AI processing of my CV.
+              </span>
+            </label>
+          )}
+
           {error && <p className="auth-error">{error}</p>}
 
           {message && <p className="auth-message">{message}</p>}
@@ -274,6 +305,12 @@ export default function SignUp() {
                 : "Sign In"}
           </button>
         </form>
+
+        <nav className="auth-legal-links" aria-label="Legal">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/cookies">Cookies</Link>
+        </nav>
       </div>
     </div>
   );

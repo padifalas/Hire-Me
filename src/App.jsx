@@ -13,6 +13,10 @@ import StudentDashboard from "./components/student/StudentDashboard.jsx";
 import "./components/student/StudentDashboard.css";
 import EmployerDashboard from "./components/employer/EmployerDashboard.jsx";
 import "./components/employer/EmployerDashboard.css";
+import PrivacyPolicy from "./components/legal/PrivacyPolicy.jsx";
+import TermsAndConditions from "./components/legal/TermsAndConditions.jsx";
+import CookiePolicy from "./components/legal/CookiePolicy.jsx";
+import CookieBanner from "./components/legal/CookieBanner.jsx";
 
 function App() {
   return (
@@ -22,6 +26,12 @@ function App() {
           <Routes>
             <Route path="/" element={<SignUp />} />
             <Route path="/signup" element={<SignUp />} />
+
+            {/* Public legal pages: no ProtectedRoute so anyone can read them before signing up */}
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+
             <Route
               path="/profile-setup"
               element={
@@ -56,6 +66,7 @@ function App() {
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieBanner />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
