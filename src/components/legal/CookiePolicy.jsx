@@ -83,7 +83,7 @@ const sections = [
     title: "Questions",
     body: (
       <p>
-        Email <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>.
+
         More on how we handle your data is in the{" "}
         <a href="/privacy">Privacy Policy</a>.
       </p>

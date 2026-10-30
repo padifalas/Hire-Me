@@ -15,10 +15,10 @@ const sections = [
           information under the Protection of Personal Information Act 4 of
           2013 (POPIA).
         </p>
-        <p>
+        {/* <p>
           Our Information Officer is {LEGAL.informationOfficer}. You can reach
           us at <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>.
-        </p>
+        </p> */}
       </>
     ),
   },
@@ -169,9 +169,9 @@ const sections = [
           <li>complain to the Information Regulator.</li>
         </ul>
         <p>
-          Email <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>{" "}
+          {/* Email <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>{" "}
           and we’ll respond within 30 days. The Information Regulator can be
-          reached at{" "}
+          reached at{" "} */}
           <a href="https://inforegulator.org.za" target="_blank" rel="noopener noreferrer">
             inforegulator.org.za
           </a>.
