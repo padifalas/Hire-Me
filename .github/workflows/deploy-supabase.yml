@@ -1,6 +1,6 @@
 name: Deploy Supabase backend
 
-# Runs when backend files change on main. Netlify deploys the frontend by itself.
+# runs when backend files change on main. Netlify deploys the frontend by itself.
 on:
   push:
     branches: [main]
