@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">HireMe</title>
+  <path fill="#D22F2E" d="M3 13 L4 16 L11 22 L0 40 L4 40 L22 29 L39 45 L43 45 L35 24 L47 18 L46 16 L33 15 L26 0 L23 1 L16 12 Z"/>
+  <text x="24" y="23.3" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="6.2"
+        font-weight="800" letter-spacing="-0.35" fill="#393536"
+        stroke="#D22F2E" stroke-width="1.15" paint-order="stroke">HireMe</text>
+</svg>
