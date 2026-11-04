@@ -5,9 +5,16 @@
 //  thee getSession function checks for an active session on initial load, and the onAuthStateChange listener ensures that any changes in authentication status are reflected in the context.
 //  useAuth hook allows components to easily access the authentication state and user profile information.
 
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import { supabase } from "../config/supabase";
 import { getUserProfile } from "../services/authService";
+import SplashScreen from "../components/layout/SplashScreen.jsx";
 
 const AuthContext = createContext();
 
@@ -24,6 +31,9 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authTimedOut, setAuthTimedOut] = useState(false);
+  const [splashGone, setSplashGone] = useState(false);
+
+  const handleSplashDone = useCallback(() => setSplashGone(true), []);
 
   async function refreshUserProfile() {
     if (!user) return;
@@ -83,20 +93,6 @@ export const AuthProvider = ({ children }) => {
     refreshUserProfile,
   };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          padding: 24,
-          fontFamily: "'Manrope', sans-serif",
-          color: "#64748b",
-        }}
-      >
-        Loading HireMe...
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={value}>
       {authTimedOut && (
@@ -132,7 +128,13 @@ export const AuthProvider = ({ children }) => {
           </button>
         </div>
       )}
-      {children}
+
+      {/* da cjildren wait for the auth check (same as before); the splash covers the wait. */}
+      {!loading && children}
+
+      {!splashGone && (
+        <SplashScreen ready={!loading} onDone={handleSplashDone} />
+      )}
     </AuthContext.Provider>
   );
 };
