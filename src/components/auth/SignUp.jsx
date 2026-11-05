@@ -149,7 +149,7 @@ function RoleSelect({ id, value, onChange }) {
       }
       const step = e.key === "ArrowDown" ? 1 : -1;
       setActiveIndex(
-        (index) => (index + step + ROLE_OPTIONS.length) % ROLE_OPTIONS.length,
+        (i) => (i + step + ROLE_OPTIONS.length) % ROLE_OPTIONS.length,
       );
       return;
     }
@@ -200,7 +200,7 @@ function RoleSelect({ id, value, onChange }) {
         >
           {ROLE_OPTIONS.map((option, i) => {
             const isSelected = option.value === value;
-            const OptionIcon = option.icon;
+            const OptionIcon = option.Icon;
             return (
               <li
                 key={option.value}
