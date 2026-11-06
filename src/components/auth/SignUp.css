@@ -49,7 +49,7 @@
   justify-content: center;
   gap: 2.5rem;
   padding: 3rem 2.75rem;
-  color: #fff;
+  color: #ffffff;
   overflow: hidden;
 }
 
@@ -66,17 +66,18 @@
 }
 
 .auth-brand__bg--signin {
-  --blob-a: #af876d;
+  --blob-a: #ff9a5c;
   --blob-b: #6b1a00;
   --blob-c: #ffb27a;
-  background: linear-gradient(150deg, #d55024 0%, #c23000 50%, #8a2100 100%);
+  background: linear-gradient(150deg, #e23a00 0%, #c23000 50%, #8a2100 100%);
 }
 
 .auth-brand__bg--signup {
-  --blob-a: #954d35;
-  --blob-b: #656ead;
-  --blob-c: #8b7bd8;
-  background: linear-gradient(150deg, #0f172a 0%, #1d2350 55%, #3a2f6b 100%);
+  --blob-a: #a98268;
+  --blob-b: #8c6854;
+  --blob-c: #c09270;
+
+  background: linear-gradient(150deg, #594438 0%, #46352d 50%, #352720 100%);
 }
 
 /* The obvious change, gradient wipes in from its own edge and sign up comes from bottom */
