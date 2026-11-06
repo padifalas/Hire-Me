@@ -1,0 +1,561 @@
+{
+  "_readme": "One entry per CV, keyed by the exact file name in eval/cvs. Label every skill the CV explicitly states. technical_skills is required; the other fields are optional (leave a key out to skip that field for that CV). Use {name, aliases} when a skill has more than one common spelling.",
+
+"AmahleMokoenaCV.pdf": {
+  "technical_skills": [
+    "Nutritional Assessment",
+    "Dietary Analysis",
+    "Medical Nutrition Therapy",
+    "Nutrition Counselling",
+    "Patient Education",
+    "Community Nutrition",
+    "Nutrition Care Planning",
+    "Food Safety",
+    "Clinical Documentation"
+  ],
+  "soft_skills": [
+    "Patient Communication",
+    "Counselling",
+    "Teamwork"
+  ],
+  "experience": [],
+  "projects": []
+},
+
+
+  "Asanda Sibanda - IND ENg .pdf": {
+  "technical_skills": [
+    "Lean Six Sigma",
+    "Process Optimisation",
+    "Discrete-Event Simulation",
+    "Arena Simulation Software",
+    "SQL",
+    "Python",
+    "Power BI",
+    "Microsoft Excel",
+    "Supply Chain Management",
+    "Quality Control",
+    "Ergonomics Assessment",
+    "Operations Research",
+    "Simulation Modelling"
+  ],
+  "soft_skills": [
+    "Data Analysis",
+    "Problem-Solving",
+    "Root Cause Analysis",
+    "Process Improvement",
+    "Reporting",
+    "Communication",
+    "Teamwork",
+    "Leadership",
+    "Tutoring",
+    "Analytical Thinking"
+  ],
+  "experience": [
+    {
+      "organization": "Massmart",
+      "title": "Supply Chain Analyst Intern"
+    }
+  ],
+  "projects": [
+    "Manufacturing Line Process Optimisation",
+    "Discrete-Event Simulation of a Packaging Line",
+    "Power BI Inventory Turnover Dashboards"
+  ]
+},
+
+
+  "Ayesha Patel - Curriculum Vitae (Law Student).pdf": {
+  "technical_skills": [
+    "Legal Research",
+    "SAFLII",
+    "Juta Legal Research Platform",
+    "Client Interviewing",
+    "Client Counselling",
+    "Legal Case Analysis",
+    "Administrative Law Research",
+    "Human Rights Law",
+    "Constitutional Litigation",
+    "Affidavit Preparation",
+    "Legal Documentation",
+    "Case Summary Drafting",
+    "Case Tracking",
+    "Community Paralegal Training",
+    "Legal Aid Referrals",
+    "Legal Rights Education",
+    "Court Proceedings Observation"
+  ],
+  "soft_skills": [
+    "Client Communication",
+    "Active Listening",
+    "Empathy",
+    "Interpersonal Communication",
+    "Community Engagement",
+    "Teamwork",
+    "Attention to Detail",
+    "Analytical Thinking",
+    "Problem-Solving",
+    "Written Communication",
+    "Cross-Cultural Communication"
+  ],
+  "experience": [
+    {
+      "organization": "ProBono.Org Durban",
+      "title": "Volunteer"
+    },
+    {
+      "organization": "Lawyers for Human Rights",
+      "title": "Intern"
+    }
+  ],
+  "projects": [
+    "Administrative Law Research on Access to Social Grants",
+    "Community Legal Outreach and Rights Education",
+    "Housing and Labour Dispute Case Documentation"
+  ]
+},
+
+
+  "ChemicalEngineering_Paul Kurt.docx": {
+  "technical_skills": [
+    "Aspen Plus",
+    "Process Simulation",
+    "Mass and Energy Balance Calculations",
+    "Reactor Design",
+    "Process Control",
+    "MATLAB",
+    "Python",
+    "Process Data Analysis",
+    "HAZOP",
+    "Process Safety",
+    "Statistical Process Control",
+    "Laboratory Techniques"
+  ],
+  "soft_skills": [
+    "Analytical Thinking",
+    "Problem-Solving",
+    "Technical Reporting",
+    "Attention to Detail",
+    "Teamwork",
+    "Process Improvement",
+    "Safety Awareness"
+  ],
+  "experience": [
+    {
+      "organization": "Sasol",
+      "title": "Process Engineering Intern"
+    }
+  ],
+  "projects": [
+    "Distillation Column Design for a Bioethanol Plant",
+    "Aspen Plus Process Simulation",
+    "Mass and Energy Balance Analysis",
+    "Preliminary HAZOP for a Separation Unit"
+  ]
+},
+
+
+  "DineoNdlovuCV.pdf": {
+  "technical_skills": [
+    "Diagnostic Imaging",
+    "General Radiography",
+    "Patient Positioning",
+    "Radiographic Procedures",
+    "Radiographic Techniques",
+    "Radiation Protection",
+    "Radiation Safety",
+    "Imaging Equipment Operation",
+    "Patient Preparation",
+    "Clinical Procedures",
+    "Occupational Health and Safety",
+    "Basic Life Support",
+    "First Aid"
+  ],
+  "soft_skills": [
+    "Patient Communication",
+    "Patient Care",
+    "Attention to Detail",
+    "Teamwork",
+    "Professionalism",
+    "Communication",
+    "Clinical Adaptability",
+    "Empathy",
+    "Safety Awareness"
+  ],
+  "experience": [
+    {
+      "organization": "Universitas Academic Hospital - Bloemfontein",
+      "title": "Student Radiographer - Clinical Placement"
+    },
+    {
+      "organization": "University of the Free State Clinical Training Centre - Bloemfontein",
+      "title": "Radiography Student - Clinical Training"
+    }
+  ],
+  "projects": []
+},
+
+
+  "EstelleGovendorCV.pdf": {
+  "technical_skills": [
+    "Patient Assessment",
+    "Vital Signs Monitoring",
+    "Basic Life Support (BLS)",
+    "Advanced Life Support (ALS)",
+    "Cardiopulmonary Resuscitation (CPR)",
+    "Emergency Medical Care",
+    "Emergency Response",
+    "Trauma Management",
+    "Emergency Pharmacology",
+    "Anatomy and Physiology",
+    "Emergency Medical Procedures",
+    "Emergency Medical Equipment Checks",
+    "Patient Transportation",
+    "Patient Handover",
+    "Patient Documentation",
+    "Clinical Monitoring"
+  ],
+  "soft_skills": [
+    "Critical Thinking",
+    "Decision-Making",
+    "Communication",
+    "Teamwork",
+    "Compassionate Care",
+    "Attention to Detail",
+    "Organisation",
+    "Working Under Pressure",
+    "Patient Safety",
+    "Calmness in High-Pressure Situations"
+  ],
+  "experience": [
+    {
+      "organization": "Tygerberg Hospital",
+      "title": "Student Emergency Care Practitioner"
+    },
+    {
+      "organization": "CPUT Emergency Medical Centre",
+      "title": "Emergency Medical Care Student"
+    }
+  ],
+  "projects": [
+    "Simulated Trauma and Medical Emergency Scenarios",
+    "Emergency Response and Basic Life Support Practical Training"
+  ]
+},
+
+
+  "Ethan van Wyk - Curriculum Vitae (Accounting Student).pdf": {
+     "technical_skills": [
+    "Process Mapping",
+    "Excel (Intermediate)",
+    "Performance Reporting"
+  ],
+
+    "soft_skills": [
+    "Leadership",
+    "Adaptability",
+    "English (Home Language)",
+    "Afrikaans (Fluent)"
+  ]
+  },
+  "LucyThomasCV.pdf": {
+  "technical_skills": [
+    "Patient Care",
+    "Vital Signs Monitoring",
+    "Clinical Documentation",
+    "Infection Prevention",
+    "Medication Safety"
+  ],
+
+  "soft_skills": [
+    "Communication",
+    "Teamwork",
+    "Critical Thinking",
+    "Time Management",
+    "Compassionate Care"
+  ],
+  "experience": [],
+  "projects": []
+},
+
+
+  "Naledi Dlamini - Curriculum Vitae (Accounting Student).pdf":{
+  "technical_skills": [
+    "IFRS Application",
+    "Audit Working Paper Preparation",
+    "Advanced Microsoft Excel",
+    "Pastel",
+    "Sage",
+    "Financial Reporting",
+    "Financial Statement Analysis",
+    "Substantive Audit Testing",
+    "Account Reconciliations",
+    "Internal Control Assessment",
+    "Financial Reporting Research",
+    "Comparative Financial Standards Research"
+  ],
+  "soft_skills": [
+    "Active Listening",
+    "Conflict Resolution",
+    "Confidentiality",
+    "Interpersonal Communication",
+    "Empathy",
+    "Attention to Detail",
+    "Analytical Thinking",
+    "Teamwork",
+    "Professional Communication"
+  ],
+  "experience": [
+    {
+      "organization": "Department of Financial Management, University of Pretoria",
+      "title": "Research Assistant to Prof. S. Govender"
+    },
+    {
+      "organization": "PwC South Africa - Assurance Division",
+      "title": "Vacation Student"
+    }
+  ],
+  "projects": [
+    "Comparative Research on Financial Reporting Standards Across SADC Jurisdictions",
+    "Corporate Finance Lecture Material Preparation"
+  ]
+},
+
+
+  "Naledi Keshi_CivilEngineering.docx": {
+  "technical_skills": [
+    "Structural Analysis",
+    "Reinforced Concrete Design",
+    "STAAD Pro",
+    "AutoCAD",
+    "Revit",
+    "Building Information Modelling (BIM)",
+    "Surveying",
+    "Total Station Operation",
+    "Levelling",
+    "Microsoft Project",
+    "Construction Scheduling",
+    "Site Supervision",
+    "Quality Control",
+    "Construction Drawings",
+    "SANS Design Codes",
+    "Structural Modelling",
+    "Clash Detection"
+  ],
+  "soft_skills": [
+    "Teamwork",
+    "Communication",
+    "Attention to Detail",
+    "Problem-Solving",
+    "Analytical Thinking",
+    "Time Management",
+    "Technical Documentation",
+    "Collaboration"
+  ],
+  "experience": [
+    {
+      "organization": "Group Five Construction",
+      "title": "Site Engineering Vacation Work"
+    }
+  ],
+  "projects": [
+    "Structural Design of a 3-Storey Reinforced Concrete Building",
+    "Structural Modelling Using STAAD Pro",
+    "3D Structural Modelling and Clash Detection Using Revit",
+    "Construction Drawing Development Using AutoCAD",
+    "Road-Widening Project: Surveying and Quality Control"
+  ]
+},
+
+
+
+  "Nkosi Lindi_Electrical Engineering student.pdf": {
+  "technical_skills": [
+    "Circuit Design",
+    "Circuit Analysis",
+    "PCB Design",
+    "Altium Designer",
+    "Embedded Systems",
+    "C Programming",
+    "Arduino",
+    "MATLAB",
+    "Simulink",
+    "Control System Modelling",
+    "PLC Programming",
+    "Siemens TIA Portal",
+    "AutoCAD Electrical",
+    "Python",
+    "Data Logging",
+    "Soldering",
+    "Oscilloscope Operation",
+    "Multimeter Operation",
+    "Power Electronics",
+    "Power Systems Analysis",
+    "Digital Signal Processing",
+    "Microprocessor Systems",
+    "Electromagnetics",
+    "Laboratory Safety"
+  ],
+  "soft_skills": [
+    "Teamwork",
+    "Collaboration",
+    "Problem-Solving",
+    "Analytical Thinking",
+    "Communication",
+    "Attention to Detail",
+    "Leadership",
+    "Project Management"
+  ],
+  "experience": [],
+  "projects": [
+    "Solar-Powered Water Pump Controller",
+    "Arduino-Based Line-Following Robot"
+  ]
+},
+
+  "Samira Hadid - Curriculum Vitae (Law Student).pdf": {
+  "technical_skills": [
+    "Legal Research",
+    "Case Law Analysis",
+    "Legislation Analysis",
+    "Legal Writing",
+    "Legal Drafting",
+    "Pleadings Preparation",
+    "Contract Drafting",
+    "Legal Opinion Drafting",
+    "Case Analysis",
+    "Legal Reasoning",
+    "Citation and Referencing",
+    "Criminal Procedure",
+    "Civil Procedure",
+    "Law of Evidence",
+    "Conveyancing Law",
+    "Contract Law",
+    "Tort Law",
+    "Administrative Law",
+    "Public International Law",
+    "Commercial Law",
+    "Financial Services Law",
+    "Jurisprudence",
+    "MS Office",
+    "Google Workspace",
+    "Legal Practice Management Software",
+    "Court Registry Administration",
+    "Judgement Drafting",
+    "Warrant Preparation",
+    "Bail Application Preparation"
+  ],
+  "soft_skills": [
+    "Ethical Judgement",
+    "Critical Thinking",
+    "Written Communication",
+    "Oral Communication",
+    "Attention to Detail",
+    "Time Management",
+    "Working Under Pressure",
+    "Cross-Cultural Communication",
+    "Teamwork",
+    "Independent Working",
+    "Analytical Thinking"
+  ],
+  "experience": [
+    {
+      "organization": "Pretoria Magistrates Court",
+      "title": "Judicial Attachment"
+    }
+  ],
+  "projects": [
+    "All African Human Rights Moot Court Competition"
+  ]
+},
+
+
+  "Sanjay Moosa_CV_Mechanical Eng grad (2).pdf": {
+  "technical_skills": [
+    "CAD Modelling",
+    "SolidWorks",
+    "AutoCAD",
+    "Finite Element Analysis (FEA)",
+    "ANSYS",
+    "CNC Machining",
+    "3D Printing",
+    "Fused Deposition Modelling (FDM)",
+    "MATLAB",
+    "Geometric Dimensioning and Tolerancing (GD&T)",
+    "Technical Drawing",
+    "Materials Selection",
+    "Thermodynamics",
+    "Solid Mechanics",
+    "Manufacturing Processes",
+    "Machine Design",
+    "Fluid Mechanics",
+    "Static Simulation",
+    "Fatigue Analysis",
+    "Mechanical Design",
+    "Suspension Geometry Design",
+    "Prototype Manufacturing"
+  ],
+  "soft_skills": [
+    "Project Management",
+    "Team Coordination",
+    "Cross-Functional Collaboration",
+    "Problem-Solving",
+    "Analytical Thinking",
+    "Attention to Detail",
+    "Technical Communication"
+  ],
+  "experience": [],
+  "projects": [
+    "Lightweight Bicycle Frame Design",
+    "Aluminium Bicycle Frame CAD Modelling Using SolidWorks",
+    "Static and Fatigue Analysis Using ANSYS",
+    "CNC Machining and 3D-Printed Prototype Manufacturing",
+    "Formula Student Suspension System Design",
+    "Front Suspension Geometry Design",
+    "Cross-Team Engineering Collaboration on Sensor Mounting and Cable Routing"
+  ]
+},
+  "TaylorEdwardsCV.pdf": {
+  "technical_skills": [
+    "Comprehensive Eye Examinations",
+    "Refraction",
+    "Visual Acuity Assessment",
+    "Visual Field Testing",
+    "Retinal Imaging",
+    "Binocular Vision Assessment",
+    "Contact Lens Assessment",
+    "Contact Lens Fitting",
+    "Spectacle Fitting and Dispensing",
+    "Ocular Disease Detection",
+    "Ocular Disease Management",
+    "Primary Eye Care",
+    "Patient Assessment",
+    "Clinical Documentation",
+    "Microsoft Office",
+    "Clinical Optometry",
+    "Public Health Optometry"
+  ],
+  "soft_skills": [
+    "Patient Communication",
+    "Patient Education",
+    "Interpersonal Communication",
+    "Empathy",
+    "Attention to Detail",
+    "Problem-Solving",
+    "Professionalism",
+    "Cultural Sensitivity",
+    "Teamwork"
+  ],
+  "experience": [
+    {
+      "organization": "University Eye Clinic",
+      "title": "Optometry Clinical Intern"
+    },
+    {
+      "organization": "Community Eye Care Clinical Placement",
+      "title": "Student Optometry Clinical Placement"
+    }
+  ],
+  "projects": []
+}
+}

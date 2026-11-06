@@ -31,3 +31,8 @@ dist-ssr
 ~$*.docx
 HireMe_Case_Study.md
 /test-data/cvs
+
+
+# Extraction evaluation: CVs and outputs can contain personal data
+eval/cvs/
+eval/results/
