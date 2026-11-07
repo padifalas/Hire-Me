@@ -875,12 +875,32 @@ function ApplicationsView({ user }) {
 function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const expanded = sidebarOpen || mobileNavOpen;
+
   const [searchVal, setSearchVal] = useState("");
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setMobileNavOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileNavOpen]);
 
   const profileStrength = computeProfileStrength(userProfile);
 
@@ -916,9 +936,19 @@ function StudentDashboard() {
 
   return (
     <div className="sd-root">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      {mobileNavOpen && (
+        <div
+          className="sd-sidebar-overlay"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
       {/* Sidebar */}
       <aside
-        className={`sd-sidebar${sidebarOpen ? "" : " sd-sidebar--collapsed"}`}
+        className={`sd-sidebar${sidebarOpen ? "" : " sd-sidebar--collapsed"}${mobileNavOpen ? " sd-sidebar--mobile-open" : ""}`}
       >
         <div className="sd-sidebar__brand">
           <div className="sd-sidebar__brand-inner">
@@ -930,7 +960,7 @@ function StudentDashboard() {
           </div>
         </div>
 
-        <div className="sd-sidebar__nav">
+        <nav className="sd-sidebar__nav" aria-label="Main">
           <div className="sd-sidebar__user">
             <div className="sd-sidebar__avatar">
               {userProfile?.avatar_url ? (
@@ -943,7 +973,7 @@ function StudentDashboard() {
                 student.initials
               )}
             </div>
-            {sidebarOpen && (
+            {expanded && (
               <div className="sd-sidebar__user-info">
                 <div className="sd-sidebar__user-row">
                   <div>
@@ -972,31 +1002,56 @@ function StudentDashboard() {
               <button
                 key={id}
                 className={`sd-nav-btn${active ? " sd-nav-btn--active" : ""}`}
-                onClick={() => setActiveNav(id)}
+                onClick={() => {
+                  setActiveNav(id);
+                  setMobileNavOpen(false);
+                }}
+                aria-current={active ? "page" : undefined}
+                aria-label={expanded ? undefined : label}
+                title={expanded ? undefined : label}
               >
-                <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
-                {sidebarOpen && label}
+                <Icon
+                  size={18}
+                  strokeWidth={active ? 2.2 : 1.8}
+                  aria-hidden="true"
+                />
+                {expanded && label}
               </button>
             );
           })}
-        </div>
+        </nav>
 
         <div className="sd-sidebar__footer">
-          {sidebarOpen && (
+          {expanded && (
             <button
               className="sd-signout-btn"
               onClick={() => setConfirmingSignOut(true)}
               disabled={signingOut}
             >
-              <LogOut size={15} />
+              <LogOut size={15} aria-hidden="true" />
               Sign out
             </button>
           )}
           <button
             className="sd-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={sidebarOpen}
+            aria-controls="sd-sidebar"
           >
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            {sidebarOpen ? (
+              <X size={18} aria-hidden="true" />
+            ) : (
+              <Menu size={18} aria-hidden="true" />
+            )}
+          </button>
+
+          <button
+            className="sd-drawer-close"
+            onClick={() => setMobileNavOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} aria-hidden="true" />
           </button>
 
           {confirmingSignOut && (
@@ -1006,9 +1061,12 @@ function StudentDashboard() {
             >
               <div
                 className="sd-signout-popover"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="sd-signout-title"
                 onClick={(e) => e.stopPropagation()}
               >
-                <p className="sd-signout-popover__text">
+                <p id="sd-signout-title" className="sd-signout-popover__text">
                   Are you sure you want to sign out?
                 </p>
                 <div className="sd-signout-popover__actions">
@@ -1036,22 +1094,35 @@ function StudentDashboard() {
       {/* Main */}
       <div className="sd-main">
         <header className="sd-header">
-          <div className="sd-search">
-            <Search size={14} color="#94a3b8" />
+          <button
+            className="sd-menu-btn"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={mobileNavOpen}
+            aria-controls="sd-sidebar"
+          >
+            <Menu size={18} aria-hidden="true" />
+          </button>
+
+          <div className="sd-search" role="search">
+            <Search size={14} color="#94a3b8" aria-hidden="true" />
+
             <input
               className="sd-search__input"
+              type="search"
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               placeholder="Search jobs, companies..."
+              aria-label="Search jobs, companies"
             />
           </div>
-          <button className="sd-bell-btn">
-            <Bell size={16} color="#64748b" />
-            <span className="sd-bell-dot" />
+          <button className="sd-bell-btn" aria-label="Notifications">
+            <Bell size={16} color="#64748b" aria-hidden="true" />
+            <span className="sd-bell-dot" aria-hidden="true" />
           </button>
         </header>
 
-        <main className="sd-content">
+        <main id="main-content" tabIndex={-1} className="sd-content">
           {activeNav === "dashboard" && (
             <DashboardView
               studentName={student.name}
