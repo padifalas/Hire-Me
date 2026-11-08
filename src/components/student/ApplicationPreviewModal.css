@@ -188,3 +188,48 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.apm-hint {
+  color: var(--color-text-muted);
+}
+.apm-textarea:disabled {
+  color: #64748b;
+}
+.apm-textarea:focus {
+  border-color: var(--color-primary-strong);
+}
+
+@media (max-width: 640px) {
+  .apm-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .apm-modal {
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+  }
+  .apm-modal__header {
+    padding: 16px;
+  }
+  .apm-modal__body {
+    padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+  .apm-textarea {
+    font-size: 16px;
+    min-height: 38vh;
+  } /* 16px stops iOS zoom-on-focus */
+  .apm-modal__actions {
+    flex-direction: column-reverse;
+  }
+  .apm-cancel-btn,
+  .apm-submit-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+  .apm-close-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
