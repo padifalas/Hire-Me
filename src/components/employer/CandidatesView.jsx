@@ -30,10 +30,12 @@ function skillLabel(s) {
 // Stable per-candidate avatar color, keyed off id so it doesn't change
 // between renders/reloads for the same candidate.
 const AVATAR_PALETTE = [
-  { bg: "#dbeafe", color: "#1d4ed8" }, // blue
-  { bg: "#cffafe", color: "#0891b2" }, // teal
-  { bg: "#dcfce7", color: "#16a34a" }, // green
-  { bg: "#fef3c7", color: "#b45309" }, // orange
+  { bg: "#6366f1", color: "#fff" }, // indigo
+  { bg: "#0ea5e9", color: "#fff" }, // blue
+  { bg: "#10b981", color: "#fff" }, // green
+  { bg: "#f59e0b", color: "#fff" }, // amber
+  { bg: "#8b5cf6", color: "#fff" }, // purple
+  { bg: "#ec4899", color: "#fff" }, // pink
 ];
 
 function avatarStyleFor(id) {
@@ -460,15 +462,15 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
 
       {skills.length > 0 && (
         <div className="cd-chip-row">
-          {skills.slice(0, 6).map((s, i) => (
+          {skills.slice(0, 5).map((s, i) => (
             <span key={i} className="cd-chip cd-chip--technical">
               {skillLabel(s)}
             </span>
           ))}
 
-          {skills.length > 6 && (
+          {skills.length > 5 && (
             <span className="cd-chip cd-chip--muted">
-              +{skills.length - 6} more
+              +{skills.length - 5} more
             </span>
           )}
         </div>

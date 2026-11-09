@@ -43,18 +43,22 @@ import {
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
-  { icon: User, label: "My Profile", id: "profile" },
   { icon: Briefcase, label: "My Jobs", id: "jobs" },
   { icon: Users, label: "Candidates", id: "candidates" },
   { icon: BarChart2, label: "Analytics", id: "analytics" },
   { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
 
-function Avatar({ initials, size = 32 }) {
+function Avatar({ initials, size = 32, bg }) {
   return (
     <div
       className="ed-avatar"
-      style={{ width: size, height: size, fontSize: size * 0.38 }}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.36,
+        ...(bg && { background: bg, color: "#fff" }),
+      }}
     >
       {initials}
     </div>
@@ -76,6 +80,22 @@ function MatchBadge({ match, color }) {
         : `${match}%`}
     </span>
   );
+}
+
+const AVATAR_COLORS = [
+  "#0ea5e9", // blue
+  "#8b5cf6", // purple
+  "#ec4899", // pink
+  "#6366f1", // indigo
+  "#10b981", // green
+  "#f59e0b", // amber
+];
+
+function avatarColorFor(name) {
+  const hash = String(name ?? "")
+    .split("")
+    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
 function DashboardView({ employerName, employerId, onNavigate }) {
@@ -307,7 +327,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         <div className="ed-main-grid">
           <div className="ed-left-col">
             {/* Active jobs */}
-            <div className="ed-card">
+            <div className="ed-card ed-table-card">
               <div className="ed-card__header">
                 <span className="ed-card__title">Active Jobs</span>
                 <button
@@ -317,6 +337,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                   View all {jobs.length} →
                 </button>
               </div>
+              {/* rest unchanged */}
 
               <div className="ed-table-header">
                 {["Job Title", "Applications", "Days Remaining", "View"].map(
@@ -356,61 +377,6 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                 </div>
               ))}
             </div>
-
-            {/* Recent applications */}
-            <div className="ed-card">
-              <div className="ed-card__header">
-                <span className="ed-card__title">Recent Applications</span>
-              </div>
-
-              <div className="ed-table-header ed-table-header--apps">
-                {["Applicant", "Match Score", "Date", "Review"].map((h) => (
-                  <span key={h} className="ed-table-th">
-                    {h}
-                  </span>
-                ))}
-              </div>
-
-              {loadingApps && (
-                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                  Loading...
-                </p>
-              )}
-
-              {!loadingApps && recentApps.length === 0 && (
-                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
-                  No applications yet.
-                </p>
-              )}
-
-              {recentApps.map((app) => (
-                <div key={app.id} className="ed-table-row ed-table-row--apps">
-                  <div className="ed-applicant-cell">
-                    <Avatar
-                      initials={initialsFor(app.student?.full_name)}
-                      size={28}
-                    />
-                    <span className="ed-applicant-name">
-                      {app.student?.full_name ?? "Student"} -{" "}
-                      {app.opportunities?.title ?? "Opportunity"}
-                    </span>
-                  </div>
-                  <MatchBadge
-                    match={app.match_score ?? "-"}
-                    color={matchColor(app.match_score)}
-                  />
-                  <span className="ed-table-cell ed-table-cell--muted">
-                    {new Date(app.applied_at).toLocaleDateString()}
-                  </span>
-                  <button
-                    className="ed-view-btn"
-                    onClick={() => setReviewingApp(app)}
-                  >
-                    Review →
-                  </button>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="ed-right-col">
@@ -419,6 +385,67 @@ function DashboardView({ employerName, employerId, onNavigate }) {
               totalPooled={beeStats.totalPooled}
             />
           </div>
+        </div>
+
+        {/* Recent applications (now full width, below the grid) */}
+        <div className="ed-card ed-table-card">
+          <div className="ed-card__header">
+            <span className="ed-card__title">Recent Applications</span>
+          </div>
+
+          <div className="ed-table-header ed-table-header--apps">
+            {["Applicant", "Match Score", "Date", "Review"].map((h) => (
+              <span key={h} className="ed-table-th">
+                {h}
+              </span>
+            ))}
+          </div>
+
+          {loadingApps && (
+            <p className="ed-empty__label ed-table-card__msg">Loading...</p>
+          )}
+
+          {!loadingApps && recentApps.length === 0 && (
+            <p className="ed-empty__label ed-table-card__msg">
+              No applications yet.
+            </p>
+          )}
+
+          {recentApps.map((app) => (
+            <div key={app.id} className="ed-table-row ed-table-row--apps">
+              {(() => {
+                const name = app.student?.full_name ?? "Student";
+                return (
+                  <div className="ed-applicant-cell">
+                    <Avatar
+                      initials={initialsFor(name)}
+                      size={38}
+                      bg={avatarColorFor(name)}
+                    />
+                    <div>
+                      <div className="ed-applicant-name">{name}</div>
+                      <div className="ed-applicant-role">
+                        {app.opportunities?.title ?? "Opportunity"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+              <MatchBadge
+                match={app.match_score ?? "-"}
+                color={matchColor(app.match_score)}
+              />
+              <span className="ed-table-cell ed-table-cell--muted">
+                {new Date(app.applied_at).toLocaleDateString()}
+              </span>
+              <button
+                className="ed-view-btn"
+                onClick={() => setReviewingApp(app)}
+              >
+                Review →
+              </button>
+            </div>
+          ))}
         </div>
 
         {showPostForm && (
@@ -508,7 +535,12 @@ export default function EmployerDashboard() {
         </div>
 
         <div className="ed-sidebar__nav">
-          <div className="ed-sidebar__user">
+          <button
+            type="button"
+            className={`ed-sidebar__user${activeNav === "profile" ? " ed-sidebar__user--active" : ""}`}
+            onClick={() => setActiveNav("profile")}
+            title="My profile"
+          >
             <div className="ed-sidebar__avatar">
               {userProfile?.avatar_url ? (
                 <img
@@ -521,14 +553,14 @@ export default function EmployerDashboard() {
               )}
             </div>
             {sidebarOpen && (
-              <div>
+              <div className="ed-sidebar__user-text">
                 <div className="ed-sidebar__user-name">{employer.name}</div>
                 <div className="ed-sidebar__user-sub">
                   Employer · {employer.company}
                 </div>
               </div>
             )}
-          </div>
+          </button>
 
           {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
             const active = activeNav === id;
@@ -537,9 +569,11 @@ export default function EmployerDashboard() {
                 key={id}
                 className={`ed-nav-btn${active ? " ed-nav-btn--active" : ""}`}
                 onClick={() => setActiveNav(id)}
+                title={sidebarOpen ? undefined : label}
+                aria-current={active ? "page" : undefined}
               >
-                <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
-                {sidebarOpen && label}
+                <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
+                {sidebarOpen && <span>{label}</span>}
               </button>
             );
           })}

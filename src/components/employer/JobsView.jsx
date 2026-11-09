@@ -11,9 +11,9 @@ import "./JobsView.css";
 import { Plus, Pencil, XCircle, Briefcase, Users } from "lucide-react";
 
 const STATUS_LABELS = {
-  active: { label: "Active", color: "#16a34a", bg: "#f0fdf4" },
-  expired: { label: "Expired", color: "#dc2626", bg: "#fef2f2" },
-  draft: { label: "Draft", color: "#94a3b8", bg: "#f8fafc" },
+  active: { label: "Active", color: "#16a34a", bg: "#dcfce7" },
+  expired: { label: "Expired", color: "#dc2626", bg: "#fee2e2" },
+  draft: { label: "Draft", color: "#64748b", bg: "#f1f5f9" },
   closed: { label: "Closed", color: "#64748b", bg: "#f1f5f9" },
 };
 
@@ -43,7 +43,7 @@ function formatJobType(type) {
   return type
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+    .join("-");
 }
 
 export default function JobsView({ employerId }) {
