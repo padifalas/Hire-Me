@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "../../contexts/authContext.jsx";
+import useDialog from "../../hooks/useDialog.js";
 import { signOut } from "../../services/authService.js";
 import { useNavigate } from "react-router-dom";
 import { getStudentProfile } from "../../services/documentService.js";
@@ -872,6 +873,53 @@ function ApplicationsView({ user }) {
   );
 }
 
+function ConfirmSignOutDialog({ signingOut, onCancel, onConfirm }) {
+  const ref = useDialog({
+    onClose: onCancel,
+    closeDisabled: signingOut,
+  });
+
+  return (
+    <div
+      className="sd-signout-popover-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !signingOut) onCancel();
+      }}
+    >
+      <div
+        ref={ref}
+        className="sd-signout-popover"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="sd-signout-title"
+        tabIndex={-1}
+      >
+        <p className="sd-signout-popover__text" id="sd-signout-title">
+          Are you sure you want to sign out?
+        </p>
+
+        <div className="sd-signout-popover__actions">
+          <button
+            className="sd-signout-confirm__no"
+            onClick={onCancel}
+            disabled={signingOut}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="sd-signout-confirm__yes"
+            onClick={onConfirm}
+            disabled={signingOut}
+          >
+            {signingOut ? "Signing out..." : "Yes, sign out"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StudentDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -1053,41 +1101,6 @@ function StudentDashboard() {
           >
             <X size={18} aria-hidden="true" />
           </button>
-
-          {confirmingSignOut && (
-            <div
-              className="sd-signout-popover-backdrop"
-              onClick={() => setConfirmingSignOut(false)}
-            >
-              <div
-                className="sd-signout-popover"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="sd-signout-title"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <p id="sd-signout-title" className="sd-signout-popover__text">
-                  Are you sure you want to sign out?
-                </p>
-                <div className="sd-signout-popover__actions">
-                  <button
-                    className="sd-signout-confirm__no"
-                    onClick={() => setConfirmingSignOut(false)}
-                    disabled={signingOut}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="sd-signout-confirm__yes"
-                    onClick={handleSignOut}
-                    disabled={signingOut}
-                  >
-                    {signingOut ? "Signing out..." : "Yes, sign out"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </aside>
 
@@ -1147,6 +1160,13 @@ function StudentDashboard() {
 
         <Footer />
       </div>
+      {confirmingSignOut && (
+        <ConfirmSignOutDialog
+          signingOut={signingOut}
+          onCancel={() => setConfirmingSignOut(false)}
+          onConfirm={handleSignOut}
+        />
+      )}
     </div>
   );
 }
