@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
 import { getStudentProfile } from "../../services/documentService";
 import {
   getActiveOpportunities,
@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 
 function matchColor(score) {
-  if (score >= 75) return "#16A34A";
-  if (score >= 50) return "#DC8F00";
-  return "#DC2626";
+  if (score >= 75) return "#15803D";
+  if (score >= 50) return "#B45309";
+  return "#B91C1C";
 }
 
 const SCORE_BUCKETS = [
@@ -66,6 +66,7 @@ function CompanyMark({ name }) {
     <div
       className="ov-company-mark"
       style={{ background: style.bg, color: style.color }}
+      aria-hidden="true"
     >
       {initials || <Building2 size={16} />}
     </div>
@@ -74,18 +75,26 @@ function CompanyMark({ name }) {
 
 function MatchExplanation({ result }) {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
+
   return (
     <div className="ov-match-explain">
       <button
         type="button"
         className="ov-match-explain__toggle"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={panelId}
       >
-        <Sparkles size={12} /> Why this score?{" "}
-        <ChevronDown size={12} className={open ? "ov-chevron--open" : ""} />
+        <Sparkles size={12} aria-hidden="true" /> Why this score?{" "}
+        <ChevronDown
+          size={12}
+          aria-hidden="true"
+          className={open ? "ov-chevron--open" : ""}
+        />
       </button>
       {open && (
-        <div className="ov-match-explain__body">
+        <div className="ov-match-explain__body" id={panelId}>
           {result.matchedRequired.length > 0 && (
             <div className="ov-match-explain__row">
               <span className="ov-match-explain__label">Matched required</span>
@@ -116,6 +125,7 @@ function MatchExplanation({ result }) {
               </div>
             </div>
           )}
+
           {result.matchedNice.length > 0 && (
             <div className="ov-match-explain__row">
               <span className="ov-match-explain__label">
@@ -154,12 +164,17 @@ function OpportunityCard({
   const color = matchColor(matchResult.score);
 
   return (
-    <div className="ov-card">
+    <article
+      className="ov-card"
+      aria-labelledby={`opp-${opportunity.id}-title`}
+    >
       <div className="ov-card__top">
         <CompanyMark name={opportunity.employer?.company_name} />
         <div className="ov-card__heading">
           <div className="ov-card__title-row">
-            <span className="ov-card__role">{opportunity.title}</span>
+            <h2 className="ov-card__role" id={`opp-${opportunity.id}-title`}>
+              {opportunity.title}
+            </h2>
             <span
               className="ov-match-badge"
               style={{
@@ -168,7 +183,7 @@ function OpportunityCard({
                 border: `1px solid ${color}33`,
               }}
             >
-              {matchResult.score}%
+              {matchResult.score}% <span className="sr-only">match</span>
             </span>
           </div>
           <div className="ov-card__company">
@@ -176,7 +191,7 @@ function OpportunityCard({
           </div>
           <div className="ov-card__meta-row">
             <span className="ov-card__location">
-              <MapPin size={12} /> {opportunity.location}
+              <MapPin size={12} aria-hidden="true" /> {opportunity.location}
             </span>
             {opportunity.remote_option && (
               <span className="ov-remote-tag">Remote/Hybrid</span>
@@ -198,7 +213,13 @@ function OpportunityCard({
               key={skill}
               className={`ov-tag${isMatched ? " ov-tag--matched" : ""}`}
             >
-              {skill} {isMatched && <Check size={11} />}
+              {skill}{" "}
+              {isMatched && (
+                <>
+                  <Check size={11} aria-hidden="true" />
+                  <span className="sr-only">(you have this skill)</span>
+                </>
+              )}
             </span>
           );
         })}
@@ -210,13 +231,13 @@ function OpportunityCard({
         {applied ? (
           <>
             <span className="ov-applied-note">
-              <CheckCircle2 size={14} />
+              <CheckCircle2 size={14} aria-hidden="true" />
               {appliedAt
                 ? `Applied on ${new Date(appliedAt).toLocaleDateString()}`
                 : "Applied"}
             </span>
             <button className="ov-apply-btn ov-apply-btn--applied" disabled>
-              Applied <Check size={13} />
+              Applied <Check size={13} aria-hidden="true" />
             </button>
           </>
         ) : (
@@ -224,12 +245,13 @@ function OpportunityCard({
             className="ov-apply-btn"
             onClick={() => onApply(opportunity, matchResult.score)}
             disabled={applying}
+            aria-label={`Apply to ${opportunity.title} at ${opportunity.employer?.company_name ?? "this company"}`}
           >
             {applying ? "Submitting..." : "Apply Now →"}
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -241,10 +263,10 @@ function AiTopPickBanner({
   applying,
 }) {
   return (
-    <div className="ov-top-pick">
+    <section className="ov-top-pick">
       <div className="ov-top-pick__left">
         <span className="ov-top-pick__label">
-          <Sparkles size={13} /> AI TOP PICK
+          <Sparkles size={13} aria-hidden="true" /> AI TOP PICK
         </span>
         <span className="ov-top-pick__title">
           {opportunity.title}{" "}
@@ -252,7 +274,9 @@ function AiTopPickBanner({
             @ {opportunity.employer?.company_name}
           </span>
         </span>
-        <span className="ov-top-pick__badge">{matchResult.score}%</span>
+        <span className="ov-top-pick__badge">
+          {matchResult.score}% <span className="sr-only">match</span>
+        </span>
         <div className="ov-top-pick__sub">
           {matchResult.matchedRequired.length}/
           {matchResult.matchedRequired.length +
@@ -262,18 +286,19 @@ function AiTopPickBanner({
       </div>
       {applied ? (
         <button className="ov-apply-btn ov-apply-btn--applied" disabled>
-          Applied <Check size={13} />
+          Applied <Check size={13} aria-hidden="true" />
         </button>
       ) : (
         <button
           className="ov-top-pick__cta"
           onClick={() => onApply(opportunity, matchResult.score)}
           disabled={applying}
+          aria-label={`Apply to ${opportunity.title} at ${opportunity.employer?.company_name ?? "this company"}`}
         >
           {applying ? "Submitting..." : "Apply Now →"}
         </button>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -347,7 +372,7 @@ export default function OpportunitiesView({ user }) {
     <div className="ov-root">
       <div className="ov-header">
         <h1 className="ov-title">Opportunities</h1>
-        <p className="ov-subtitle">
+        <p className="ov-subtitle" role="status" aria-live="polite">
           {loading
             ? "Loading..."
             : `${opportunities.length} opportunit${opportunities.length === 1 ? "y" : "ies"} matching your profile`}
@@ -366,20 +391,32 @@ export default function OpportunitiesView({ user }) {
       )}
 
       <div className="ov-filters">
-        <div className="ov-search">
-          <Search size={14} color="#94a3b8" />
+        <div className="ov-search" role="search">
+          <Search size={14} color="#94a3b8" aria-hidden="true" />
+          <label htmlFor="ov-search" className="sr-only">
+            Search jobs or companies
+          </label>
+
           <input
+            id="ov-search"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search jobs or companies..."
           />
         </div>
-        <div className="ov-score-pills">
+
+        <div
+          className="ov-score-pills"
+          role="group"
+          aria-label="Filter by match score"
+        >
           {SCORE_BUCKETS.map((b) => (
             <button
               key={b.key}
               className={`ov-score-pill${scoreBucket === b.key ? " ov-score-pill--active" : ""}`}
               onClick={() => setScoreBucket(b.key)}
+              aria-pressed={scoreBucket === b.key}
             >
               {b.label}
             </button>
@@ -387,7 +424,11 @@ export default function OpportunitiesView({ user }) {
         </div>
       </div>
 
-      {error && <p className="ov-error">{error}</p>}
+      {error && (
+        <p className="ov-error" role="alert">
+          {error}
+        </p>
+      )}
 
       {!loading && filtered.length === 0 && (
         <div className="ov-empty">
