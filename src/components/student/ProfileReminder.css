@@ -106,3 +106,28 @@
     max-width: none;
   }
 }
+
+.prt-toast-cta {
+  color: var(--color-primary-strong);
+}
+.prt-toast-dismiss {
+  color: #64748b;
+  min-width: 32px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+}
+.prt-toast-hint {
+  font-size: 12.5px;
+}
+
+@media (max-width: 860px) {
+  /* Bottom placement so it doesn't cover the header or hamburger */
+  .prt-toast {
+    top: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    max-width: none;
+  }
+}

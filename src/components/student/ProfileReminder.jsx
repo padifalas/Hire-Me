@@ -65,6 +65,7 @@ export default function ProfileReminderToast({
   function handleDismiss() {
     localStorage.setItem(snoozeKey(userId), String(Date.now()));
     setDismissed(true);
+    document.getElementById("main-content")?.focus();
   }
 
   function handleGoToProfile() {
@@ -73,8 +74,12 @@ export default function ProfileReminderToast({
   }
 
   return (
-    <div className="prt-toast" role="status">
-      <div className="prt-toast-icon">
+    <div
+      className="prt-toast"
+      role="region"
+      aria-label="Profile completion reminder"
+    >
+      <div className="prt-toast-icon" aria-hidden="true">
         <Sparkles size={16} />
       </div>
       <div className="prt-toast-body">
@@ -90,15 +95,15 @@ export default function ProfileReminderToast({
           className="prt-toast-cta"
           onClick={handleGoToProfile}
         >
-          Complete profile <ArrowRight size={13} />
+          Complete profile <ArrowRight size={13} aria-hidden="true" />
         </button>
         <button
           type="button"
           className="prt-toast-dismiss"
           onClick={handleDismiss}
-          aria-label="Dismiss"
+          aria-label="Dismiss reminder for 3 days"
         >
-          <X size={15} />
+          <X size={15} aria-hidden="true" />
         </button>
       </div>
     </div>

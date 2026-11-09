@@ -436,3 +436,64 @@
     justify-content: center;
   }
 }
+
+.ov-card__role {
+  font-family: inherit;
+} /* now an <h2>; keep the Manrope look */
+
+/* Wrapper carries the focus ring for the search field */
+.ov-search:focus-within {
+  border-color: var(--color-primary-strong);
+  box-shadow: 0 0 0 3px rgba(194, 48, 0, 0.15);
+}
+.ov-search input:focus-visible {
+  outline: none !important;
+}
+
+.ov-match-explain__toggle {
+  padding: 6px 0;
+}
+.ov-match-explain__body {
+  font-size: 12px;
+}
+.ov-skill-chip {
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .ov-root {
+    gap: 14px;
+  }
+  .ov-card {
+    padding: 14px 16px;
+  }
+  .ov-search {
+    min-width: 0;
+    width: 100%;
+  }
+  .ov-search input {
+    font-size: 16px;
+  }
+
+  .ov-score-pills {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .ov-score-pill {
+    flex-shrink: 0;
+    min-height: 40px;
+  }
+
+  .ov-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ov-apply-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    margin-left: 0;
+  }
+}
