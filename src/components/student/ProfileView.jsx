@@ -49,7 +49,7 @@ function FileDropField({ id, label, currentFileName, file, onSelect }) {
       <span className="pv-filefield__label" id={`${id}-label`}>
         {label}
       </span>
-      <label className={`pv-dropzones${hasFile ? " pv-dropzone--filled" : ""}`}>
+      <label className={`pv-dropzone${hasFile ? " pv-dropzone--filled" : ""}`}>
         <input
           id={id}
           type="file"
