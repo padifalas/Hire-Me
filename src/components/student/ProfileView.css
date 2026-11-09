@@ -624,3 +624,60 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Drop the 90% hack; box-sizing is already border-box globally */
+.pv-field input,
+.pv-field select {
+  width: 100%;
+  min-width: 0;
+}
+
+.pv-dropzone:focus-within,
+.pv-avatar-dropzone:focus-within {
+  border-color: var(--color-primary-strong);
+  box-shadow: 0 0 0 3px rgba(194, 48, 0, 0.15);
+}
+
+.pv-autocomplete__list li:hover,
+.pv-autocomplete__list li[aria-selected="true"] {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* white text on the old green end was 2.3:1 */
+.pv-ai-btn {
+  background: linear-gradient(90deg, #0077c8, #15803d);
+}
+
+@media (max-width: 640px) {
+  .pv-card {
+    padding: 16px;
+  }
+  .pv-checklist {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pv-field input,
+  .pv-field select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .pv-bee-card--collapsed {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pv-bee-card__row > * {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  .pv-save-btn,
+  .pv-ai-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+  .pv-projects {
+    grid-template-columns: 1fr;
+  }
+}

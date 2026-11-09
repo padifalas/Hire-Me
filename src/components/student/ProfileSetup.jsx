@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/authContext";
 import {
@@ -9,6 +9,7 @@ import {
 
 import "./ProfileSetup.css";
 import { SA_UNIVERSITIES, SA_CITIES } from "../../utils/suggestionList";
+import AutocompleteField from "../../components/shared/AutocompleteField";
 
 import { UploadCloud, FileText, CheckCircle2, Loader2 } from "lucide-react";
 
@@ -23,91 +24,64 @@ const STEPS = [
   { key: "done", label: "Profile ready" },
 ];
 
-function FileDropField({ label, required, file, onSelect, hint }) {
+function FileDropField({ id, label, required, file, onSelect, hint }) {
+  const hintId = `${id}-hint`;
   return (
     <div className="ps-file-field">
-      <label className="ps-file-field__label">
-        {label} {required && <span className="ps-required">*</span>}
-      </label>
+      <span className="ps-file-field__label" id={`${id}-label`}>
+        {label} {""}
+        {required && (
+          <span className="ps-required" aria-hidden="true">
+            *
+          </span>
+        )}
+      </span>
 
       <label className={`ps-dropzone${file ? " ps-dropzone--filled" : ""}`}>
         <input
+          id={id}
           type="file"
           accept=".pdf,.docx"
+          className="sr-only"
+          aria-labelledby={`${id}-label`}
+          aria-describedby={hint ? hintId : undefined}
+          required={required}
           onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
           hidden
         />
         {file ? (
           <>
-            <FileText size={18} />
+            <FileText size={18} aria-hidden="true" />
             <span className="ps-dropzone__filename">{file.name}</span>
           </>
         ) : (
           <>
-            <UploadCloud size={18} />
+            <UploadCloud size={18} aria-hidden="true" />
             <span>Click to upload PDF or DOCX (max 5MB)</span>
           </>
         )}
       </label>
-      {hint && <p className="ps-file-field__hint">{hint}</p>}
+      {hint && (
+        <p className="ps-file-field__hint" id={hintId}>
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
 
-function AutocompleteField({
-  name,
-  value,
-  onChange,
-  options,
-  placeholder,
-  required,
-}) {
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const query = (value || "").trim().toLowerCase();
-  const matches = (
-    query ? options.filter((o) => o.toLowerCase().includes(query)) : options
-  ).slice(0, 6);
-
-  function handleSelect(option) {
-    onChange({ target: { name, value: option } });
-    setOpen(false);
-  }
-
+function Field({ id, label, required, children }) {
   return (
-    <div className="ps-autocomplete" ref={wrapperRef}>
-      <input
-        name={name}
-        value={value}
-        onChange={(e) => {
-          onChange(e);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder={placeholder}
-        autoComplete="off"
-        required={required}
-      />
-      {open && matches.length > 0 && (
-        <ul className="ps-autocomplete__list">
-          {matches.map((option) => (
-            <li key={option} onMouseDown={() => handleSelect(option)}>
-              {option}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="ps-field">
+      <label htmlFor={id}>
+        {label}{" "}
+        {required && (
+          <span className="ps-required" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+      {children}
     </div>
   );
 }
@@ -225,10 +199,12 @@ export default function ProfileSetup() {
           <form onSubmit={handleSubmit} className="ps-form">
             <div className="ps-section">
               <h2 className="ps-section__title">Academic details</h2>
+
               <div className="ps-grid">
-                <div className="ps-field">
-                  <label>University *</label>
+                <Field id="ps-university" label="University" required>
                   <AutocompleteField
+                    id="ps-university"
+                    classPrefix="ps"
                     name="university"
                     value={form.university}
                     onChange={handleChange}
@@ -236,23 +212,27 @@ export default function ProfileSetup() {
                     placeholder="University of Witwatersrand"
                     required
                   />
-                </div>
-                <div className="ps-field">
-                  <label>Qualification *</label>
+                </Field>
+
+                <Field id="ps-qualification" label="Qualification" required>
                   <input
+                    id="ps-qualification"
                     name="qualification"
                     value={form.qualification}
                     onChange={handleChange}
                     placeholder="BSc Computer Science"
+                    autoComplete="off"
                     required
                   />
-                </div>
-                <div className="ps-field">
-                  <label>Graduation year *</label>
+                </Field>
+
+                <Field id="ps-gradyear" label="Graduation year" required>
                   <select
+                    id="ps-gradyear"
                     name="graduationYear"
                     value={form.graduationYear}
                     onChange={handleChange}
+                    required
                   >
                     {GRAD_YEARS.map((y) => (
                       <option key={y} value={y}>
@@ -260,10 +240,12 @@ export default function ProfileSetup() {
                       </option>
                     ))}
                   </select>
-                </div>
-                <div className="ps-field">
-                  <label>Location (city) *</label>
+                </Field>
+
+                <Field id="ps-location" label="Location (city)" required>
                   <AutocompleteField
+                    id="ps-location"
+                    classPrefix="ps"
                     name="location"
                     value={form.location}
                     onChange={handleChange}
@@ -271,64 +253,80 @@ export default function ProfileSetup() {
                     placeholder="Johannesburg"
                     required
                   />
-                </div>
+                </Field>
               </div>
             </div>
 
             <div className="ps-section">
               <h2 className="ps-section__title">Contact & links</h2>
+
               <div className="ps-grid">
-                <div className="ps-field">
-                  <label>Phone number *</label>
+                <Field id="ps-phone" label="Phone number" required>
                   <input
+                    id="ps-phone"
                     name="phone"
+                    type="tel"
+                    autoComplete="tel"
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="082 123 4567"
                     required
                   />
-                </div>
-                <div className="ps-field">
-                  <label>LinkedIn URL</label>
+                </Field>
+
+                <Field id="ps-linkedin" label="LinkedIn URL">
                   <input
+                    id="ps-linkedin"
                     name="linkedinUrl"
+                    inputMode="url"
+                    autoComplete="off"
                     value={form.linkedinUrl}
                     onChange={handleChange}
                     placeholder="linkedin.com/in/yourname"
                   />
-                </div>
-                <div className="ps-field">
-                  <label>GitHub URL</label>
+                </Field>
+
+                <Field id="ps-github" label="GitHub URL">
                   <input
+                    id="ps-github"
                     name="githubUrl"
+                    inputMode="url"
+                    autoComplete="off"
                     value={form.githubUrl}
                     onChange={handleChange}
                     placeholder="github.com/yourname"
                   />
-                </div>
-                <div className="ps-field">
-                  <label>Portfolio website</label>
+                </Field>
+
+                <Field id="ps-portfolio" label="Portfolio website">
                   <input
+                    id="ps-portfolio"
                     name="portfolioUrl"
+                    inputMode="url"
+                    autoComplete="off"
                     value={form.portfolioUrl}
                     onChange={handleChange}
                     placeholder="yourname.dev"
                   />
-                </div>
+                </Field>
               </div>
             </div>
 
             <div className="ps-section">
               <h2 className="ps-section__title">Documents</h2>
+
               <div className="ps-uploads">
                 <FileDropField
+                  id="ps-cv"
                   label="CV"
                   required
                   file={cvFile}
                   onSelect={setCvFile}
                   hint="We'll extract your skills and experience from this automatically."
                 />
+
                 <FileDropField
+                  id="ps-transcript"
                   label="Academic transcript"
                   file={transcriptFile}
                   onSelect={setTranscriptFile}
@@ -337,7 +335,11 @@ export default function ProfileSetup() {
               </div>
             </div>
 
-            {error && <p className="ps-error">{error}</p>}
+            {error && (
+              <p className="ps-error" role="alert">
+                {error}
+              </p>
+            )}
 
             <button type="submit" className="ps-submit">
               Save & analyze my profile
@@ -345,21 +347,26 @@ export default function ProfileSetup() {
           </form>
         ) : (
           <div className="ps-progress">
+            <p className="sr-only" role="status" aria-live="polite">
+              {STEPS.find((s) => s.key === currentStep)?.label}
+            </p>
+
             {STEPS.map((step, i) => {
               const stepIndex = STEPS.findIndex((s) => s.key === currentStep);
               const isDone = i < stepIndex || currentStep === "done";
               const isActive = step.key === currentStep;
+
               return (
                 <div
                   key={step.key}
                   className={`ps-progress-row${isDone ? " ps-progress-row--done" : ""}${isActive ? " ps-progress-row--active" : ""}`}
                 >
                   {isDone ? (
-                    <CheckCircle2 size={18} />
+                    <CheckCircle2 size={18} aria-hidden="true" />
                   ) : isActive ? (
-                    <Loader2 size={18} className="ps-spin" />
+                    <Loader2 size={18} className="ps-spin" aria-hidden="true" />
                   ) : (
-                    <span className="ps-progress-dot" />
+                    <span className="ps-progress-dot" aria-hidden="true" />
                   )}
                   <span>{step.label}</span>
                 </div>

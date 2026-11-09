@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/authContext";
 import { uploadAvatar, updateUserProfile } from "../../services/authService";
 import {
@@ -9,6 +9,7 @@ import {
   triggerSkillExtraction,
 } from "../../services/documentService";
 
+import AutocompleteField from "../shared/AutocompleteField.jsx";
 import "./ProfileView.css";
 import { SA_UNIVERSITIES, SA_CITIES } from "../../utils/suggestionList";
 
@@ -20,6 +21,7 @@ import {
   AlertCircle,
   Sparkles,
   User as UserIcon,
+  HdIcon,
 } from "lucide-react";
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -39,24 +41,32 @@ const BEE_CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
-function FileDropField({ label, currentFileName, file, onSelect }) {
+function FileDropField({ id, label, currentFileName, file, onSelect }) {
+  const hasFile = Boolean(file || currentFileName);
+
   return (
     <div className="pv-file-field">
-      <label
-        className={`pv-dropzone${file || currentFileName ? " pv-dropzone--filled" : ""}`}
-      >
+      <span className="pv-filefield__label" id={`${id}-label`}>
+        {label}
+      </span>
+      <label className={`pv-dropzones${hasFile ? " pv-dropzone--filled" : ""}`}>
         <input
+          id={id}
           type="file"
           accept=".pdf,.docx"
+          className="sr-only"
+          aria-labelledby={`${id}-label`}
+          aria-describedby={`${id}-name`}
           onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
-          hidden
         />
-        <FileText size={16} />
-        <span className="pv-dropzone__filename">
+        <FileText size={16} aria-hidden="true" />
+
+        <span className="pv-dropzone__filename" id={`${id}-name`}>
           {file ? file.name : currentFileName || "No file uploaded yet"}
         </span>
+
         <span className="pv-dropzone__action">
-          <UploadCloud size={14} />{" "}
+          <UploadCloud size={14} aria-hidden="true" />{" "}
           {currentFileName || file ? "Replace" : "Upload"}
         </span>
       </label>
@@ -66,56 +76,6 @@ function FileDropField({ label, currentFileName, file, onSelect }) {
 
 function SkillChip({ label }) {
   return <span className="pv-skill-chip">{label}</span>;
-}
-
-function AutocompleteField({ name, value, onChange, options, placeholder }) {
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const query = (value || "").trim().toLowerCase();
-  const matches = (
-    query ? options.filter((o) => o.toLowerCase().includes(query)) : options
-  ).slice(0, 6);
-
-  function handleSelect(option) {
-    onChange({ target: { name, value: option } });
-    setOpen(false);
-  }
-
-  return (
-    <div className="pv-autocomplete" ref={wrapperRef}>
-      <input
-        name={name}
-        value={value}
-        onChange={(e) => {
-          onChange(e);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder={placeholder}
-        autoComplete="off"
-      />
-      {open && matches.length > 0 && (
-        <ul className="pv-autocomplete__list">
-          {matches.map((option) => (
-            <li key={option} onMouseDown={() => handleSelect(option)}>
-              {option}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 // Same checks as the dashboard, put it on this page as well so students can act on the changes.
@@ -167,11 +127,16 @@ function ChecklistCard({ profile }) {
             className={`pv-checklist__item${item.done ? " pv-checklist__item--done" : ""}`}
           >
             {item.done ? (
-              <CheckCircle2 size={14} />
+              <CheckCircle2 size={14} aria-hidden="true" />
             ) : (
-              <span className="pv-checklist__dot" />
+              <span className="pv-checklist__dot" aria-hidden="true" />
             )}
+
             {item.label}
+
+            <span className="sr-only">
+              {item.done ? " (done)" : " (to do)"}
+            </span>
           </li>
         ))}
       </ul>
@@ -194,8 +159,9 @@ function BeeDisclosureCard({ raceCategory, consentedAt, onSave, saving }) {
     return (
       <div className="pv-bee-card pv-bee-card--collapsed">
         <div>
-          <p className="pv-bee-card__status">
-            <CheckCircle2 size={14} /> {answeredLabel} for B-BBEE reporting
+          <p className="pv-bee-card__status" role="status">
+            <CheckCircle2 size={14} aria-hidden="true" /> {answeredLabel} for
+            B-BBEE reporting
           </p>
           <p className="pv-bee-card__hint">
             Only shown to employers as anonymised totals, never as
@@ -223,8 +189,17 @@ function BeeDisclosureCard({ raceCategory, consentedAt, onSave, saving }) {
         across all applicants to a job - never your individual answer.
       </p>
 
-      <div className="pv-bee-card__row">
+      <div
+        className="pv-bee-card__row"
+        role="group"
+        aria-label="B-BBEE category"
+      >
+        <label htmlFor="pv-bee-select" className="sr-only">
+          B-BBEE category
+        </label>
+
         <select
+          id="pv-bee-select"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
           className="pv-bee-card__select"
@@ -269,29 +244,42 @@ function BeeDisclosureCard({ raceCategory, consentedAt, onSave, saving }) {
 
 function AvatarCard({ avatarUrl, fullName, onSelect, preview, saving }) {
   const displayed = preview || avatarUrl;
+
   return (
     <div className="pv-avatar-card">
       <label className="pv-avatar-dropzone">
         <input
           type="file"
           accept="image/png,image/jpeg,image/webp"
+          className="sr-only"
           onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
-          hidden
         />
         {displayed ? (
-          <img src={displayed} alt="Profile" />
+          <img src={displayed} alt="" />
         ) : (
-          <UserIcon size={22} />
+          <UserIcon size={22} aria-hidden="true" />
         )}
+
+        <span className="sr-only">Change profile photo</span>
       </label>
+
       <div>
         <p className="pv-avatar-card__name">{fullName || "Your name"}</p>
-        <p className="pv-avatar-card__hint">
+        <p className="pv-avatar-card__hint" role="status">
           {saving
             ? "Uploading..."
             : "Click the circle to upload a photo (max 2MB)"}
         </p>
       </div>
+    </div>
+  );
+}
+
+function Field({ id, label, children }) {
+  return (
+    <div className="pv-field">
+      <label htmlFor={id}>{label}</label>
+      {children}
     </div>
   );
 }
@@ -460,12 +448,16 @@ export default function ProfileView({ user }) {
   }
 
   if (loadingProfile) {
-    return <div className="pv-loading">Loading your profile...</div>;
+    return (
+      <div className="pv-loading" role="status">
+        Loading your profile...
+      </div>
+    );
   }
 
   if (!profile || !form) {
     return (
-      <div className="pv-loading">
+      <div className="pv-loading" role="status">
         Couldn't load your profile. Try refreshing.
       </div>
     );
@@ -518,30 +510,41 @@ export default function ProfileView({ user }) {
 
       <div className="pv-grid-layout">
         {/* tried editing these fields */}
-        <form onSubmit={handleSaveFields} className="pv-card">
-          <h2 className="pv-card__title">Academic & contact details</h2>
+        <form
+          onSubmit={handleSaveFields}
+          className="pv-card"
+          aria-labelledby="pv-details-title"
+        >
+          <h2 className="pv-card__title" id="pv-details-title">
+            Academic & contact details
+          </h2>
+
           <div className="pv-fields-grid">
-            <div className="pv-field">
-              <label>University</label>
+            <Field id="pv-university" label="University">
               <AutocompleteField
+                id="pv-university"
+                classPrefix="pv"
                 name="university"
                 value={form.university}
                 onChange={handleChange}
                 options={SA_UNIVERSITIES}
                 placeholder="Start typing your university..."
               />
-            </div>
-            <div className="pv-field">
-              <label>Qualification</label>
+            </Field>
+
+            <Field id="pv-qualification" label="Qualification">
               <input
+                id="pv-qualification"
                 name="qualification"
                 value={form.qualification}
                 onChange={handleChange}
+                autoComplete="off"
               />
-            </div>
-            <div className="pv-field">
-              <label>Graduation year</label>
+            </Field>
+
+            <Field id="pv-gradyear" label="Graduation year">
               <select
+                id="pv-gradyear"
                 name="graduationYear"
                 value={form.graduationYear}
                 onChange={handleChange}
@@ -552,48 +555,70 @@ export default function ProfileView({ user }) {
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="pv-field">
-              <label>Location (city)</label>
+            </Field>
+
+            <Field id="pv-location" label="Location (city)">
               <AutocompleteField
+                id="pv-location"
+                classPrefix="pv"
                 name="location"
                 value={form.location}
                 onChange={handleChange}
                 options={SA_CITIES}
                 placeholder="Start typing your city..."
               />
-            </div>
-            <div className="pv-field">
-              <label>Phone number</label>
-              <input name="phone" value={form.phone} onChange={handleChange} />
-            </div>
-            <div className="pv-field">
-              <label>LinkedIn URL</label>
+            </Field>
+
+            <Field id="pv-phone" label="Phone number">
               <input
+                id="pv-phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                value={form.phone}
+                onChange={handleChange}
+              />
+            </Field>
+
+            <Field id="pv-linkedin" label="LinkedIn URL">
+              <input
+                id="pv-linkedin"
                 name="linkedinUrl"
+                inputMode="url"
+                autoComplete="off"
                 value={form.linkedinUrl}
                 onChange={handleChange}
               />
-            </div>
-            <div className="pv-field">
-              <label>GitHub URL</label>
+            </Field>
+
+            <Field id="pv-github" label="GitHub URL">
               <input
+                id="pv-github"
                 name="githubUrl"
+                inputMode="url"
+                autoComplete="off"
                 value={form.githubUrl}
                 onChange={handleChange}
               />
-            </div>
-            <div className="pv-field">
-              <label>Portfolio website</label>
+            </Field>
+
+            <Field id="pv-portfolio" label="Portfolio website">
               <input
+                id="pv-portfolio"
                 name="portfolioUrl"
+                inputMode="url"
+                autoComplete="off"
                 value={form.portfolioUrl}
                 onChange={handleChange}
               />
-            </div>
+            </Field>
           </div>
 
-          {saveMessage && <p className="pv-save-message">{saveMessage}</p>}
+          {saveMessage && (
+            <p className="pv-save-message" role="status">
+              {saveMessage}
+            </p>
+          )}
 
           <button type="submit" className="pv-save-btn" disabled={savingFields}>
             {savingFields ? "Saving..." : "Save details"}
@@ -606,12 +631,14 @@ export default function ProfileView({ user }) {
 
           <div className="pv-uploads">
             <FileDropField
+              id="pv-cv"
               label="CV"
               currentFileName={profile.cv_file_name}
               file={newCvFile}
               onSelect={setNewCvFile}
             />
             <FileDropField
+              id="pv-transcript"
               label="Academic transcript"
               currentFileName={profile.transcript_file_name}
               file={newTranscriptFile}
@@ -628,14 +655,14 @@ export default function ProfileView({ user }) {
                 </p>
               )}
               {hasFailed && (
-                <p className="pv-ai-status pv-ai-status--failed">
-                  <AlertCircle size={14} /> Last analysis failed:{" "}
-                  {profile.ai_processing_error}
+                <p className="pv-ai-status pv-ai-status--failed" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" /> Last analysis
+                  failed: {profile.ai_processing_error}
                 </p>
               )}
               {aiError && (
-                <p className="pv-ai-status pv-ai-status--failed">
-                  <AlertCircle size={14} /> {aiError}
+                <p className="pv-ai-status pv-ai-status--failed" role="alert">
+                  <AlertCircle size={14} aria-hidden="true" /> {aiError}
                 </p>
               )}
 
@@ -645,7 +672,7 @@ export default function ProfileView({ user }) {
               </button>
             </>
           ) : (
-            <div className="pv-progress">
+            <div className="pv-progress" role="status" aria-live="polite">
               {STEPS.map((step) => {
                 const order = STEPS.findIndex((s) => s.key === step.key);
                 const currentOrder = STEPS.findIndex((s) => s.key === aiStep);
@@ -657,13 +684,25 @@ export default function ProfileView({ user }) {
                     className={`pv-progress-row${isDone ? " pv-progress-row--done" : ""}${isActive ? " pv-progress-row--active" : ""}`}
                   >
                     {isDone ? (
-                      <CheckCircle2 size={16} />
+                      <CheckCircle2 size={16} aria-hidden="true" />
                     ) : isActive ? (
-                      <Loader2 size={16} className="pv-spin" />
+                      <Loader2
+                        size={16}
+                        className="pv-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <span className="pv-progress-dot" />
+                      <span className="pv-progress-dot" aria-hidden="true" />
                     )}
-                    <span>{step.label}</span>
+
+                    <span>
+                      {step.label}
+
+                      {isDone && <span className="sr-only"> (done)</span>}
+                      {isActive && (
+                        <span className="sr-only"> (in progress)</span>
+                      )}
+                    </span>
                   </div>
                 );
               })}
@@ -734,6 +773,7 @@ export default function ProfileView({ user }) {
                           type="button"
                           className="pv-project-card__toggle"
                           onClick={() => toggleProject(i)}
+                          aria-expanded={isExpanded}
                         >
                           {isExpanded ? "Show less" : "Show more"}
                         </button>
