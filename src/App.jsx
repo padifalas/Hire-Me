@@ -27,7 +27,7 @@ function App() {
             <Route path="/" element={<SignUp />} />
             <Route path="/signup" element={<SignUp />} />
 
-            {/* Public legal pages: no ProtectedRoute so anyone can read them before signing up */}
+            {/*  legal pages: no ProtectedRoute so anyone can read them before signing up */}
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/cookies" element={<CookiePolicy />} />
