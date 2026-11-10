@@ -289,14 +289,19 @@ export async function getApplicantsForOpportunity(opportunityId) {
   }
 }
 
-export async function updateApplicationStatus(applicationId, status) {
+export async function updateApplicationStatus(
+  applicationId,
+  status,
+  feedback = null,
+) {
   try {
+    const updates = { status, status_updated_at: new Date().toISOString() };
+    if (status === "rejected" && feedback)
+      updates.rejection_feedback = feedback;
+
     const { data, error } = await supabase
       .from("applications")
-      .update({
-        status,
-        status_updated_at: new Date().toISOString(),
-      })
+      .update(updates)
       .eq("id", applicationId)
       .select()
       .single();
