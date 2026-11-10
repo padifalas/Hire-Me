@@ -3,11 +3,8 @@ import { useEffect, useRef } from "react";
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/**
- * Makes a modal behave like one: focus moves in, Tab is trapped, Escape closes,
- * page scroll locks, and focus returns to the trigger on close.
- * Attach the returned ref to the element with role="dialog".
- */
+const dialogStack = []; // lets nested dialogs e.g document viewer over applicants behave
+
 export default function useDialog({ onClose, closeDisabled = false }) {
   const dialogRef = useRef(null);
   const onCloseRef = useRef(onClose);
@@ -22,6 +19,7 @@ export default function useDialog({ onClose, closeDisabled = false }) {
     const node = dialogRef.current;
     if (!node) return;
 
+    dialogStack.push(node);
     const previouslyFocused = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -34,6 +32,8 @@ export default function useDialog({ onClose, closeDisabled = false }) {
     (focusables()[0] ?? node).focus();
 
     function onKeyDown(e) {
+      if (dialogStack[dialogStack.length - 1] !== node) return;
+
       if (e.key === "Escape") {
         e.stopPropagation();
         if (!closeDisabledRef.current) onCloseRef.current();
@@ -60,6 +60,8 @@ export default function useDialog({ onClose, closeDisabled = false }) {
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      const i = dialogStack.indexOf(node);
+      if (i > -1) dialogStack.splice(i, 1);
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus?.();
     };
