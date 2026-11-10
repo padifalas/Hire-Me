@@ -1,0 +1,83 @@
+.cfm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+.cfm-dialog {
+  width: min(380px, 100%);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+.cfm-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px;
+  text-align: center;
+}
+.cfm-desc {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  text-align: center;
+}
+.cfm-title:last-child {
+  margin-bottom: 18px;
+}
+.cfm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.cfm-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cfm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.cfm-btn--cancel {
+  background: #f1f5f9;
+  color: #334155;
+}
+.cfm-btn--cancel:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+.cfm-btn--danger {
+  background: #b91c1c;
+  color: #fff;
+}
+.cfm-btn--primary {
+  background: var(--color-primary-strong, #c23000);
+  color: #fff;
+}
+.cfm-btn--danger:hover:not(:disabled),
+.cfm-btn--primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+@media (max-width: 480px) {
+  .cfm-actions {
+    flex-direction: column-reverse;
+  }
+  .cfm-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
