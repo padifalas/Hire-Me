@@ -437,18 +437,47 @@
   color: var(--color-text-primary);
 }
 
-.ed-link-btn {
+.ed-link-btn,
+.ed-view-btn {
   background: transparent;
   border: none;
+  border-radius: 999px;
+  padding: 4px 8px;
+  margin: -4px -8px;
   font-size: 12.5px;
-  color: var(--color-primary-active);
-  cursor: pointer;
-  padding: 0;
+  font-family: inherit;
   font-weight: 500;
+  color: var(--color-primary-active);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.ed-link-btn:hover {
-  text-decoration: underline;
+.ed-link-btn:hover,
+.ed-view-btn:hover {
+  background-color: color-mix(in srgb, var(--color-primary-active) 10%, white);
+  color: color-mix(in srgb, var(--color-primary-active) 85%, black);
+  text-decoration: none;
+}
+
+.ed-link-btn:active,
+.ed-view-btn:active {
+  background-color: color-mix(in srgb, var(--color-primary-active) 16%, white);
+}
+
+.ed-link-btn:focus-visible,
+.ed-view-btn:focus-visible {
+  outline: 2px solid var(--color-primary-active);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-link-btn,
+  .ed-view-btn {
+    transition: none;
+  }
 }
 
 .ed-table-header {
@@ -500,21 +529,6 @@
 
 .ed-table-cell--muted {
   color: #94a3b8;
-}
-
-.ed-view-btn {
-  background: transparent;
-  border: none;
-  font-size: 12.5px;
-  color: var(--color-primary-active);
-  cursor: pointer;
-  font-weight: 500;
-  padding: 0;
-  text-align: left;
-}
-
-.ed-view-btn:hover {
-  text-decoration: underline;
 }
 
 .ed-table-card {

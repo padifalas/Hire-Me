@@ -69,8 +69,9 @@
 }
 
 .jv-filter-pill:hover {
-  color: #fff;
-  background: var(--color-primary-active);
+  background-color: color-mix(in srgb, var(--color-primary-active) 10%, white);
+  color: color-mix(in srgb, var(--color-primary-active) 85%, black);
+  text-decoration: none;
 }
 
 .jv-filter-pill--active {
