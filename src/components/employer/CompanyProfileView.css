@@ -165,3 +165,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+.cpv-loading,
+.cpv-logo-hint {
+  color: var(--color-text-muted);
+}
+.cpv-logo-dropzone {
+  color: #64748b;
+}
+.cpv-logo-dropzone:focus-within {
+  border-color: var(--color-primary-strong);
+  box-shadow: 0 0 0 3px rgba(194, 48, 0, 0.15);
+}
+.cpv-field input,
+.cpv-field select,
+.cpv-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+.cpv-field input:focus,
+.cpv-field select:focus,
+.cpv-field textarea:focus {
+  border-color: var(--color-primary-strong);
+}
+
+@media (max-width: 600px) {
+  .cpv-card {
+    padding: 16px;
+  }
+  .cpv-field input,
+  .cpv-field select,
+  .cpv-field textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .cpv-save-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
