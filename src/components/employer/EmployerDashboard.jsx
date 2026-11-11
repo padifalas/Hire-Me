@@ -1,7 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/authContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+
+import ConfirmDialog from "../shared/ConfirmDialog.jsx";
+import {
+  matchColor,
+  getInitials,
+  avatarStyleFor,
+} from "../../utils/uiHelpers.js";
 
 import "./EmployerDashboard.css";
 import Footer from "../layout/footer.jsx";
@@ -49,15 +56,19 @@ const NAV_ITEMS = [
   { icon: Building2, label: "Company Profile", id: "company-profile" },
 ];
 
-function Avatar({ initials, size = 32, bg }) {
+function Avatar({ initials, id, size = 32 }) {
+  const avatarStyle = avatarStyleFor(id);
+
   return (
     <div
       className="ed-avatar"
+      aria-hidden="true"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.36,
-        ...(bg && { background: bg, color: "#fff" }),
+        fontSize: size * 0.38,
+        backgroundColor: avatarStyle.bg,
+        color: avatarStyle.color,
       }}
     >
       {initials}
@@ -66,6 +77,7 @@ function Avatar({ initials, size = 32, bg }) {
 }
 
 function MatchBadge({ match, color }) {
+  const empty = match === null || match === undefined || match === "-";
   return (
     <span
       className="ed-match-badge"
@@ -75,27 +87,88 @@ function MatchBadge({ match, color }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {match === null || match === undefined || match === "-"
-        ? "-"
-        : `${match}%`}
+      {empty ? (
+        "-"
+      ) : (
+        <>
+          {match}%<span className="sr-only"> match</span>
+        </>
+      )}
+      {empty && <span className="sr-only">No score</span>}
     </span>
   );
 }
 
-const AVATAR_COLORS = [
-  "#0ea5e9", // blue
-  "#8b5cf6", // purple
-  "#ec4899", // pink
-  "#6366f1", // indigo
-  "#10b981", // green
-  "#f59e0b", // amber
-];
+function StatCard({ icon: Icon, value, label, tint }) {
+  return (
+    <div className="ed-stat-card">
+      <div
+        className={`ed-stat-card__icon ed-stat-card__icon--${tint}`}
+        aria-hidden="true"
+      >
+        <Icon size={16} />
+      </div>
+      <div className="ed-stat-card__value">{value}</div>
+      <div className="ed-stat-card__label">{label}</div>
+    </div>
+  );
+}
 
-function avatarColorFor(name) {
-  const hash = String(name ?? "")
-    .split("")
-    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+function BeeStatsPanel({ breakdown, totalPooled, loading }) {
+  const hasEnoughData = totalPooled >= BEE_MIN_POOL_SIZE;
+
+  return (
+    <section className="ed-card" aria-labelledby="ed-bee-title">
+      <div className="ed-card__header">
+        <h2 className="ed-card__title" id="ed-bee-title">
+          BEE Stats
+        </h2>
+      </div>
+
+      {loading ? (
+        <p className="ed-bee-empty" role="status">
+          Loading BEE statistics
+        </p>
+      ) : !hasEnoughData ? (
+        <div className="ed-bee-empty">
+          <p className="ed-bee-empty__title">Not enough data yet</p>
+          <p className="ed-bee-empty__hint">
+            {totalPooled === 0
+              ? "No applications have shared this information yet."
+              : `Only ${totalPooled} applications have shared this information so far. We show a breakdown once at least ${BEE_MIN_POOL_SIZE} responses are in, to keep individual answers private.`}
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="ed-bee-sub">{totalPooled} applications pooled</p>
+
+          <div className="ed-bee-bar" aria-hidden="true">
+            {breakdown.map((seg) => (
+              <span
+                key={seg.label}
+                className="ed-bee-bar__seg"
+                style={{ width: `${seg.pct}%`, background: seg.color }}
+              />
+            ))}
+          </div>
+
+          <ul className="ed-bee-legend">
+            {breakdown.map((seg) => (
+              <li key={seg.label} className="ed-bee-legend__row">
+                <span
+                  className="ed-bee-legend__dot"
+                  aria-hidden="true"
+                  style={{ background: seg.color }}
+                />
+                <span className="ed-bee-legend__label">{seg.label}</span>
+                <span className="ed-bee-legend__pct">{seg.pct}%</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
 }
 
 function DashboardView({ employerName, employerId, onNavigate }) {
@@ -121,11 +194,6 @@ function DashboardView({ employerName, employerId, onNavigate }) {
     setLoadingApps(false);
   }, [employerId]);
 
-  useEffect(() => {
-    loadJobs();
-    loadRecentApps();
-  }, [loadJobs, loadRecentApps]);
-
   const activeJobs = jobs.filter((j) => j.status === "active");
   const totalApplications = jobs.reduce(
     (sum, j) => sum + j.applicationCount,
@@ -138,24 +206,6 @@ function DashboardView({ employerName, employerId, onNavigate }) {
       (new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24),
     );
     return diff >= 0 ? `${diff} Days` : "Expired";
-  }
-
-  function matchColor(score) {
-    if (score === null || score === undefined) return "#94a3b8";
-    if (score >= 75) return "#16A34A";
-    if (score >= 50) return "#DC8F00";
-    return "#DC2626";
-  }
-
-  function initialsFor(name) {
-    return name
-      ? name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()
-      : "S";
   }
 
   const interviewCount = recentApps.filter(
@@ -209,72 +259,13 @@ function DashboardView({ employerName, employerId, onNavigate }) {
     { label: "Other", pct: beeStats.breakdown.other ?? 0, color: "#6b7280" },
   ];
 
-  function StatCard({ icon: Icon, value, label, tint }) {
-    return (
-      <div className="ed-stat-card">
-        <div className={`ed-stat-card__icon ed-stat-card__icon--${tint}`}>
-          <Icon size={16} />
-        </div>
-        <div className="ed-stat-card__value">{value}</div>
-        <div className="ed-stat-card__label">{label}</div>
-      </div>
-    );
-  }
-
-  function BeeStatsPanel({ breakdown, totalPooled }) {
-    const hasEnoughData = totalPooled >= BEE_MIN_POOL_SIZE;
-
-    return (
-      <div className="ed-card">
-        <div className="ed-card__header">
-          <span className="ed-card__title">BEE Stats</span>
-        </div>
-
-        {!hasEnoughData ? (
-          <div className="ed-bee-empty">
-            <p className="ed-bee-empty__title">Not enough data yet</p>
-            <p className="ed-bee-empty__hint">
-              {totalPooled === 0
-                ? "No applications have shared this information yet."
-                : `Only ${totalPooled} applications have shared this information so far. We show a breakdown once at least ${BEE_MIN_POOL_SIZE} responses are in, to keep individual answers private.`}
-            </p>
-          </div>
-        ) : (
-          <>
-            <p className="ed-bee-sub">{totalPooled} applications pooled</p>
-            <div className="ed-bee-bar">
-              {breakdown.map((seg) => (
-                <span
-                  key={seg.label}
-                  className="ed-bee-bar__seg"
-                  style={{ width: `${seg.pct}%`, background: seg.color }}
-                />
-              ))}
-            </div>
-            <div className="ed-bee-legend">
-              {breakdown.map((seg) => (
-                <div key={seg.label} className="ed-bee-legend__row">
-                  <span
-                    className="ed-bee-legend__dot"
-                    style={{ background: seg.color }}
-                  />
-                  <span className="ed-bee-legend__label">{seg.label}</span>
-                  <span className="ed-bee-legend__pct">{seg.pct}%</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }
   return (
     <>
-      {" "}
       <CompanyProfileReminder
         employerId={employerId}
         onGoToProfile={() => onNavigate("company-profile")}
       />
+
       <div className="ed-dashboard">
         <div className="ed-welcome-row">
           <div>
@@ -293,7 +284,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           </div>
 
           <button className="ed-post-btn" onClick={() => setShowPostForm(true)}>
-            <Plus size={14} /> Post new job
+            <Plus size={14} aria-hidden="true" /> Post new job
           </button>
         </div>
 
@@ -327,70 +318,92 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         <div className="ed-main-grid">
           <div className="ed-left-col">
             {/* Active jobs */}
-            <div className="ed-card ed-table-card">
+            <section className="ed-card" aria-labelledby="ed-active-job-title">
               <div className="ed-card__header">
-                <span className="ed-card__title">Active Jobs</span>
+                <h2 className="ed-card__title" id="ed-active-jobs-title">
+                  Active Jobs
+                </h2>
                 <button
                   className="ed-link-btn"
                   onClick={() => onNavigate("jobs")}
+                  aria-label={`View all ${jobs.length} jobs`}
                 >
                   View all {jobs.length} →
                 </button>
               </div>
-              {/* rest unchanged */}
 
-              <div className="ed-table-header">
-                {["Job Title", "Applications", "Days Remaining", "View"].map(
-                  (h) => (
-                    <span key={h} className="ed-table-th">
-                      {h}
-                    </span>
-                  ),
-                )}
+              <div role="table" aria-label="Active jobs">
+                <div className="ed-table-header" role="row">
+                  {["Job Title", "Applications", "Days Remaining", "View"].map(
+                    (h) => (
+                      <span key={h} className="ed-table-th" role="columnheader">
+                        {h}
+                      </span>
+                    ),
+                  )}
+                </div>
               </div>
-
               {loadingJobs && (
-                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                <p
+                  className="ed-empty__label"
+                  role="status"
+                  style={{ padding: "16px 4px" }}
+                >
                   Loading...
                 </p>
               )}
 
               {!loadingJobs && activeJobs.length === 0 && (
-                <p className="ed-empty__label" style={{ padding: "16px 4px" }}>
+                <p
+                  className="ed-empty__label"
+                  role="status"
+                  style={{ padding: "16px 4px" }}
+                >
                   No active jobs yet - post your first one above.
                 </p>
               )}
 
               {activeJobs.slice(0, 5).map((job) => (
-                <div key={job.id} className="ed-table-row">
-                  <span className="ed-table-cell">{job.title}</span>
-                  <span className="ed-table-cell">{job.applicationCount}</span>
-                  <span className="ed-table-cell">
+                <div key={job.id} className="ed-table-row" role="row">
+                  <span className="ed-table-cell" role="cell">
+                    {job.title}
+                  </span>
+                  <span className="ed-table-cell" role="cell">
+                    {job.applicationCount}
+                  </span>
+                  <span className="ed-table-cell" role="cell">
                     {daysRemaining(job.deadline)}
                   </span>
                   <button
                     className="ed-view-btn"
+                    aria-label={`View ${job.title}`}
                     onClick={() => onNavigate("jobs")}
                   >
                     View →
                   </button>
                 </div>
               ))}
-            </div>
+            </section>
           </div>
 
           <div className="ed-right-col">
             <BeeStatsPanel
               breakdown={beeBreakdown}
               totalPooled={beeStats.totalPooled}
+              loading={loadingBee}
             />
           </div>
         </div>
 
         {/* Recent applications (now full width, below the grid) */}
-        <div className="ed-card ed-table-card">
+        <section
+          className="ed-card ed-table-card"
+          aria-labelledby="ed-recent-apps-title"
+        >
           <div className="ed-card__header">
-            <span className="ed-card__title">Recent Applications</span>
+            <h2 className="ed-card__title" id="ed-recent-apps-title">
+              Recent Applications
+            </h2>
           </div>
 
           <div className="ed-table-header ed-table-header--apps">
@@ -402,7 +415,9 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           </div>
 
           {loadingApps && (
-            <p className="ed-empty__label ed-table-card__msg">Loading...</p>
+            <p className="ed-empty__label ed-table-card__msg" role="status">
+              Loading...
+            </p>
           )}
 
           {!loadingApps && recentApps.length === 0 && (
@@ -411,42 +426,47 @@ function DashboardView({ employerName, employerId, onNavigate }) {
             </p>
           )}
 
-          {recentApps.map((app) => (
-            <div key={app.id} className="ed-table-row ed-table-row--apps">
-              {(() => {
-                const name = app.student?.full_name ?? "Student";
-                return (
-                  <div className="ed-applicant-cell">
-                    <Avatar
-                      initials={initialsFor(name)}
-                      size={38}
-                      bg={avatarColorFor(name)}
-                    />
-                    <div>
-                      <div className="ed-applicant-name">{name}</div>
-                      <div className="ed-applicant-role">
-                        {app.opportunities?.title ?? "Opportunity"}
-                      </div>
+          {recentApps.map((app) => {
+            const name = app.student?.full_name ?? "Student";
+
+            return (
+              <div key={app.id} className="ed-table-row ed-table-row--apps">
+                <div className="ed-applicant-cell">
+                  <Avatar
+                    initials={getInitials(name)}
+                    id={app.student?.id ?? app.id}
+                    size={38}
+                  />
+
+                  <div>
+                    <div className="ed-applicant-name">{name}</div>
+                    <div className="ed-applicant-role">
+                      {app.opportunities?.title ?? "Opportunity"}
                     </div>
                   </div>
-                );
-              })()}
-              <MatchBadge
-                match={app.match_score ?? "-"}
-                color={matchColor(app.match_score)}
-              />
-              <span className="ed-table-cell ed-table-cell--muted">
-                {new Date(app.applied_at).toLocaleDateString()}
-              </span>
-              <button
-                className="ed-view-btn"
-                onClick={() => setReviewingApp(app)}
-              >
-                Review →
-              </button>
-            </div>
-          ))}
-        </div>
+                </div>
+
+                <MatchBadge
+                  match={app.match_score ?? "-"}
+                  color={matchColor(app.match_score)}
+                />
+
+                <span className="ed-table-cell ed-table-cell--muted">
+                  {new Date(app.applied_at).toLocaleDateString()}
+                </span>
+
+                <button
+                  type="button"
+                  className="ed-view-btn"
+                  aria-label={`Review application from ${name}`}
+                  onClick={() => setReviewingApp(app)}
+                >
+                  Review →
+                </button>
+              </div>
+            );
+          })}
+        </section>
 
         {showPostForm && (
           <JobPostingForm
@@ -483,8 +503,12 @@ export default function EmployerDashboard() {
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
+  const expanded = sidebarOpen || mobileNavOpen;
 
   // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
   // ProtectedRoute.jsx) - this component only ever mounts once that has
@@ -519,10 +543,63 @@ export default function EmployerDashboard() {
     }
   }
 
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+
+    const previousFocus = document.activeElement;
+    const sidebar = sidebarRef.current;
+
+    const focusableElements = sidebar?.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+
+    focusableElements?.[0]?.focus();
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        setMobileNavOpen(false);
+        return;
+      }
+
+      if (e.key === "Tab" && focusableElements?.length) {
+        const first = focusableElements[0];
+        const last = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus?.();
+    };
+  }, [mobileNavOpen]);
+
   return (
     <div className="ed-root">
+      {mobileNavOpen && (
+        <div
+          className="ed-sidebar-overlay"
+          aria-hidden="true"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
       <aside
-        className={`ed-sidebar${sidebarOpen ? "" : " ed-sidebar--collapsed"}`}
+        ref={sidebarRef}
+        id="ed-sidebar"
+        className={`ed-sidebar${expanded ? "" : " ed-sidebar--collapsed"}${mobileNavOpen ? " ed-sidebar--mobile-open" : ""}`}
+        role={mobileNavOpen ? "dialog" : undefined}
+        aria-modal={mobileNavOpen ? "true" : undefined}
+        aria-label={mobileNavOpen ? "Employer navigation" : undefined}
       >
         <div className="ed-sidebar__brand">
           <div className="ed-sidebar__brand-inner">
@@ -534,11 +611,14 @@ export default function EmployerDashboard() {
           </div>
         </div>
 
-        <div className="ed-sidebar__nav">
+        <nav className="ed-sidebar__nav" aria-label="Main navigation">
           <button
             type="button"
             className={`ed-sidebar__user${activeNav === "profile" ? " ed-sidebar__user--active" : ""}`}
-            onClick={() => setActiveNav("profile")}
+            onClick={() => {
+              setActiveNav("profile");
+              setMobileNavOpen(false);
+            }}
             title="My profile"
           >
             <div className="ed-sidebar__avatar">
@@ -552,7 +632,7 @@ export default function EmployerDashboard() {
                 employer.initials
               )}
             </div>
-            {sidebarOpen && (
+            {expanded && (
               <div className="ed-sidebar__user-text">
                 <div className="ed-sidebar__user-name">{employer.name}</div>
                 <div className="ed-sidebar__user-sub">
@@ -568,88 +648,84 @@ export default function EmployerDashboard() {
               <button
                 key={id}
                 className={`ed-nav-btn${active ? " ed-nav-btn--active" : ""}`}
-                onClick={() => setActiveNav(id)}
-                title={sidebarOpen ? undefined : label}
-                aria-current={active ? "page" : undefined}
+                onClick={() => {
+                  setActiveNav(id);
+                  setMobileNavOpen(false);
+                }}
+                title={expanded ? undefined : label}
+                aria-label={label}
               >
                 <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
-                {sidebarOpen && <span>{label}</span>}
+                {expanded && <span>{label}</span>}
               </button>
             );
           })}
-        </div>
+        </nav>
 
         <div className="ed-sidebar__footer">
-          {sidebarOpen && (
+          {expanded && (
             <button
+              type="button"
               className="ed-signout-btn"
               onClick={() => setConfirmingSignOut(true)}
               disabled={signingOut}
+              aria-label="Sign out"
+              title={!expanded ? "Sign out" : undefined}
             >
-              <LogOut size={15} />
-              Sign Out
+              <LogOut size={15} aria-hidden="true" />
+              {expanded && "Sign Out"}
             </button>
           )}
 
           <button
+            type="button"
             className="ed-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-
-          {confirmingSignOut && (
-            <div
-              className="ed-signout-popover-backdrop"
-              onClick={() => setConfirmingSignOut(false)}
-            >
-              <div
-                className="ed-signout-popover"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <p className="ed-signout-popover__text">
-                  Are you sure you want to sign out?
-                </p>
-                <div className="ed-signout-popover__actions">
-                  <button
-                    className="ed-signout-confirm__no"
-                    onClick={() => setConfirmingSignOut(false)}
-                    disabled={signingOut}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="ed-signout-confirm__yes"
-                    onClick={handleSignOut}
-                    disabled={signingOut}
-                  >
-                    {signingOut ? "Signing out..." : "Yes, sign out"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </aside>
 
+      <a href="#ed-main" className="skip-link">
+        Skip to main content
+      </a>
       <div className="ed-main">
         <header className="ed-header">
-          <div className="ed-search">
-            <Search size={14} color="#94a3b8" />
+          <button
+            type="button"
+            className="ed-menu-btn"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={mobileNavOpen}
+            aria-controls="ed-sidebar"
+          >
+            <Menu size={20} />
+          </button>
+
+          <div className="ed-search" role="search">
+            <Search size={14} color="#94a3b8" aria-hidden="true" />
             <input
               className="ed-search__input"
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               placeholder="Search candidates, jobs..."
+              aria-label="Search candidates and jobs"
             />
           </div>
-          <button className="ed-bell-btn">
-            <Bell size={16} color="#64748b" />
-            <span className="ed-bell-dot" />
+
+          <button
+            type="button"
+            className="ed-bell-btn"
+            aria-label="Notifications"
+          >
+            <Bell size={16} color="#64748b" aria-hidden="true" />
+            <span className="ed-bell-dot" aria-hidden="true" />
           </button>
         </header>
 
-        <main className="ed-content">
+        <main id="ed-main" className="ed-content" tabIndex={-1}>
           {activeNav === "dashboard" && (
             <DashboardView
               employerName={employer.name}
@@ -683,6 +759,18 @@ export default function EmployerDashboard() {
 
         <Footer />
       </div>
+      {confirmingSignOut && (
+        <ConfirmDialog
+          title="Sign out"
+          description="Are you sure you want to sign out?"
+          confirmLabel="Yes, sign out"
+          busyLabel="Signing out..."
+          cancelLabel="Cancel"
+          onConfirm={handleSignOut}
+          onCancel={() => setConfirmingSignOut(false)}
+          busy={signingOut}
+        />
+      )}
     </div>
   );
 }
