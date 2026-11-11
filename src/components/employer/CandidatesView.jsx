@@ -1,4 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
+import useDialog from "../../hooks/useDialog.js";
+import {
+  matchColor,
+  avatarStyleFor,
+  getInitials,
+} from "../../utils/uiHelpers.js";
 import {
   getCandidates,
   updateApplicationStatus,
@@ -21,49 +27,20 @@ import {
   Code2,
   FolderKanban,
   BriefcaseBusiness,
+  Form,
 } from "lucide-react";
 
 function skillLabel(s) {
   return typeof s === "string" ? s : (s?.skill ?? "");
 }
 
-// Stable per-candidate avatar color, keyed off id so it doesn't change
-// between renders/reloads for the same candidate.
-const AVATAR_PALETTE = [
-  { bg: "#6366f1", color: "#fff" }, // indigo
-  { bg: "#0ea5e9", color: "#fff" }, // blue
-  { bg: "#10b981", color: "#fff" }, // green
-  { bg: "#f59e0b", color: "#fff" }, // amber
-  { bg: "#8b5cf6", color: "#fff" }, // purple
-  { bg: "#ec4899", color: "#fff" }, // pink
-];
-
-function avatarStyleFor(id) {
-  const hash = String(id ?? "")
-    .split("")
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
-}
-
-function matchColor(score) {
-  if (score === null || score === undefined) return "#94a3b8";
-  if (score >= 75) return "#16A34A";
-  if (score >= 50) return "#DC8F00";
-  return "#DC2626";
-}
-
 function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
-  if (!candidate) return null;
+  const dialogRef = useDialog({ onClose });
 
-  const initials = candidate.full_name
-    ? candidate.full_name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "S";
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
 
+  const initials = getInitials(candidate.full_name);
   const avatarStyle = avatarStyleFor(candidate.id);
 
   const skills = candidate.extracted_technical_skills || [];
@@ -79,52 +56,66 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
 
   const matchScore = candidate.match_score;
 
-  const handleRequestInterview = async () => {
+  async function handleAction(status, doneText) {
     if (!candidate.application_id) {
-      console.error("No application ID found for this candidate.");
+      setMessage({
+        type: "error",
+        text: "Couldn't find an application to update for this candidate.",
+      });
       return;
     }
 
-    const result = await updateApplicationStatus(
-      candidate.application_id,
-      "interview",
-    );
+    setBusy(true);
+    setMessage(null);
 
-    if (!result.success) {
-      console.error(result.error);
-      return;
+    try {
+      const result = await updateApplicationStatus(
+        candidate.application_id,
+        status,
+      );
+
+      setMessage(
+        result.success
+          ? {
+              type: "success",
+              text: `${doneText} for ${candidate.full_name}.`,
+            }
+          : {
+              type: "error",
+              text: result.error || "Couldn't update this application.",
+            },
+      );
+    } catch (error) {
+      console.error("Error updating application:", error);
+
+      setMessage({
+        type: "error",
+        text: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setBusy(false);
     }
-
-    alert("Interview requested successfully.");
-  };
-
-  const handleReject = async () => {
-    if (!candidate.application_id) {
-      console.error("No application ID found for this candidate.");
-      return;
-    }
-
-    const result = await updateApplicationStatus(
-      candidate.application_id,
-      "rejected",
-    );
-
-    if (!result.success) {
-      console.error(result.error);
-      return;
-    }
-
-    alert("Candidate rejected.");
-  };
+  }
 
   return (
     <>
-      <div className="cd-profile-overlay" onClick={onClose} />
+      <div
+        className="cd-profile-overlay"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <aside className="cd-profile-drawer">
+      <aside
+        ref={dialogRef}
+        className="cd-profile-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cd-drawer-title"
+        tabIndex={-1}
+      >
         {/* Header */}
         <div className="cd-profile-header">
-          <h2>Candidate Profile</h2>
+          <h2 id="cd-drawer-title">Candidate Profile</h2>
 
           <button
             type="button"
@@ -132,13 +123,14 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
             onClick={onClose}
             aria-label="Close candidate profile"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
         <div className="cd-profile-identity">
           <div
             className="cd-profile-avatar"
+            aria-hidden="true"
             style={{
               background: avatarStyle.bg,
               color: avatarStyle.color,
@@ -160,13 +152,13 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                     border: `1px solid ${matchColor(matchScore)}33`,
                   }}
                 >
-                  {matchScore}%
+                  {matchScore}%<span className="sr-only"> match</span>
                 </span>
               )}
             </div>
 
             <div className="cd-profile-meta">
-              <GraduationCap size={14} />
+              <GraduationCap size={14} aria-hidden="true" />
 
               <span>
                 {candidate.degree_program || "Degree not specified"}
@@ -179,7 +171,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
 
             {candidate.location && (
               <div className="cd-profile-meta">
-                <MapPin size={14} />
+                <MapPin size={14} aria-hidden="true" />
                 <span>{candidate.location}</span>
               </div>
             )}
@@ -195,10 +187,13 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
         {(matchReasons.length > 0 ||
           matchingSkills.length > 0 ||
           missingSkills.length > 0) && (
-          <section className="cd-profile-section">
+          <section
+            className="cd-profile-section"
+            aria-labelledby="cd-match-title"
+          >
             <div className="cd-profile-section-title">
-              <Sparkles size={16} />
-              <h4>Why this match</h4>
+              <Sparkles size={16} aria-hidden="true" />
+              <h4 id="cd-match-title">Why this match</h4>
             </div>
 
             <div className="cd-match-list">
@@ -207,7 +202,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   className="cd-match-item cd-match-item--positive"
                   key={`matching-${index}`}
                 >
-                  <CheckCircle2 size={15} />
+                  <CheckCircle2 size={15} aria-hidden="true" />
                   <span>
                     {typeof skill === "string" ? skill : skillLabel(skill)}
                   </span>
@@ -219,7 +214,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   className="cd-match-item cd-match-item--positive"
                   key={`reason-${index}`}
                 >
-                  <CheckCircle2 size={15} />
+                  <CheckCircle2 size={15} aria-hidden="true" />
                   <span>
                     {typeof reason === "string"
                       ? reason
@@ -233,7 +228,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   className="cd-match-item cd-match-item--negative"
                   key={`missing-${index}`}
                 >
-                  <XCircle size={15} />
+                  <XCircle size={15} aria-hidden="true" />
                   <span>
                     Missing:{" "}
                     {typeof skill === "string" ? skill : skillLabel(skill)}
@@ -245,13 +240,16 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
         )}
 
         {skills.length > 0 && (
-          <section className="cd-profile-section">
+          <section
+            className="cd-profile-section"
+            aria-labelledby="cd-skills-title"
+          >
             <div className="cd-profile-section-title">
-              <Code2 size={16} />
-              <h4>Skills</h4>
+              <Code2 size={16} aria-hidden="true" />
+              <h4 id="cd-skills-title">Skills</h4>
             </div>
 
-            <div className="cd-profile-skills">
+            <ul className="cd-profile-skills">
               {skills.map((skill, index) => {
                 const label = skillLabel(skill);
 
@@ -261,7 +259,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                 );
 
                 return (
-                  <span
+                  <li
                     key={index}
                     className={
                       isMissing
@@ -271,18 +269,23 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   >
                     {label}
 
-                    {isMissing && <X size={12} />}
-                  </span>
+                    {isMissing && (
+                      <>
+                        <X size={12} aria-hidden="true" />
+                        <span className="sr-only">(missing for this role)</span>
+                      </>
+                    )}
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </section>
         )}
 
         {projects.length > 0 && (
           <section className="cd-profile-section">
             <div className="cd-profile-section-title">
-              <FolderKanban size={16} />
+              <FolderKanban size={16} aria-hidden="true" />
               <h4>Top Projects</h4>
             </div>
 
@@ -305,7 +308,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
         {candidate.work_experience && (
           <section className="cd-profile-section">
             <div className="cd-profile-section-title">
-              <BriefcaseBusiness size={16} />
+              <BriefcaseBusiness size={16} aria-hidden="true" />
               <h4>Experience</h4>
             </div>
 
@@ -316,7 +319,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
         {(candidate.cv_url || candidate.transcript_url) && (
           <section className="cd-profile-section">
             <div className="cd-profile-section-title">
-              <FileText size={16} />
+              <FileText size={16} aria-hidden="true" />
               <h4>Documents</h4>
             </div>
 
@@ -332,8 +335,9 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                     })
                   }
                   className="cd-document-btn"
+                  aria-label={`View CV for ${candidate.full_name}`}
                 >
-                  <FileText size={14} />
+                  <FileText size={14} aria-hidden="true" />
                   View CV
                 </button>
               )}
@@ -349,44 +353,54 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                     })
                   }
                   className="cd-document-btn"
+                  aria-label={`View transcript for ${candidate.full_name}`}
                 >
-                  <FileText size={14} />
+                  <FileText size={14} aria-hidden="true" />
                   View transcript
                 </button>
               )}
             </div>
           </section>
         )}
+
+        <div className="cd-profile-actions">
+          <div
+            className={`cd-action-message${message ? ` cd-action-message--${message.type}` : ""}`}
+            role="status"
+            aria-live="polite"
+          >
+            {message?.text}
+          </div>
+
+          <div className="cd-profile-actions__buttons">
+            <button
+              type="button"
+              className="cd-request-interview"
+              disabled={busy}
+              onClick={() => handleAction("interview", "Interview requested")}
+            >
+              <BriefcaseBusiness size={16} aria-hidden="true" />
+              {busy ? "Please wait..." : "Request Interview"}
+            </button>
+
+            <button
+              type="button"
+              className="cd-reject"
+              disabled={busy}
+              onClick={() => handleAction("rejected", "Candidate rejected")}
+            >
+              <XCircle size={16} aria-hidden="true" />
+              Reject
+            </button>
+          </div>
+        </div>
       </aside>
-
-      <div className="cd-profile-actions">
-        <button
-          type="button"
-          className="cd-request-interview"
-          onClick={handleRequestInterview}
-        >
-          <BriefcaseBusiness size={16} />
-          Request Interview
-        </button>
-
-        <button type="button" className="cd-reject" onClick={handleReject}>
-          <XCircle size={16} />
-          Reject
-        </button>
-      </div>
     </>
   );
 }
 
 function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
-  const initials = candidate.full_name
-    ? candidate.full_name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "S";
+  const initials = getInitials(candidate.full_name);
 
   const skills = candidate.extracted_technical_skills || [];
 
@@ -398,10 +412,14 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
     candidate.match_score !== null && candidate.match_score !== undefined;
 
   return (
-    <div className="cd-card">
+    <article
+      className="cd-card"
+      aria-label={`Candidate ${candidate.full_name}`}
+    >
       <div className="cd-card__top">
         <div
           className="cd-avatar"
+          aria-hidden="true"
           style={{
             background: avatarStyle.bg,
             color: avatarStyle.color,
@@ -412,18 +430,18 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
 
         <div className="cd-card__heading">
           <div className="cd-card__name-row">
-            <span className="cd-card__name">{candidate.full_name}</span>
+            <h2 className="cd-card__name">{candidate.full_name}</h2>
 
             {hasAiProfile && (
               <span className="cd-ai-badge">
-                <Sparkles size={11} />
+                <Sparkles size={11} aria-hidden="true" />
                 AI profile
               </span>
             )}
           </div>
 
           <div className="cd-card__meta">
-            <GraduationCap size={12} />
+            <GraduationCap size={12} aria-hidden="true" />
 
             {candidate.degree_program || "-"}
 
@@ -434,7 +452,7 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
 
           {candidate.location && (
             <div className="cd-card__meta">
-              <MapPin size={12} />
+              <MapPin size={12} aria-hidden="true" />
               {candidate.location}
             </div>
           )}
@@ -449,7 +467,7 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
               border: `1px solid ${matchColor(candidate.match_score)}33`,
             }}
           >
-            {candidate.match_score}%
+            {candidate.match_score}%<span className="sr-only"> match</span>
           </span>
         )}
       </div>
@@ -461,19 +479,19 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
       )}
 
       {skills.length > 0 && (
-        <div className="cd-chip-row">
-          {skills.slice(0, 5).map((s, i) => (
-            <span key={i} className="cd-chip cd-chip--technical">
+        <ul className="cd-chip-row" aria-label="Skills">
+          {skills.slice(0, 6).map((s, i) => (
+            <li key={i} className="cd-chip cd-chip--technical">
               {skillLabel(s)}
-            </span>
+            </li>
           ))}
 
-          {skills.length > 5 && (
-            <span className="cd-chip cd-chip--muted">
-              +{skills.length - 5} more
-            </span>
+          {skills.length > 6 && (
+            <li className="cd-chip cd-chip--muted">
+              +{skills.length - 6} more
+            </li>
           )}
-        </div>
+        </ul>
       )}
 
       <div className="cd-card__actions">
@@ -481,9 +499,10 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
           type="button"
           className="cd-link-btn"
           onClick={() => onViewProfile(candidate)}
+          aria-label={`View profile for ${candidate.full_name}`}
         >
           View profile
-          <ChevronRight size={13} />
+          <ChevronRight size={13} aria-hidden="true" />
         </button>
 
         {candidate.cv_url && (
@@ -497,8 +516,9 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
                 fileName: candidate.cv_file_name,
               })
             }
+            aria-label={`View CV for ${candidate.full_name}`}
           >
-            <FileText size={13} />
+            <FileText size={13} aria-hidden="true" />
             View CV
           </button>
         )}
@@ -514,13 +534,14 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
                 fileName: candidate.transcript_file_name,
               })
             }
+            aria-label={`View transcript for ${candidate.full_name}`}
           >
-            <FileText size={13} />
+            <FileText size={13} aria-hidden="true" />
             View transcript
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -540,19 +561,42 @@ export default function CandidatesView() {
   const [viewingDoc, setViewingDoc] = useState(null);
 
   useEffect(() => {
-    (async () => {
+    let isMounted = true;
+
+    async function loadCandidates() {
       setLoading(true);
+      setError(null);
 
-      const result = await getCandidates();
+      try {
+        const result = await getCandidates();
 
-      if (result.success) {
-        setCandidates(result.candidates);
-      } else {
-        setError(result.error);
+        if (!isMounted) return;
+
+        if (result.success) {
+          setCandidates(result.candidates ?? []);
+        } else {
+          setError(
+            result.error || "Couldn't load candidates. Please try again.",
+          );
+        }
+      } catch (error) {
+        console.error("Error loading candidates:", error);
+
+        if (isMounted) {
+          setError("Something went wrong while loading candidates.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    }
 
-      setLoading(false);
-    })();
+    loadCandidates();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -581,7 +625,7 @@ export default function CandidatesView() {
       <div className="cd-header">
         <h1 className="cd-title">Candidates</h1>
 
-        <p className="cd-subtitle">
+        <p className="cd-subtitle" role="status" aria-live="polite">
           {loading
             ? "Loading..."
             : `${filtered.length} candidate${
@@ -591,10 +635,16 @@ export default function CandidatesView() {
       </div>
 
       <div className="cd-filters">
-        <div className="cd-search">
-          <Search size={14} color="#94a3b8" />
+        <div className="cd-search" role="search">
+          <Search size={14} color="#94a3b8" aria-hidden="true" />
+
+          <label htmlFor="cd-search" className="sr-only">
+            Search candidates
+          </label>
 
           <input
+            id="cd-search"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, university, skill, or city..."
@@ -602,11 +652,15 @@ export default function CandidatesView() {
         </div>
       </div>
 
-      {error && <p className="cd-error">{error}</p>}
+      {error && (
+        <p className="cd-error" role="alert">
+          {error}
+        </p>
+      )}
 
       {!loading && filtered.length === 0 && (
         <div className="cd-empty">
-          <Users size={32} strokeWidth={1.5} />
+          <Users size={32} strokeWidth={1.5} aria-hidden="true" />
 
           <p>
             {candidates.length === 0
@@ -616,7 +670,7 @@ export default function CandidatesView() {
         </div>
       )}
 
-      <div className="cd-grid">
+      <div className="cd-grid" aria-busy={loading}>
         {filtered.map((candidate) => (
           <CandidateCard
             key={candidate.id}

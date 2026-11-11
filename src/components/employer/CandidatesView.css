@@ -655,3 +655,105 @@
     padding-right: 20px;
   }
 }
+
+.cd-card__name {
+  font-size: 14px;
+  font-family: inherit;
+  margin: 0;
+}
+ul.cd-chip-row,
+ul.cd-profile-skills {
+  list-style: none;
+  padding: 0;
+}
+.cd-chip--muted {
+  color: var(--color-text-muted);
+}
+.cd-profile-skill--missing {
+  color: #64748b;
+}
+.cd-empty {
+  color: var(--color-text-muted);
+}
+.cd-link-btn {
+  color: var(--color-primary-strong);
+  min-height: 24px;
+}
+.cd-link-btn--muted {
+  color: #475569;
+}
+.cd-ai-badge {
+  color: var(--color-primary-strong);
+}
+.cd-search:focus-within {
+  border-color: var(--color-primary-strong);
+  box-shadow: 0 0 0 3px rgba(194, 48, 0, 0.15);
+}
+.cd-search input:focus-visible {
+  outline: none !important;
+}
+
+/* Drawer: the action bar now lives INSIDE the dialog and sticks to its bottom */
+.cd-profile-drawer {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  height: 100vh;
+  height: 100dvh;
+}
+.cd-profile-actions {
+  position: sticky;
+  bottom: 0;
+  right: auto;
+  width: auto;
+  max-width: none;
+  margin-top: auto;
+  flex-direction: column;
+  gap: 8px;
+  animation: none;
+  z-index: 1;
+}
+.cd-profile-actions__buttons {
+  display: flex;
+  gap: 10px;
+}
+.cd-request-interview:disabled,
+.cd-reject:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.cd-action-message {
+  font-size: 12.5px;
+  min-height: 0;
+}
+.cd-action-message--success {
+  color: #15803d;
+}
+.cd-action-message--error {
+  color: #b91c1c;
+}
+
+@media (max-width: 720px) {
+  .cd-filters .cd-search {
+    max-width: none;
+  }
+  .cd-card__actions {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+}
+@media (max-width: 600px) {
+  .cd-request-interview,
+  .cd-reject {
+    min-height: 48px;
+  }
+  .cd-profile-close {
+    width: 40px;
+    height: 40px;
+  }
+}
+@media (pointer: coarse) {
+  .cd-link-btn {
+    min-height: 40px;
+  }
+}
