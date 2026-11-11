@@ -1,0 +1,110 @@
+/* Import AFTER StudentDashboard.css / EmployerDashboard.css.
+   Cards stay as they were; this file adds spacing, the heading font and
+   one shared style for every text link / "View →" button on both dashboards.
+
+   Link selectors are scoped under the dashboard roots so they beat the older
+   .ed-link-btn / .ed-view-btn / .sd-link-btn rules no matter which order the
+   bundler loads the stylesheets in. */
+
+.sd-dashboard,
+.ed-dashboard {
+  gap: 24px;
+}
+
+.sd-section-header__title,
+.ed-card__title {
+  font-family: "Sora", "Manrope", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* inline checklist, only needed if you removed the Profile Strength card */
+.sd-checklist-row--inline {
+  margin-top: 10px;
+  gap: 16px;
+}
+
+/* ---------- Shared link buttons ----------
+   rest:    near-black text, no underline
+   hover:   underline sweeps in from the left, text warms to brand orange
+   pressed: darker orange, nudges down 1px
+   focus:   orange ring (keyboard only) */
+
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+  --lk-ink: #0f172a;
+  --lk-hot: #c23000;
+  --lk-pressed: #8f2400;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 2px;
+  margin: -4px -2px;
+  border: 0;
+  border-radius: 6px;
+  background-color: transparent;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 3px);
+  background-size: 0% 1.5px;
+  color: var(--lk-ink);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-size 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):hover {
+  background-color: transparent;
+  background-size: 100% 1.5px;
+  color: var(--lk-hot);
+  text-decoration: none;
+}
+
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
+  background-color: transparent;
+  background-size: 100% 1.5px;
+  color: var(--lk-pressed);
+  transform: translateY(1px);
+}
+
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):focus-visible {
+  outline: 2px solid var(--lk-hot);
+  outline-offset: 2px;
+  background-size: 100% 1.5px;
+}
+
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-size: 0% 1.5px;
+  transform: none;
+}
+
+/* "View all" links sit on the right edge of a card header */
+:is(.sd-dashboard, .ed-dashboard) :is(.sd-section-header, .ed-card__header) :is(.sd-link-btn, .ed-link-btn) {
+  margin-right: 0;
+}
+
+@media (max-width: 860px) {
+  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+    min-height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+    transition: color 0.01ms;
+  }
+  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
+    transform: none;
+  }
+}

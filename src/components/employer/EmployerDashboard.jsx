@@ -11,6 +11,9 @@ import {
 } from "../../utils/uiHelpers.js";
 
 import "./EmployerDashboard.css";
+import StatStrip from "../shared/StatStrip.jsx";
+import "../shared/dashboard-refresh.css";
+
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 import JobsView from "./JobsView.jsx";
@@ -288,32 +291,12 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           </button>
         </div>
 
-        <div className="ed-stat-cards">
-          <StatCard
-            icon={Briefcase}
-            value={activeJobs.length}
-            label="Active Jobs"
-            tint="rose"
-          />
-          <StatCard
-            icon={FileText}
-            value={totalApplications}
-            label="Total Applications"
-            tint="mint"
-          />
-          <StatCard
-            icon={Users}
-            value={interviewCount}
-            label="Interviews"
-            tint="lilac"
-          />
-          <StatCard
-            icon={Sparkles}
-            value={`${avgMatchScore}%`}
-            label="Avg. Match Score"
-            tint="sand"
-          />
-        </div>
+<StatStrip items={[
+  { tone: "clay", kind: "lines", visual: { count: activeJobs.length }, value: activeJobs.length, label: "Active jobs" },
+  { tone: "sand", kind: "bars", visual: { series: activeJobs.map(j => j.applicationCount) }, value: totalApplications, label: "Applications" },
+  { tone: "lilac", kind: "dots", visual: { colors: Array(Math.min(interviewCount, 6)).fill("#7c3aed") }, value: interviewCount, label: "Interviews" },
+  { tone: "sage", kind: "arc", visual: { pct: avgMatchScore }, value: `${avgMatchScore}%`, label: "Avg match" },
+]} />
 
         <div className="ed-main-grid">
           <div className="ed-left-col">

@@ -13,6 +13,10 @@ import {
 } from "../../services/opportunityService.js";
 
 import "./StudentDashboard.css";
+
+
+import StatStrip from "../shared/StatStrip.jsx";
+import "../shared/dashboard-refresh.css";
 import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 import ProfileView from "./ProfileView.jsx";
@@ -572,42 +576,15 @@ function DashboardView({ studentName, user, onNavigate }) {
           </div>
         </div>
 
-        <div className="sd-stat-cards">
-          <StatCard
-            icon={Percent}
-            tint="mint"
-            value={`${profileStrength}%`}
-            label="Profile Strength"
-            sub={
-              incompleteCount > 0
-                ? `${incompleteCount} item${incompleteCount === 1 ? "" : "s"} incomplete`
-                : "Complete"
-            }
-          />
-          <StatCard
-            icon={FileText}
-            tint="grey"
-            value={applicationsSent}
-            label="Applications Sent"
-          />
-          <StatCard
-            icon={TrendingUp}
-            tint="sand"
-            value={`${avgMatchScore}%`}
-            label="Avg Match Score"
-          />
-          <StatCard
-            icon={Clock}
-            tint="lilac"
-            value={underReviewCount}
-            label="Under Review"
-            sub={
-              recentApps.find(
-                (a) => a.status === "submitted" || a.status === "under_review",
-              )?.opportunities?.title
-            }
-          />
-        </div>
+<StatStrip items={[
+  { tone: "sage", kind: "ring", visual: { pct: profileStrength }, value: `${profileStrength}%`,
+    label: "Profile", note: incompleteCount ? `${incompleteCount} to finish` : "Complete" },
+  { tone: "sand", kind: "dots", value: applicationsSent, label: "Applied",
+    visual: { colors: recentApps.map(a => (APPLICATION_STATUS_LABELS[a.status] ?? APPLICATION_STATUS_LABELS.submitted).color) } },
+  { tone: "clay", kind: "arc", visual: { pct: avgMatchScore }, value: `${avgMatchScore}%`, label: "Avg match" },
+  { tone: "lilac", kind: "pulse", visual: { active: underReviewCount > 0 }, value: underReviewCount, label: "In review",
+    note: recentApps.find(a => a.status === "submitted" || a.status === "under_review")?.opportunities?.title },
+]} />
 
         <div className="sd-card">
           <div className="sd-profile-strength__header">

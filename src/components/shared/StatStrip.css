@@ -1,0 +1,248 @@
+/* ---------- Stat strip: one band, four tinted cells ---------- */
+
+.hm-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(136, 136, 136, 0.28);
+  border: 1px solid rgba(136, 136, 136, 0.28);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.hm-cell {
+  --ink: #1f2937;
+  --accent: #475569;
+  --accent-soft: rgba(71, 85, 105, 0.16);
+  position: relative;
+  min-height: 132px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  color: var(--ink);
+  isolation: isolate;
+}
+
+.hm-cell__label {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hm-cell__value {
+  font-family: "Sora", "Manrope", sans-serif;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hm-cell__note {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ---- tones: each metric gets its own quiet atmosphere ---- */
+
+.hm-cell--sage {
+  --accent: #3f7a2f;
+  --accent-soft: rgba(63, 122, 47, 0.18);
+  background:
+    radial-gradient(120% 90% at 0% 0%, #e3f0dc 0%, transparent 60%),
+    #f6f9f2;
+}
+
+.hm-cell--sand {
+  --accent: #98700a;
+  --accent-soft: rgba(184, 134, 11, 0.2);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 17px,
+      rgba(184, 134, 11, 0.09) 17px 18px
+    ),
+    linear-gradient(180deg, #fbf7ec, #f4ecd6);
+}
+
+.hm-cell--clay {
+  --accent: #c23000;
+  --accent-soft: rgba(243, 65, 0, 0.18);
+  background:
+    radial-gradient(100% 100% at 100% 100%, #fddccd 0%, transparent 62%),
+    #fff6f1;
+}
+
+.hm-cell--lilac {
+  --accent: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.18);
+  background:
+    radial-gradient(90% 90% at 100% 0%, #e6dcfa 0%, transparent 60%),
+    #f8f5fd;
+}
+
+/* ---- visuals (top-right of each cell) ---- */
+
+.hm-vis {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: -1;
+}
+
+.hm-vis--ring {
+  width: 56px;
+  height: 56px;
+  top: auto;
+  bottom: 18px;
+}
+.hm-ring__track,
+.hm-arc__track {
+  fill: none;
+  stroke: var(--accent-soft);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.hm-ring__fill,
+.hm-arc__fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.hm-vis--arc {
+  width: 76px;
+  height: 45px;
+  top: auto;
+  bottom: 20px;
+}
+
+.hm-vis--bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 64px;
+  height: 44px;
+  top: auto;
+  bottom: 20px;
+}
+.hm-vis--bars span {
+  flex: 1;
+  border-radius: 3px 3px 1px 1px;
+  background: var(--accent);
+  opacity: 0.55;
+}
+.hm-vis--bars span:last-child {
+  opacity: 1;
+}
+
+.hm-vis--dots {
+  display: flex;
+  gap: 0;
+  top: auto;
+  bottom: 22px;
+}
+.hm-vis--dots span {
+  width: 20px;
+  height: 20px;
+  margin-left: -7px;
+  border-radius: 50%;
+  border: 2px solid #f8f5fd;
+}
+.hm-vis--empty {
+  display: none;
+}
+
+.hm-vis--lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  width: 56px;
+  top: auto;
+  bottom: 22px;
+}
+.hm-vis--lines span {
+  height: 5px;
+  border-radius: 99px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+.hm-vis--lines span:first-child {
+  opacity: 1;
+}
+
+.hm-vis--pulse {
+  width: 14px;
+  height: 14px;
+  top: auto;
+  bottom: 28px;
+  right: 28px;
+}
+.hm-vis--pulse span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  position: relative;
+}
+.hm-vis--pulse-on span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: hm-ping 2.2s ease-out infinite;
+}
+@keyframes hm-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-vis--pulse-on span::after {
+    animation: none;
+    opacity: 0.2;
+    transform: scale(2);
+  }
+  .hm-ring__fill,
+  .hm-arc__fill {
+    transition: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .hm-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .hm-cell {
+    min-height: 112px;
+  }
+  .hm-cell__value {
+    font-size: 32px;
+  }
+}
