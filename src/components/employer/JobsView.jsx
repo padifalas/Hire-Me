@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   getEmployerOpportunities,
   closeOpportunity,
 } from "../../services/employerService";
 import JobPostingForm from "./JobPostingForm.jsx";
 import ApplicantsModal from "./ApplicantsModal.jsx";
+import ConfirmDialog from "../shared/ConfirmDialog.jsx";
 
 import "./JobsView.css";
 
@@ -53,6 +54,10 @@ export default function JobsView({ employerId }) {
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJob, setViewingJob] = useState(null);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [closingJob, setClosingJob] = useState(null);
+  const [closing, setClosing] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const titleRef = useRef(null);
 
   const loadJobs = useCallback(async () => {
     setLoading(true);
@@ -118,29 +123,49 @@ export default function JobsView({ employerId }) {
     );
   }
 
-  async function handleClose(jobId) {
-    if (
-      !confirm(
-        "Close this job posting? Students won't be able to apply anymore.",
-      )
-    )
-      return;
-    const result = await closeOpportunity(jobId);
-    if (result.success) {
-      setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, status: "closed" } : j)),
-      );
-    } else {
-      loadJobs();
+  async function confirmClose() {
+    if (!closingJob || closing) return;
+
+    setClosing(true);
+
+    try {
+      const result = await closeOpportunity(closingJob.id);
+      const title = closingJob.title;
+
+      if (result.success) {
+        setJobs((prev) =>
+          prev.map((j) =>
+            j.id === closingJob.id ? { ...j, status: "closed" } : j,
+          ),
+        );
+
+        setAnnouncement(`${title} has been closed.`);
+      } else {
+        setAnnouncement(`Couldn't close ${title}. Please try again.`);
+        loadJobs();
+      }
+    } catch (error) {
+      console.error("Error closing job:", error);
+      setAnnouncement(`Couldn't close ${closingJob.title}. Please try again.`);
+    } finally {
+      setClosing(false);
+      setClosingJob(null);
+      requestAnimationFrame(() => titleRef.current?.focus());
     }
   }
 
   return (
     <div className="jv-root">
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
+
       <div className="jv-header">
         <div>
-          <h1 className="jv-title">My Jobs</h1>
-          <p className="jv-subtitle">
+          <h1 className="jv-title" ref={titleRef} tabIndex={-1}>
+            My Jobs
+          </h1>
+          <p className="jv-subtitle" role="status">
             {loading
               ? "Loading..."
               : `${jobs.length} job posting${jobs.length === 1 ? "" : "s"}`}
@@ -152,10 +177,15 @@ export default function JobsView({ employerId }) {
       </div>
 
       {!loading && jobs.length > 0 && (
-        <div className="jv-filter-row">
+        <div
+          className="jv-filter-row"
+          role="group"
+          aria-label="Filter jobs by status"
+        >
           {FILTERS.map((f) => (
             <button
               key={f}
+              aria-pressed={activeFilter === f}
               className={`jv-filter-pill${activeFilter === f ? " jv-filter-pill--active" : ""}`}
               onClick={() => setActiveFilter(f)}
             >
@@ -168,107 +198,140 @@ export default function JobsView({ employerId }) {
 
       {!loading && jobs.length === 0 && (
         <div className="jv-empty">
-          <Briefcase size={32} strokeWidth={1.5} />
+          <Briefcase size={32} strokeWidth={1.5} aria-hidden="true" />
           <p>You haven't posted any jobs yet.</p>
           <button className="jv-post-btn" onClick={() => setShowForm(true)}>
-            <Plus size={14} /> Post your first job
+            <Plus size={14} aria-hidden="true" /> Post your first job
           </button>
         </div>
       )}
 
       {jobs.length > 0 && (
         <div className="jv-card">
-          <div className="jv-table-header">
-            {[
-              "Job Title",
-              "Type",
-              "Applications",
-              "Deadline",
-              "Status",
-              "",
-            ].map((h) => (
-              <span key={h} className="jv-table-th">
-                {h}
-              </span>
-            ))}
+          <div role="table" aria-label="Your job postings">
+            <div className="jv-table-header" role="row">
+              {[
+                "Job Title",
+                "Type",
+                "Applications",
+                "Deadline",
+                "Status",
+                "Actions",
+              ].map((h) => (
+                <span
+                  key={h}
+                  className={`jv-table-th${h === "Actions" ? " sr-only" : ""}`}
+                  role="columnheader"
+                >
+                  {h}
+                </span>
+              ))}
+            </div>
+
+            {filteredJobs.map((job) => {
+              const status =
+                STATUS_LABELS[job._displayStatus] ?? STATUS_LABELS.draft;
+              const remaining = daysUntil(job.deadline);
+              const isExpired = job._displayStatus === "expired";
+              const applicationCount = job.applicationCount ?? 0;
+
+              return (
+                <div key={job.id} className="jv-table-row" role="row">
+                  <span
+                    className="jv-table-cell jv-table-cell--title"
+                    role="cell"
+                  >
+                    {job.title}
+                  </span>
+
+                  <span className="jv-table-cell" role="cell" data-label="Type">
+                    {formatJobType(job.job_type)}
+                  </span>
+
+                  <span
+                    className="jv-table-cell"
+                    role="cell"
+                    data-label="Applications"
+                  >
+                    <button
+                      type="button"
+                      className="jv-applicants-link"
+                      onClick={() => setViewingJob(job)}
+                      disabled={applicationCount === 0}
+                      aria-label={`${applicationCount} applicant${applicationCount === 1 ? "" : "s"} for ${job.title}`}
+                    >
+                      {applicationCount}
+                    </button>
+                  </span>
+
+                  <span
+                    role="cell"
+                    data-label="Deadline"
+                    className={`jv-table-cell${isExpired ? " jv-table-cell--expired" : " jv-table-cell--muted"}`}
+                  >
+                    {job.deadline
+                      ? new Date(job.deadline).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : remaining === null
+                        ? "No deadline"
+                        : `${remaining} days`}
+                  </span>
+
+                  <span role="cell" data-label="Status">
+                    <span
+                      className="jv-status-badge"
+                      style={{
+                        color: status.color,
+                        background: status.bg,
+                      }}
+                    >
+                      {status.label}
+                    </span>
+                  </span>
+
+                  <div className="jv-row-actions" role="cell">
+                    <button
+                      type="button"
+                      className="jv-icon-btn"
+                      onClick={() => setViewingJob(job)}
+                      aria-label={`View applicants for ${job.title}`}
+                    >
+                      <Users size={14} aria-hidden="true" />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="jv-icon-btn"
+                      onClick={() => setEditingJob(job)}
+                      aria-label={`Edit ${job.title}`}
+                    >
+                      <Pencil size={14} aria-hidden="true" />
+                    </button>
+
+                    {job.status !== "closed" && (
+                      <button
+                        type="button"
+                        className="jv-icon-btn jv-icon-btn--danger"
+                        onClick={() => setClosingJob(job)}
+                        aria-label={`Close posting for ${job.title}`}
+                      >
+                        <XCircle size={14} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {filteredJobs.length === 0 && (
-            <p className="jv-empty-inline">
+            <p className="jv-empty-inline" role="status">
               No {activeFilter.toLowerCase()} jobs.
             </p>
           )}
-
-          {filteredJobs.map((job) => {
-            const status =
-              STATUS_LABELS[job._displayStatus] ?? STATUS_LABELS.draft;
-            const remaining = daysUntil(job.deadline);
-            const isExpired = job._displayStatus === "expired";
-            return (
-              <div key={job.id} className="jv-table-row">
-                <span className="jv-table-cell jv-table-cell--title">
-                  {job.title}
-                </span>
-                <span className="jv-table-cell">
-                  {formatJobType(job.job_type)}
-                </span>
-                <span className="jv-table-cell">
-                  <button
-                    type="button"
-                    className="jv-applicants-link"
-                    onClick={() => setViewingJob(job)}
-                    disabled={job.applicationCount === 0}
-                  >
-                    {job.applicationCount}
-                  </button>
-                </span>
-                <span
-                  className={`jv-table-cell${isExpired ? " jv-table-cell--expired" : " jv-table-cell--muted"}`}
-                >
-                  {job.deadline
-                    ? new Date(job.deadline).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    : remaining === null
-                      ? "No deadline"
-                      : `${remaining} days`}
-                </span>
-                <span
-                  className="jv-status-badge"
-                  style={{ color: status.color, background: status.bg }}
-                >
-                  {status.label}
-                </span>
-                <div className="jv-row-actions">
-                  <button
-                    className="jv-icon-btn"
-                    title="View applicants"
-                    onClick={() => setViewingJob(job)}
-                  >
-                    <Users size={14} />
-                  </button>
-                  <button
-                    className="jv-icon-btn"
-                    title="Edit"
-                    onClick={() => setEditingJob(job)}
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  {job.status !== "closed" && (
-                    <button
-                      className="jv-icon-btn jv-icon-btn--danger"
-                      title="Close posting"
-                      onClick={() => handleClose(job.id)}
-                    >
-                      <XCircle size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
         </div>
       )}
 
@@ -289,6 +352,18 @@ export default function JobsView({ employerId }) {
           opportunityId={viewingJob.id}
           jobTitle={viewingJob.title}
           onClose={() => setViewingJob(null)}
+        />
+      )}
+      {closingJob && (
+        <ConfirmDialog
+          title={`Close "${closingJob.title}"?`}
+          description="Students won't be able to apply anymore. Existing applications are kept."
+          confirmLabel="Close posting"
+          busyLabel="Closing..."
+          danger
+          busy={closing}
+          onCancel={() => setClosingJob(null)}
+          onConfirm={confirmClose}
         />
       )}
     </div>

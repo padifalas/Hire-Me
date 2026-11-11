@@ -3,6 +3,7 @@ import {
   createOpportunity,
   updateOpportunity,
 } from "../../services/employerService";
+import useDialog from "../../hooks/useDialog";
 
 import "./JobPostingForm.css";
 
@@ -22,18 +23,25 @@ const BEE_OPTIONS = [
 ];
 
 function TagInput({
+  id,
   label,
+  required,
   tags,
   onChange,
   placeholder,
   variant = "required",
+  invalid,
+  errorId,
 }) {
   const [draft, setDraft] = useState("");
+  const [announce, setAnnounce] = useState("");
+  const hintId = `${id}-hint`;
 
   function addTag() {
     const trimmed = draft.trim();
     if (trimmed && !tags.includes(trimmed)) {
       onChange([...tags, trimmed]);
+      setAnnounce(`Added ${trimmed}. ${tags.length + 1} total.`);
     }
     setDraft("");
   }
@@ -47,28 +55,44 @@ function TagInput({
 
   function removeTag(tag) {
     onChange(tags.filter((t) => t !== tag));
+    setAnnounce(`Removed ${tag}. ${tags.length - 1} remaining.`);
+    document.getElementById(id)?.focus();
   }
 
   return (
     <div className="jpf-field">
-      <label>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <div className="jpf-tag-input">
         {tags.map((tag) => (
           <span key={tag} className={`jpf-tag jpf-tag--${variant}`}>
             {tag}
-            <button type="button" onClick={() => removeTag(tag)}>
-              <X size={11} />
+            <button
+              type="button"
+              onClick={() => removeTag(tag)}
+              aria-label={`Remove ${tag}`}
+            >
+              <X size={11} aria-hidden="true" />
             </button>
           </span>
         ))}
         <input
+          id={id}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={addTag}
           placeholder={placeholder}
+          aria-describedby={`${hintId}${invalid ? ` ${errorId}` : ""}`}
+          aria-required={required || undefined}
+          aria-invalid={invalid || undefined}
         />
       </div>
+      <span className="jpf-hint" id={hintId}>
+        Press Enter or comma after each skill. {tags.length} added.
+      </span>
+      <span className="sr-only" role="status" aria-live="polite">
+        {announce}
+      </span>
     </div>
   );
 }
@@ -95,8 +119,14 @@ export default function JobPostingForm({
     beePreference: existingJob?.bee_preference ?? "",
   });
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // { field, message }
   const [submitting, setSubmitting] = useState(false);
+
+  const dialogRef = useDialog({ onClose, closeDisabled: submitting });
+
+  const invalid = (fieldId) => (error?.field === fieldId ? true : undefined);
+  const describedBy = (fieldId) =>
+    error?.field === fieldId ? "jpf-error" : undefined;
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -104,27 +134,40 @@ export default function JobPostingForm({
   }
 
   function validate() {
-    if (!form.title || !form.description || !form.location) {
-      return "Please fill in the job title, description, and location.";
-    }
+    if (!form.title)
+      return { field: "jpf-title", message: "Please enter a job title." };
+    if (!form.description)
+      return {
+        field: "jpf-description",
+        message: "Please enter a job description.",
+      };
+    if (!form.location)
+      return { field: "jpf-location", message: "Please enter a location." };
     if (form.requiredSkills.length === 0) {
-      return "Add at least one required skill so we can match candidates.";
+      return {
+        field: "jpf-required-skills",
+        message: "Add at least one required skill so we can match candidates.",
+      };
     }
     if (
       form.salaryMin &&
       form.salaryMax &&
       Number(form.salaryMin) > Number(form.salaryMax)
     ) {
-      return "Minimum salary can't be higher than maximum salary.";
+      return {
+        field: "jpf-salary-max",
+        message: "Minimum salary can't be higher than maximum salary.",
+      };
     }
     return null;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    const problem = validate();
+    if (problem) {
+      setError(problem);
+      document.getElementById(problem.field)?.focus();
       return;
     }
 
@@ -145,74 +188,115 @@ export default function JobPostingForm({
     setSubmitting(false);
 
     if (!result.success) {
-      setError(result.error);
+      setError({ field: null, message: result.error });
       return;
     }
-
     onSaved(result.opportunity);
   }
 
   return (
-    <div className="jpf-overlay" onClick={onClose}>
-      <div className="jpf-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="jpf-overlay"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !submitting) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="jpf-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="jpf-heading"
+        tabIndex={-1}
+      >
         <div className="jpf-modal__header">
-          <h2>{isEditing ? "Edit job posting" : "Post a new job"}</h2>
-          <button className="jpf-close-btn" onClick={onClose}>
-            <X size={18} />
+          <h2 id="jpf-heading">
+            {isEditing ? "Edit job posting" : "Post a new job"}
+          </h2>
+          <button
+            type="button"
+            className="jpf-close-btn"
+            onClick={onClose}
+            disabled={submitting}
+            aria-label="Close job form"
+          >
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="jpf-form">
+        <form onSubmit={handleSubmit} className="jpf-form" noValidate>
+          <p className="jpf-required-note">Fields marked * are required.</p>
+
           <div className="jpf-field">
-            <label>Job title *</label>
+            <label htmlFor="jpf-title">Job title *</label>
             <input
+              id="jpf-title"
               name="title"
               value={form.title}
               onChange={handleChange}
               placeholder="Junior Full-Stack Developer"
+              autoComplete="off"
+              aria-required="true"
+              aria-invalid={invalid("jpf-title")}
+              aria-describedby={describedBy("jpf-title")}
             />
           </div>
 
           <div className="jpf-field">
-            <label>Description *</label>
+            <label htmlFor="jpf-description">Description *</label>
             <textarea
+              id="jpf-description"
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Describe the role, responsibilities, and what makes it a great opportunity..."
               rows={5}
+              placeholder="Describe the role, responsibilities, and what makes it a great opportunity..."
+              aria-required="true"
+              aria-invalid={invalid("jpf-description")}
+              aria-describedby={describedBy("jpf-description")}
             />
           </div>
 
           <TagInput
+            id="jpf-required-skills"
             label="Required skills *"
+            required
             tags={form.requiredSkills}
             onChange={(tags) => setForm({ ...form, requiredSkills: tags })}
-            placeholder="Type a skill and press Enter (e.g. React)"
+            placeholder="e.g. React"
             variant="required"
+            invalid={invalid("jpf-required-skills")}
+            errorId="jpf-error"
           />
 
           <TagInput
+            id="jpf-nice-skills"
             label="Nice-to-have skills"
             tags={form.niceToHaveSkills}
             onChange={(tags) => setForm({ ...form, niceToHaveSkills: tags })}
-            placeholder="Type a skill and press Enter"
+            placeholder="e.g. TypeScript"
             variant="nice"
           />
 
           <div className="jpf-grid">
             <div className="jpf-field">
-              <label>Location *</label>
+              <label htmlFor="jpf-location">Location *</label>
               <input
+                id="jpf-location"
                 name="location"
                 value={form.location}
                 onChange={handleChange}
                 placeholder="Johannesburg"
+                autoComplete="off"
+                aria-required="true"
+                aria-invalid={invalid("jpf-location")}
+                aria-describedby={describedBy("jpf-location")}
               />
             </div>
             <div className="jpf-field">
-              <label>Job type</label>
+              <label htmlFor="jpf-job-type">Job type</label>
               <select
+                id="jpf-job-type"
                 name="jobType"
                 value={form.jobType}
                 onChange={handleChange}
@@ -225,9 +309,11 @@ export default function JobPostingForm({
               </select>
             </div>
             <div className="jpf-field">
-              <label>Min salary (ZAR/month)</label>
+              <label htmlFor="jpf-salary-min">Min salary (ZAR/month)</label>
               <input
+                id="jpf-salary-min"
                 type="number"
+                inputMode="numeric"
                 name="salaryMin"
                 value={form.salaryMin}
                 onChange={handleChange}
@@ -236,19 +322,24 @@ export default function JobPostingForm({
               />
             </div>
             <div className="jpf-field">
-              <label>Max salary (ZAR/month)</label>
+              <label htmlFor="jpf-salary-max">Max salary (ZAR/month)</label>
               <input
+                id="jpf-salary-max"
                 type="number"
+                inputMode="numeric"
                 name="salaryMax"
                 value={form.salaryMax}
                 onChange={handleChange}
                 placeholder="e.g. 18000"
                 min="0"
+                aria-invalid={invalid("jpf-salary-max")}
+                aria-describedby={describedBy("jpf-salary-max")}
               />
             </div>
             <div className="jpf-field">
-              <label>Application deadline</label>
+              <label htmlFor="jpf-deadline">Application deadline</label>
               <input
+                id="jpf-deadline"
                 type="date"
                 name="deadline"
                 value={form.deadline}
@@ -256,8 +347,9 @@ export default function JobPostingForm({
               />
             </div>
             <div className="jpf-field">
-              <label>BEE preference</label>
+              <label htmlFor="jpf-bee">BEE preference</label>
               <select
+                id="jpf-bee"
                 name="beePreference"
                 value={form.beePreference}
                 onChange={handleChange}
@@ -281,10 +373,19 @@ export default function JobPostingForm({
             This role offers remote / hybrid work
           </label>
 
-          {error && <p className="jpf-error">{error}</p>}
+          {error && (
+            <p className="jpf-error" id="jpf-error" role="alert">
+              {error.message}
+            </p>
+          )}
 
           <div className="jpf-actions">
-            <button type="button" className="jpf-cancel-btn" onClick={onClose}>
+            <button
+              type="button"
+              className="jpf-cancel-btn"
+              onClick={onClose}
+              disabled={submitting}
+            >
               Cancel
             </button>
             <button
@@ -292,7 +393,7 @@ export default function JobPostingForm({
               className="jpf-submit-btn"
               disabled={submitting}
             >
-              <Plus size={15} />
+              <Plus size={15} aria-hidden="true" />
               {submitting
                 ? "Saving..."
                 : isEditing

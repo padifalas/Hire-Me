@@ -144,3 +144,38 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.epv-field-hint,
+.epv-avatar-hint,
+.epv-loading {
+  color: var(--color-text-muted);
+}
+.epv-subtitle {
+  color: #475569;
+}
+.epv-field input:disabled {
+  color: #64748b;
+}
+.epv-avatar-dropzone:focus-within {
+  border-color: var(--color-primary-strong);
+  box-shadow: 0 0 0 3px rgba(194, 48, 0, 0.15);
+}
+.epv-field input {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .epv-card {
+    padding: 16px;
+    max-width: none;
+  }
+  .epv-field input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .epv-save-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}

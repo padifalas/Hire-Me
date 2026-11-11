@@ -24,12 +24,25 @@ function snoozeKey(employerId) {
 }
 
 function isSnoozed(employerId) {
-  const raw = localStorage.getItem(snoozeKey(employerId));
-  if (!raw) return false;
-  const snoozedAt = Number(raw);
-  if (Number.isNaN(snoozedAt)) return false;
-  const daysSince = (Date.now() - snoozedAt) / (1000 * 60 * 60 * 24);
-  return daysSince < SNOOZE_DAYS;
+  try {
+    const raw = localStorage.getItem(snoozeKey(employerId));
+    if (!raw) return false;
+    const snoozedAt = Number(raw);
+    if (Number.isNaN(snoozedAt)) return false;
+    return (Date.now() - snoozedAt) / (1000 * 60 * 60 * 24) < SNOOZE_DAYS;
+  } catch {
+    return false;
+  }
+}
+
+function handleDismiss() {
+  try {
+    localStorage.setItem(snoozeKey(employerId), String(Date.now()));
+  } catch {
+    /* storage blocked: toast just shows again next visit */
+  }
+  setDismissed(true);
+  document.getElementById("ed-main")?.focus();
 }
 
 // Employer-side mirror of the student ProfileReminder. Self-fetches
@@ -76,8 +89,12 @@ export default function CompanyProfileReminderToast({
   }
 
   return (
-    <div className="prt-toast" role="status">
-      <div className="prt-toast-icon">
+    <div
+      className="prt-toast"
+      role="region"
+      aria-label="Company profile reminder"
+    >
+      <div className="prt-toast-icon" aria-hidden="true">
         <Sparkles size={16} />
       </div>
       <div className="prt-toast-body">
@@ -95,15 +112,15 @@ export default function CompanyProfileReminderToast({
           className="prt-toast-cta"
           onClick={handleGoToProfile}
         >
-          Complete profile <ArrowRight size={13} />
+          Complete profile <ArrowRight size={13} aria-hidden="true" />
         </button>
         <button
           type="button"
           className="prt-toast-dismiss"
           onClick={handleDismiss}
-          aria-label="Dismiss"
+          aria-label="Dismiss reminder for 3 days"
         >
-          <X size={15} />
+          <X size={15} aria-hidden="true" />
         </button>
       </div>
     </div>
