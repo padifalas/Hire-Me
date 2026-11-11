@@ -17,7 +17,7 @@ import Footer from "../layout/footer.jsx";
 import "../layout/footer.css";
 import ProfileView from "./ProfileView.jsx";
 import OpportunitiesView from "./OpportunitiesView.jsx";
-import HireMeLogo from "../../assets/HireMeLogo.png";
+import HireMeLogo2 from "../../assets/HireMeLogo2.png";
 
 import ProfileReminder from "./ProfileReminder.jsx";
 import "./ProfileReminder.css";
@@ -996,12 +996,13 @@ function StudentDashboard() {
       )}
       {/* Sidebar */}
       <aside
+        id="sd-sidebar"
         className={`sd-sidebar${sidebarOpen ? "" : " sd-sidebar--collapsed"}${mobileNavOpen ? " sd-sidebar--mobile-open" : ""}`}
       >
         <div className="sd-sidebar__brand">
           <div className="sd-sidebar__brand-inner">
             <img
-              src={HireMeLogo}
+              src={HireMeLogo2}
               alt="HireMe logo"
               className="sd-sidebar__logo-img"
             />
@@ -1010,38 +1011,49 @@ function StudentDashboard() {
 
         <nav className="sd-sidebar__nav" aria-label="Main">
           <div className="sd-sidebar__user">
-            <div className="sd-sidebar__avatar">
-              {userProfile?.avatar_url ? (
-                <img
-                  src={userProfile.avatar_url}
-                  alt=""
-                  className="sd-sidebar__avatar-img"
-                />
-              ) : (
-                student.initials
+            <div className="sd-sidebar__user-top">
+              <div className="sd-sidebar__avatar">
+                {userProfile?.avatar_url ? (
+                  <img
+                    src={userProfile.avatar_url}
+                    alt=""
+                    className="sd-sidebar__avatar-img"
+                  />
+                ) : (
+                  student.initials
+                )}
+              </div>
+              {expanded && (
+                <div className="sd-sidebar__user-info">
+                  <div className="sd-sidebar__user-name">{student.name}</div>
+                  <div className="sd-sidebar__user-sub">
+                    Student · {student.university}
+                  </div>
+                </div>
               )}
             </div>
-            {expanded && (
-              <div className="sd-sidebar__user-info">
-                <div className="sd-sidebar__user-row">
-                  <div>
-                    <div className="sd-sidebar__user-name">{student.name}</div>
-                    <div className="sd-sidebar__user-sub">
-                      Student · {student.university}
-                    </div>
-                  </div>
-                  <span className="sd-sidebar__user-pct">
-                    {profileStrength}% profile
-                  </span>
+
+            <div
+              className="sd-meter"
+              role="progressbar"
+              aria-label="Profile strength"
+              aria-valuenow={profileStrength}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              {expanded && (
+                <div className="sd-meter__row">
+                  <span className="sd-meter__label">Profile strength</span>
+                  <span className="sd-meter__pct">{profileStrength}%</span>
                 </div>
-                <div className="sd-sidebar__progress-track">
-                  <div
-                    className="sd-sidebar__progress-fill"
-                    style={{ width: `${profileStrength}%` }}
-                  />
-                </div>
+              )}
+              <div className="sd-meter__track">
+                <div
+                  className={`sd-meter__fill${profileStrength >= 100 ? " sd-meter__fill--complete" : ""}`}
+                  style={{ width: `${profileStrength}%` }}
+                />
               </div>
-            )}
+            </div>
           </div>
 
           {NAV_ITEMS.map(({ icon: Icon, label, id }) => {
@@ -1070,28 +1082,21 @@ function StudentDashboard() {
         </nav>
 
         <div className="sd-sidebar__footer">
-          {expanded && (
+          {sidebarOpen && (
             <button
               className="sd-signout-btn"
               onClick={() => setConfirmingSignOut(true)}
               disabled={signingOut}
             >
-              <LogOut size={15} aria-hidden="true" />
+              <LogOut size={15} />
               Sign out
             </button>
           )}
           <button
             className="sd-collapse-btn"
             onClick={() => setSidebarOpen((o) => !o)}
-            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            aria-expanded={sidebarOpen}
-            aria-controls="sd-sidebar"
           >
-            {sidebarOpen ? (
-              <X size={18} aria-hidden="true" />
-            ) : (
-              <Menu size={18} aria-hidden="true" />
-            )}
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
           <button

@@ -280,18 +280,18 @@
 
 .ed-bell-btn {
   position: relative;
-  background: transparent;
-  border: none;
+  background: #fff;
+  border: 1px solid #e8edf2;
   cursor: pointer;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   transition: background 0.15s;
 }
 
 .ed-bell-btn:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 .ed-bell-dot {
