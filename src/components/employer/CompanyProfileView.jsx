@@ -1,13 +1,25 @@
 import { useState, useEffect } from "react";
-import { getEmployerProfile, updateEmployerProfile, uploadCompanyLogo } from "../../services/employerService";
+import {
+  getEmployerProfile,
+  updateEmployerProfile,
+  uploadCompanyLogo,
+} from "../../services/employerService";
 
 import "./CompanyProfileView.css";
 
 import { ImageIcon, CheckCircle2 } from "lucide-react";
 
 const INDUSTRIES = [
-  "Software / IT", "Finance / Banking", "Retail / E-commerce", "Telecommunications",
-  "Manufacturing", "Consulting", "Healthcare", "Education", "Media / Marketing", "Other",
+  "Software / IT",
+  "Finance / Banking",
+  "Retail / E-commerce",
+  "Telecommunications",
+  "Manufacturing",
+  "Consulting",
+  "Healthcare",
+  "Education",
+  "Media / Marketing",
+  "Other",
 ];
 
 const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
@@ -81,8 +93,10 @@ export default function CompanyProfileView({ user }) {
     }
   }
 
-  if (loading) return <div className="cpv-loading">Loading company profile...</div>;
-  if (!profile || !form) return <div className="cpv-loading">Couldn't load company profile.</div>;
+  if (loading)
+    return <div className="cpv-loading">Loading company profile...</div>;
+  if (!profile || !form)
+    return <div className="cpv-loading">Couldn't load company profile.</div>;
 
   const displayedLogo = logoPreview || profile.logo_url;
 
@@ -90,7 +104,9 @@ export default function CompanyProfileView({ user }) {
     <div className="cpv-root">
       <div className="cpv-header">
         <h1 className="cpv-title">Company Profile</h1>
-        <p className="cpv-subtitle">This is what students see on your job postings.</p>
+        <p className="cpv-subtitle">
+          This is what students see on your job postings.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="cpv-card">
@@ -99,57 +115,98 @@ export default function CompanyProfileView({ user }) {
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="sr-only"
               onChange={(e) => handleLogoSelect(e.target.files?.[0] ?? null)}
-              hidden
             />
             {displayedLogo ? (
-              <img src={displayedLogo} alt="Company logo" />
+              <img src={displayedLogo} alt="" />
             ) : (
-              <ImageIcon size={20} />
+              <ImageIcon size={20} aria-hidden="true" />
             )}
+            <span className="sr-only">Change company logo</span>
           </label>
           <div>
             <div className="cpv-logo-label">Company logo</div>
-            <div className="cpv-logo-hint">Click the square to upload or replace (max 2MB)</div>
+            <div className="cpv-logo-hint">
+              Click the square to upload or replace (max 2MB)
+            </div>
           </div>
         </div>
 
         <div className="cpv-fields-grid">
           <div className="cpv-field">
-            <label>Company name</label>
-            <input name="companyName" value={form.companyName} onChange={handleChange} />
+            <label htmlFor="cpv-company">Company name</label>
+            <input
+              id="cpv-company"
+              name="companyName"
+              value={form.companyName}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="cpv-field">
-            <label>Industry</label>
-            <select name="industry" value={form.industry} onChange={handleChange}>
-              <option value="" disabled>Select an industry</option>
+            <label htmlFor="cpv-industry">Industry</label>
+            <select
+              id="cpv-industry"
+              name="industry"
+              value={form.industry}
+              onChange={handleChange}
+            >
+              <option value="" disabled>
+                Select an industry
+              </option>
               {INDUSTRIES.map((i) => (
-                <option key={i} value={i}>{i}</option>
+                <option key={i} value={i}>
+                  {i}
+                </option>
               ))}
             </select>
           </div>
+
           <div className="cpv-field">
-            <label>Company size</label>
-            <select name="companySize" value={form.companySize} onChange={handleChange}>
-              <option value="" disabled>Select company size</option>
+            <label htmlFor="cpv-size">Company size</label>
+            <select
+              id="cpv-size"
+              name="companySize"
+              value={form.companySize}
+              onChange={handleChange}
+            >
+              <option value="" disabled>
+                Select company size
+              </option>
               {COMPANY_SIZES.map((s) => (
-                <option key={s} value={s}>{s} employees</option>
+                <option key={s} value={s}>
+                  {s} employees
+                </option>
               ))}
             </select>
           </div>
+
           <div className="cpv-field">
-            <label>Location (city)</label>
-            <input name="location" value={form.location} onChange={handleChange} />
+            <label htmlFor="cpv-location">Location (city)</label>
+            <input
+              id="cpv-location"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="cpv-field">
-            <label>Website</label>
-            <input name="website" value={form.website} onChange={handleChange} />
+            <label htmlFor="cpv-website">Website</label>
+            <input
+              id="cpv-website"
+              name="website"
+              value={form.website}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
         <div className="cpv-field">
-          <label>Description</label>
+          <label htmlFor="cpv-description">Description</label>
           <textarea
+            id="cpv-description"
             name="description"
             value={form.description}
             onChange={handleChange}
@@ -168,11 +225,16 @@ export default function CompanyProfileView({ user }) {
         </label>
 
         {saveMessage && (
-          <p className="cpv-save-message">
-            <CheckCircle2 size={14} /> {saveMessage}
+          <p className="cpv-save-message" role="status">
+            <CheckCircle2 size={14} aria-hidden="true" /> {saveMessage}
           </p>
         )}
-        {error && <p className="cpv-error">{error}</p>}
+
+        {error && (
+          <p className="cpv-error" role="alert">
+            {error}
+          </p>
+        )}
 
         <button type="submit" className="cpv-save-btn" disabled={saving}>
           {saving ? "Saving..." : "Save changes"}

@@ -3,8 +3,8 @@ import {
   getDocumentSignedUrl,
   extractTextFromStoredDocument,
 } from "../../services/documentService";
-
 import "./DocumentViewerModal.css";
+import useDialog from "../../hooks/useDialog";
 
 import { X, Download, Loader2, AlertCircle } from "lucide-react";
 
@@ -24,6 +24,8 @@ export default function DocumentViewerModal({
   const [signedUrl, setSignedUrl] = useState(null);
   const [textPreview, setTextPreview] = useState(null);
   const [downloading, setDownloading] = useState(false);
+
+  const dialogRef = useDialog({ onClose });
 
   const isPdf = isPdfPath(storagePath) || isPdfPath(fileName);
 
@@ -87,11 +89,23 @@ export default function DocumentViewerModal({
   const label = docType === "cv" ? "CV" : "Academic transcript";
 
   return (
-    <div className="dvm-backdrop" onClick={onClose}>
-      <div className="dvm-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="dvm-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="dvm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dvm-title"
+        tabIndex={-1}
+      >
         <div className="dvm-header">
           <div>
-            <p className="dvm-title">
+            <p className="dvm-title" id="dvm-title">
               {label}
               {subjectName ? ` · ${subjectName}` : ""}
             </p>
@@ -103,25 +117,29 @@ export default function DocumentViewerModal({
               onClick={handleDownload}
               disabled={!signedUrl || downloading}
             >
-              <Download size={14} />
+              <Download size={14} aria-hidden="true" />
               {downloading ? "Downloading..." : "Download"}
             </button>
-            <button className="dvm-close-btn" onClick={onClose}>
-              <X size={18} />
+            <button
+              className="dvm-close-btn"
+              onClick={onClose}
+              aria-label="Close document"
+            >
+              <X size={18} aria-hidden="true" />
             </button>
           </div>
         </div>
 
         <div className="dvm-body">
           {loading && (
-            <div className="dvm-status">
+            <div className="dvm-status" role="status">
               <Loader2 size={20} className="dvm-spin" />
               Loading document...
             </div>
           )}
 
           {!loading && error && (
-            <div className="dvm-status dvm-status--error">
+            <div className="dvm-status dvm-status--error" role="alert">
               <AlertCircle size={20} />
               {error}
             </div>
