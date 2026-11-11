@@ -31,20 +31,24 @@ function niceMax(value) {
 }
 
 function StatCard({ value, label, delta, invertDelta = false }) {
-  // For "time to review", a drop is good - flip which direction reads green.
-  const isPositive =
-    delta === null ? null : invertDelta ? delta < 0 : delta > 0;
-  const Icon = delta !== null && delta < 0 ? TrendingDown : TrendingUp;
+  const hasDelta = delta !== null && delta !== undefined;
+  const tone =
+    !hasDelta || delta === 0
+      ? "flat"
+      : (invertDelta ? delta < 0 : delta > 0)
+        ? "up"
+        : "down";
+  const Icon = hasDelta && delta < 0 ? TrendingDown : TrendingUp;
+  const direction = delta > 0 ? "Up" : delta < 0 ? "Down" : "No change";
 
   return (
     <div className="av-stat-card">
       <div className="av-stat-card__value">{value}</div>
       <div className="av-stat-card__label">{label}</div>
-      {delta !== null && (
-        <div
-          className={`av-stat-card__delta${isPositive ? " av-stat-card__delta--up" : " av-stat-card__delta--down"}`}
-        >
-          <Icon size={13} />
+      {hasDelta && (
+        <div className={`av-stat-card__delta av-stat-card__delta--${tone}`}>
+          <Icon size={13} aria-hidden="true" />
+          <span className="sr-only">{direction} </span>
           {delta > 0 ? "+" : ""}
           {delta}% vs last month
         </div>
@@ -83,60 +87,90 @@ function ApplicationsChart({ data }) {
   const gridValues = [0, maxY / 2, maxY];
 
   return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      className="av-chart-svg"
-      preserveAspectRatio="none"
-      role="img"
-      aria-label="Applications over time"
+    <div
+      className="av-chart-scroll"
+      role="region"
+      aria-label="Applications over time chart"
+      tabIndex={0}
     >
-      <defs>
-        <linearGradient id="avAreaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f34100" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#f34100" stopOpacity="0" />
-        </linearGradient>
-      </defs>
+      <table className="sr-only">
+        <caption>Applications received per month</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col">Applications</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.label}>
+              <th scope="row">{d.label}</th>
+              <td>{d.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      {gridValues.map((v) => (
-        <g key={v}>
-          <line
-            x1={padL}
-            y1={y(v)}
-            x2={w - padR}
-            y2={y(v)}
-            stroke="#e2e8f0"
-            strokeDasharray="4 4"
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        className="av-chart-svg"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <linearGradient id="avAreaFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f34100" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#f34100" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {gridValues.map((v) => (
+          <g key={v}>
+            <line
+              x1={padL}
+              y1={y(v)}
+              x2={w - padR}
+              y2={y(v)}
+              stroke="#e2e8f0"
+              strokeDasharray="4 4"
+            />
+            <text
+              x={padL - 8}
+              y={y(v) + 4}
+              className="av-axis-label"
+              textAnchor="end"
+            >
+              {v}
+            </text>
+          </g>
+        ))}
+
+        <path d={areaPath} fill="url(#avAreaFill)" />
+        <path d={linePath} fill="none" stroke="#f34100" strokeWidth="2.5" />
+
+        {data.map((d, i) => (
+          <circle
+            key={d.label}
+            cx={x(i)}
+            cy={y(d.value)}
+            r="4"
+            fill="#f34100"
           />
+        ))}
+
+        {data.map((d, i) => (
           <text
-            x={padL - 8}
-            y={y(v) + 4}
+            key={`${d.label}-x`}
+            x={x(i)}
+            y={h - 8}
             className="av-axis-label"
-            textAnchor="end"
+            textAnchor="middle"
           >
-            {v}
+            {d.label}
           </text>
-        </g>
-      ))}
-
-      <path d={areaPath} fill="url(#avAreaFill)" />
-      <path d={linePath} fill="none" stroke="#f34100" strokeWidth="2.5" />
-
-      {data.map((d, i) => (
-        <circle key={d.label} cx={x(i)} cy={y(d.value)} r="4" fill="#f34100" />
-      ))}
-
-      {data.map((d, i) => (
-        <text
-          key={`${d.label}-x`}
-          x={x(i)}
-          y={h - 8}
-          className="av-axis-label"
-          textAnchor="middle"
-        >
-          {d.label}
-        </text>
-      ))}
-    </svg>
+        ))}
+      </svg>
+    </div>
   );
 }
 
@@ -144,9 +178,11 @@ function BeeBreakdownPanel({ totalPooled, breakdown }) {
   const hasEnoughData = totalPooled >= BEE_MIN_POOL_SIZE;
 
   return (
-    <div className="ed-card">
+    <section className="ed-card" aria-labelledby="av-bee-title">
       <div className="av-panel-header">
-        <span className="ed-card__title">BEE Breakdown</span>
+        <h2 className="ed-card__title" id="av-bee-title">
+          BEE Breakdown
+        </h2>
         {hasEnoughData && (
           <span className="av-panel-sub">{totalPooled} applicants pooled</span>
         )}
@@ -163,7 +199,7 @@ function BeeBreakdownPanel({ totalPooled, breakdown }) {
         </div>
       ) : (
         <>
-          <div className="av-bee-bar">
+          <div className="av-bee-bar" aria-hidden="true">
             {BEE_CATEGORIES.map((cat) => (
               <span
                 key={cat.key}
@@ -181,10 +217,11 @@ function BeeBreakdownPanel({ totalPooled, breakdown }) {
               <div key={cat.key} className="av-bee-legend__row">
                 <span
                   className="av-bee-legend__dot"
+                  aria-hidden="true"
                   style={{ background: cat.color }}
                 />
                 <span className="av-bee-legend__label">{cat.label}</span>
-                <div className="av-bee-legend__track">
+                <div className="av-bee-legend__track" aria-hidden="true">
                   <div
                     className="av-bee-legend__fill"
                     style={{
@@ -201,18 +238,29 @@ function BeeBreakdownPanel({ totalPooled, breakdown }) {
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 }
 
+const SCORE_TEXT_COLORS = {
+  "0-39": "#475569",
+  "40-59": "#c23000",
+  "60-79": "#b45309",
+  "80-100": "#15803d",
+};
+
 function ScoreDistribution({ data }) {
   const max = Math.max(...data.map((d) => d.count), 1);
-
   return (
-    <div className="av-dist">
+    <div className="av-dist" role="list">
       {data.map((bucket) => (
-        <div key={bucket.label} className="av-dist__col">
-          <div className="av-dist__bar-wrap">
+        <div
+          key={bucket.label}
+          className="av-dist__col"
+          role="listitem"
+          aria-label={`Score ${bucket.label}: ${bucket.count} application${bucket.count === 1 ? "" : "s"}`}
+        >
+          <div className="av-dist__bar-wrap" aria-hidden="true">
             <div
               className="av-dist__bar"
               style={{
@@ -223,11 +271,14 @@ function ScoreDistribution({ data }) {
           </div>
           <div
             className="av-dist__count"
-            style={{ color: SCORE_COLORS[bucket.label] }}
+            aria-hidden="true"
+            style={{ color: SCORE_TEXT_COLORS[bucket.label] }}
           >
             {bucket.count}
           </div>
-          <div className="av-dist__label">{bucket.label}</div>
+          <div className="av-dist__label" aria-hidden="true">
+            {bucket.label}
+          </div>
         </div>
       ))}
     </div>
@@ -280,7 +331,7 @@ export default function AnalyticsView({ employerId }) {
         </p>
       </div>
 
-      <div className="av-stat-cards">
+      <section className="av-stat-cards" aria-label="Key metrics">
         <StatCard
           value={analytics.totalApplications}
           label="Total Applications"
@@ -306,15 +357,17 @@ export default function AnalyticsView({ employerId }) {
           label="Offer Rate"
           delta={analytics.deltas.offerRate}
         />
-      </div>
+      </section>
 
       <div className="av-main-grid">
-        <div className="ed-card">
+        <section className="ed-card" aria-labelledby="applications-title">
           <div className="av-panel-header">
-            <span className="ed-card__title">Applications Over Time</span>
+            <h2 className="ed-card__title" id="applications-title">
+              Applications Over Time
+            </h2>
           </div>
           <ApplicationsChart data={analytics.applicationsOverTime} />
-        </div>
+        </section>
 
         <BeeBreakdownPanel
           totalPooled={beeStats.totalPooled}
@@ -322,15 +375,17 @@ export default function AnalyticsView({ employerId }) {
         />
       </div>
 
-      <div className="ed-card">
+      <section className="ed-card" aria-labelledby="score-distribution-title">
         <div className="av-panel-header">
-          <span className="ed-card__title">Match Score Distribution</span>
+          <h2 className="ed-card__title" id="score-distribution-title">
+            Match Score Distribution
+          </h2>
           <span className="av-panel-sub">
             Colour bands follow PRD scoring tiers
           </span>
         </div>
         <ScoreDistribution data={analytics.scoreDistribution} />
-      </div>
+      </section>
     </div>
   );
 }
