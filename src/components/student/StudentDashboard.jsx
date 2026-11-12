@@ -21,6 +21,7 @@ import "../layout/footer.css";
 import ProfileView from "./ProfileView.jsx";
 import OpportunitiesView from "./OpportunitiesView.jsx";
 import HireMeLogo2 from "../../assets/HireMeLogo2.png";
+import ApplicationsView from "./ApplicationsView.jsx";
 
 import ProfileReminder from "./ProfileReminder.jsx";
 import "./ProfileReminder.css";
@@ -48,8 +49,6 @@ import {
   CheckCircle2,
   Circle,
   Sparkles,
-  SlidersHorizontal,
-  ClipboardList,
   LogOut,
   X,
 } from "lucide-react";
@@ -728,177 +727,6 @@ function DashboardView({ studentName, user, onNavigate, onOpenNotification }) {
         </div>
       </div>
     </>
-  );
-}
-
-/* applications  */
-
-function ApplicationsView({ user, highlightId, onHighlightHandled }) {
-  const [activeTab, setActiveTab] = useState("All");
-  const [activeHighlight, setActiveHighlight] = useState(null);
-  const [sortBy, setSortBy] = useState("date"); // "date" | "status"
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoading(true);
-      const result = await getStudentApplicationsWithDetails(user.id);
-      if (result.success) setApplications(result.applications);
-      setLoading(false);
-    })();
-  }, [user]);
-
-  // Deep link from a notification: show every application, scroll to the one
-  // the notification is about, and highlight it for a few seconds.
-  useEffect(() => {
-    if (!highlightId || loading) return;
-
-    setActiveTab("All");
-    setActiveHighlight(highlightId);
-
-    const scrollTimer = setTimeout(() => {
-      const el = document.getElementById(`app-${highlightId}`);
-      if (!el) return;
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      el.scrollIntoView({
-        block: "center",
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
-      el.focus({ preventScroll: true });
-    }, 60);
-
-    const clearTimer = setTimeout(() => {
-      setActiveHighlight(null);
-      onHighlightHandled?.();
-    }, 6000);
-
-    return () => {
-      clearTimeout(scrollTimer);
-      clearTimeout(clearTimer);
-    };
-  }, [highlightId, loading, onHighlightHandled]);
-
-  const tabCounts = useMemo(() => {
-    const counts = {};
-    for (const app of applications) {
-      counts[app.status] = (counts[app.status] || 0) + 1;
-    }
-    return counts;
-  }, [applications]);
-
-  const tabs = ["All", ...Object.keys(APPLICATION_STATUS_LABELS)];
-  const filtered =
-    activeTab === "All"
-      ? applications
-      : applications.filter((a) => a.status === activeTab);
-
-  const sorted = useMemo(() => {
-    const list = [...filtered];
-    if (sortBy === "date") {
-      list.sort(
-        (a, b) => new Date(b.applied_at ?? 0) - new Date(a.applied_at ?? 0),
-      );
-    } else {
-      list.sort((a, b) => (a.status ?? "").localeCompare(b.status ?? ""));
-    }
-    return list;
-  }, [filtered, sortBy]);
-
-  // "Under Review" in the tab pills covers both a freshly submitted
-  // application and one an employer has explicitly marked as under review -
-  // summing both status keys here for the subtitle highlight.
-  const underReviewCount =
-    (tabCounts.submitted ?? 0) + (tabCounts.under_review ?? 0);
-
-  return (
-    <div className="sd-applications">
-      <div className="sd-applications__header-row">
-        <div>
-          <h1 className="sd-applications__title">My Applications</h1>
-          <p className="sd-applications__sub">
-            {loading ? (
-              "Loading..."
-            ) : (
-              <>
-                {applications.length} total application
-                {applications.length === 1 ? "" : "s"}
-                {underReviewCount > 0 && (
-                  <>
-                    {" · "}
-                    <span className="sd-applications__sub-highlight">
-                      {underReviewCount} under review
-                    </span>
-                  </>
-                )}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="sd-sort-toggle">
-          <SlidersHorizontal size={13} />
-          <span className="sd-sort-toggle__label">Sort by:</span>
-          <button
-            className={`sd-sort-toggle__btn${sortBy === "date" ? " sd-sort-toggle__btn--active" : ""}`}
-            onClick={() => setSortBy("date")}
-          >
-            Date
-          </button>
-          <button
-            className={`sd-sort-toggle__btn${sortBy === "status" ? " sd-sort-toggle__btn--active" : ""}`}
-            onClick={() => setSortBy("status")}
-          >
-            Status
-          </button>
-        </div>
-      </div>
-
-      <div className="sd-tabs">
-        {tabs.map((tab) => {
-          const label =
-            tab === "All" ? "All" : APPLICATION_STATUS_LABELS[tab].label;
-          const count = tab === "All" ? applications.length : tabCounts[tab];
-          return (
-            <button
-              key={tab}
-              className={`sd-tab${tab === activeTab ? " sd-tab--active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {label}
-              {Boolean(count) && <span className="sd-tab__count">{count}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="sd-card">
-        <TableHeader columns={["Company", "Role", "Date Applied", "Status"]} />
-        {!loading && sorted.length === 0 && (
-          <div className="sd-applications-empty">
-            <div className="sd-applications-empty__icon">
-              <ClipboardList size={22} />
-            </div>
-            <p className="sd-applications-empty__title">No applications here</p>
-            <p className="sd-applications-empty__sub">
-              {activeTab === "All"
-                ? "You haven't applied anywhere yet."
-                : `Applications matching "${activeTab === "All" ? "" : (APPLICATION_STATUS_LABELS[activeTab]?.label ?? activeTab)}" will appear here.`}
-            </p>
-          </div>
-        )}
-        {sorted.map((app) => (
-          <AppRow
-            key={app.id}
-            app={app}
-            showFeedback
-            highlighted={app.id === activeHighlight}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 
