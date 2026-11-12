@@ -31,6 +31,13 @@ import {
 } from "../../services/employerService";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
+import NotificationsBell from "../shared/NotificationsBell.jsx";
+import NotificationToast from "../shared/NotificationToast.jsx";
+import NotificationsView from "../shared/NotificationsView.jsx";
+import { useNotifications } from "../../contexts/notificationContext.jsx";
+import { getApplicationTarget } from "../../services/notificationService";
+import useProfileCompletion from "../../hooks/useProfileCompletion.js";
+
 import CompanyProfileReminder from "./CompanyProfileReminder.jsx";
 import "../student/ProfileReminder.css"; // shared styles with student reminder toast
 
@@ -57,6 +64,7 @@ const NAV_ITEMS = [
   { icon: Users, label: "Candidates", id: "candidates" },
   { icon: BarChart2, label: "Analytics", id: "analytics" },
   { icon: Building2, label: "Company Profile", id: "company-profile" },
+  { icon: Bell, label: "Notifications", id: "notifications" },
 ];
 
 function Avatar({ initials, id, size = 32 }) {
@@ -291,12 +299,40 @@ function DashboardView({ employerName, employerId, onNavigate }) {
           </button>
         </div>
 
-<StatStrip items={[
-  { tone: "clay", kind: "lines", visual: { count: activeJobs.length }, value: activeJobs.length, label: "Active jobs" },
-  { tone: "sand", kind: "bars", visual: { series: activeJobs.map(j => j.applicationCount) }, value: totalApplications, label: "Applications" },
-  { tone: "lilac", kind: "dots", visual: { colors: Array(Math.min(interviewCount, 6)).fill("#7c3aed") }, value: interviewCount, label: "Interviews" },
-  { tone: "sage", kind: "arc", visual: { pct: avgMatchScore }, value: `${avgMatchScore}%`, label: "Avg match" },
-]} />
+        <StatStrip
+          items={[
+            {
+              tone: "clay",
+              kind: "lines",
+              visual: { count: activeJobs.length },
+              value: activeJobs.length,
+              label: "Active jobs",
+            },
+            {
+              tone: "sand",
+              kind: "bars",
+              visual: { series: activeJobs.map((j) => j.applicationCount) },
+              value: totalApplications,
+              label: "Applications",
+            },
+            {
+              tone: "lilac",
+              kind: "dots",
+              visual: {
+                colors: Array(Math.min(interviewCount, 6)).fill("#7c3aed"),
+              },
+              value: interviewCount,
+              label: "Interviews",
+            },
+            {
+              tone: "sage",
+              kind: "arc",
+              visual: { pct: avgMatchScore },
+              value: `${avgMatchScore}%`,
+              label: "Avg match",
+            },
+          ]}
+        />
 
         <div className="ed-main-grid">
           <div className="ed-left-col">
@@ -491,6 +527,48 @@ export default function EmployerDashboard() {
 
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
+
+  const { unreadCount } = useNotifications();
+  // { opportunityId, jobTitle, applicationId } - the applicant a notification points at
+  const [reviewing, setReviewing] = useState(null);
+
+  // Pinned "Complete your company profile" item for the bell panel
+  const { strength: setupStrength, needsAttention } = useProfileCompletion({
+    role: "employer",
+    userId: user?.id,
+    refreshKey: activeNav,
+  });
+
+  const pinnedItems = needsAttention
+    ? [
+        {
+          id: "pinned-company-profile",
+          type: "profile_incomplete",
+          title: "Complete your company profile",
+          body: `Your company profile is ${setupStrength}% complete. A full profile builds trust with candidates.`,
+          onClick: () => setActiveNav("company-profile"),
+        },
+      ]
+    : [];
+
+  // `new_application` rows carry link_type "application" + the application id.
+  // ApplicantsModal needs the opportunity too, so look that up first.
+  async function handleOpenNotification(notification) {
+    setMobileNavOpen(false);
+    if (notification.link_type === "application" && notification.link_id) {
+      const target = await getApplicationTarget(notification.link_id);
+      if (target.success) {
+        setReviewing({
+          opportunityId: target.opportunityId,
+          jobTitle: target.jobTitle,
+          applicationId: notification.link_id,
+        });
+        return;
+      }
+    }
+    setActiveNav("notifications");
+  }
+
   const expanded = sidebarOpen || mobileNavOpen;
 
   // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
@@ -640,6 +718,12 @@ export default function EmployerDashboard() {
               >
                 <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
                 {expanded && <span>{label}</span>}
+                {id === "notifications" && unreadCount > 0 && (
+                  <span className="ed-nav-badge">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                    <span className="sr-only"> unread</span>
+                  </span>
+                )}
               </button>
             );
           })}
@@ -698,14 +782,13 @@ export default function EmployerDashboard() {
             />
           </div>
 
-          <button
-            type="button"
-            className="ed-bell-btn"
-            aria-label="Notifications"
-          >
-            <Bell size={16} color="#64748b" aria-hidden="true" />
-            <span className="ed-bell-dot" aria-hidden="true" />
-          </button>
+          <NotificationsBell
+            buttonClassName="ed-bell-btn"
+            badgeClassName="ed-bell-badge"
+            pinned={pinnedItems}
+            onOpenNotification={handleOpenNotification}
+            onViewAll={() => setActiveNav("notifications")}
+          />
         </header>
 
         <main id="ed-main" className="ed-content" tabIndex={-1}>
@@ -723,6 +806,9 @@ export default function EmployerDashboard() {
           {activeNav === "company-profile" && (
             <CompanyProfileView user={user} />
           )}
+          {activeNav === "notifications" && (
+            <NotificationsView onOpenNotification={handleOpenNotification} />
+          )}
           {![
             "dashboard",
             "profile",
@@ -730,6 +816,7 @@ export default function EmployerDashboard() {
             "candidates",
             "analytics",
             "company-profile",
+            "notifications",
           ].includes(activeNav) && (
             <div className="ed-empty">
               <Briefcase size={32} strokeWidth={1.5} />
@@ -742,6 +829,17 @@ export default function EmployerDashboard() {
 
         <Footer />
       </div>
+      {reviewing && (
+        <ApplicantsModal
+          opportunityId={reviewing.opportunityId}
+          jobTitle={reviewing.jobTitle}
+          highlightApplicationId={reviewing.applicationId}
+          onClose={() => setReviewing(null)}
+        />
+      )}
+
+      <NotificationToast onOpenNotification={handleOpenNotification} />
+
       {confirmingSignOut && (
         <ConfirmDialog
           title="Sign out"
