@@ -285,7 +285,7 @@ function Field({ id, label, children }) {
 }
 
 export default function ProfileView({ user }) {
-  const { refreshUserProfile } = useAuth();
+  const { userProfile,refreshUserProfile } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(null);
@@ -493,13 +493,13 @@ export default function ProfileView({ user }) {
 
       <ChecklistCard profile={profile} />
 
-      <AvatarCard
-        avatarUrl={profile.avatar_url}
-        fullName={profile.full_name}
-        onSelect={handleAvatarSelect}
-        preview={avatarPreview}
-        saving={savingAvatar}
-      />
+    <AvatarCard
+  avatarUrl={profile.avatar_url}
+  fullName={userProfile?.full_name || profile.full_name}
+  onSelect={handleAvatarSelect}
+  preview={avatarPreview}
+  saving={savingAvatar}
+    />
 
       <BeeDisclosureCard
         raceCategory={profile.race_category}
