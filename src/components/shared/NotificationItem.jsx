@@ -3,16 +3,22 @@ import {
   ClipboardList,
   UserPlus,
   Sparkles,
+  CalendarDays,
+  Eye,
   Mail,
   MailOpen,
   Trash2,
 } from "lucide-react";
 import { timeAgo } from "../../utils/notificationUtils";
 
+// NOTE: replace the three new keys with the `type` values your database uses.
 const TYPE_META = {
   application_status: { Icon: ClipboardList, tone: "violet" },
   new_application: { Icon: UserPlus, tone: "mint" },
   profile_incomplete: { Icon: Sparkles, tone: "orange" },
+  new_match: { Icon: Sparkles, tone: "orange" },
+  interview_confirmed: { Icon: CalendarDays, tone: "mint" },
+  profile_viewed: { Icon: Eye, tone: "violet" },
 };
 const DEFAULT_META = { Icon: Bell, tone: "grey" };
 
@@ -60,6 +66,12 @@ export default function NotificationItem({
           <span className="ntf-item__title">
             {unread && <span className="sr-only">Unread: </span>}
             {notification.title}
+            {unread && !compact && (
+              <span
+                className="ntf-item__dot ntf-item__dot--inline"
+                aria-hidden="true"
+              />
+            )}
           </span>
           {notification.body && (
             <span className="ntf-item__body">{notification.body}</span>
@@ -71,7 +83,9 @@ export default function NotificationItem({
           )}
         </span>
 
-        {unread && <span className="ntf-item__dot" aria-hidden="true" />}
+        {unread && compact && (
+          <span className="ntf-item__dot" aria-hidden="true" />
+        )}
       </button>
 
       {hasActions && (

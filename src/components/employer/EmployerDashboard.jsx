@@ -29,7 +29,7 @@ import {
   getEmployerBeeStats,
   BEE_MIN_POOL_SIZE,
 } from "../../services/employerService";
-import HireMeLogo from "../../assets/HireMeLogo.png";
+import HireMeLogo2 from "../../assets/HireMeLogo2.png";
 
 import NotificationsBell from "../shared/NotificationsBell.jsx";
 import NotificationToast from "../shared/NotificationToast.jsx";
@@ -337,7 +337,10 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         <div className="ed-main-grid">
           <div className="ed-left-col">
             {/* Active jobs */}
-            <section className="ed-card" aria-labelledby="ed-active-job-title">
+            <section
+              className="ed-card ed-table-card"
+              aria-labelledby="ed-active-jobs-title"
+            >
               <div className="ed-card__header">
                 <h2 className="ed-card__title" id="ed-active-jobs-title">
                   Active Jobs
@@ -361,47 +364,64 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                     ),
                   )}
                 </div>
+
+                {activeJobs.slice(0, 5).map((job) => {
+                  const meta = [job.job_type, job.location]
+                    .filter(Boolean)
+                    .join(" · ");
+
+                  return (
+                    <div key={job.id} className="ed-table-row" role="row">
+                      <div className="ed-applicant-cell" role="cell">
+                        <div>
+                          <div className="ed-applicant-name">{job.title}</div>
+                          {meta && (
+                            <div className="ed-applicant-role ed-applicant-role--cap">
+                              {meta}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className="ed-table-cell ed-table-cell--accent"
+                        role="cell"
+                      >
+                        {job.applicationCount}
+                      </span>
+
+                      <span
+                        className="ed-table-cell ed-table-cell--muted"
+                        role="cell"
+                      >
+                        {daysRemaining(job.deadline)}
+                      </span>
+
+                      <span role="cell">
+                        <button
+                          className="ed-view-btn"
+                          aria-label={`View ${job.title}`}
+                          onClick={() => onNavigate("jobs")}
+                        >
+                          View →
+                        </button>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
+
               {loadingJobs && (
-                <p
-                  className="ed-empty__label"
-                  role="status"
-                  style={{ padding: "16px 4px" }}
-                >
+                <p className="ed-empty__label ed-table-card__msg" role="status">
                   Loading...
                 </p>
               )}
 
               {!loadingJobs && activeJobs.length === 0 && (
-                <p
-                  className="ed-empty__label"
-                  role="status"
-                  style={{ padding: "16px 4px" }}
-                >
+                <p className="ed-empty__label ed-table-card__msg" role="status">
                   No active jobs yet - post your first one above.
                 </p>
               )}
-
-              {activeJobs.slice(0, 5).map((job) => (
-                <div key={job.id} className="ed-table-row" role="row">
-                  <span className="ed-table-cell" role="cell">
-                    {job.title}
-                  </span>
-                  <span className="ed-table-cell" role="cell">
-                    {job.applicationCount}
-                  </span>
-                  <span className="ed-table-cell" role="cell">
-                    {daysRemaining(job.deadline)}
-                  </span>
-                  <button
-                    className="ed-view-btn"
-                    aria-label={`View ${job.title}`}
-                    onClick={() => onNavigate("jobs")}
-                  >
-                    View →
-                  </button>
-                </div>
-              ))}
             </section>
           </div>
 
@@ -665,7 +685,7 @@ export default function EmployerDashboard() {
         <div className="ed-sidebar__brand">
           <div className="ed-sidebar__brand-inner">
             <img
-              src={HireMeLogo}
+              src={HireMeLogo2}
               alt="HireMe logo"
               className="ed-sidebar__logo-img"
             />
