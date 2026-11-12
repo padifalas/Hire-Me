@@ -192,16 +192,16 @@ function BellPanel({ pinned, onClose, onOpenNotification, onViewAll }) {
   );
 }
 
-/**
- * Drop-in replacement for the header bell on both dashboards.
- *
- * @param {string}   buttonClassName  existing bell button class (sd-bell-btn / ed-bell-btn)
- * @param {string}   badgeClassName   existing badge class (sd-bell-badge / ed-bell-badge)
- * @param {Array}    [pinned]         [{ id, type, title, body, onClick }] always-on "to do" items
- * @param {function} onOpenNotification (notification) => void - deep link
- * @param {function} onViewAll        () => void - go to the notifications page
- */
-export default function NotificationBell({
+// /**
+//  * Drop-in replacement for the header bell on both dashboards.
+//  *
+//  * @param {string}   buttonClassName  existing bell button class (sd-bell-btn / ed-bell-btn)
+//  * @param {string}   badgeClassName   existing badge class (sd-bell-badge / ed-bell-badge)
+//  * @param {Array}    [pinned]         [{ id, type, title, body, onClick }] always-on "to do" items
+//  * @param {function} onOpenNotification (notification) => void - deep link
+//  * @param {function} onViewAll        () => void - go to the notifications page
+//  */
+export default function NotificationsBell({
   buttonClassName,
   badgeClassName,
   pinned = [],

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { CheckCheck, BellOff } from "lucide-react";
 import { useNotifications } from "../../contexts/notificationContext";
 import NotificationItem from "./NotificationItem";
-import { RANGES, filterByRange } from "./notificationUtils";
+import { RANGES, filterByRange } from "../../utils/notificationUtils";
 
 import "./Notifications.css";
 

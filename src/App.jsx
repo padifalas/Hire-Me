@@ -1,6 +1,7 @@
 // import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/authContext";
+import { NotificationsProvider } from "./contexts/notificationContext";
 import ErrorBoundary from "./components/layout/ErrorBoundary.jsx";
 import NotFound from "./components/layout/NotFound.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
@@ -23,50 +24,52 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<SignUp />} />
-            <Route path="/signup" element={<SignUp />} />
+          <NotificationsProvider>
+            <Routes>
+              <Route path="/" element={<SignUp />} />
+              <Route path="/signup" element={<SignUp />} />
 
-            {/*  legal pages: no ProtectedRoute so anyone can read them before signing up */}
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsAndConditions />} />
-            <Route path="/cookies" element={<CookiePolicy />} />
+              {/*  legal pages: no ProtectedRoute so anyone can read them before signing up */}
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
 
-            <Route
-              path="/profile-setup"
-              element={
-                <ProtectedRoute role="student">
-                  <ProfileSetup />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employer-profile-setup"
-              element={
-                <ProtectedRoute role="employer">
-                  <EmployerProfileSetup />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student-dashboard"
-              element={
-                <ProtectedRoute role="student">
-                  <StudentDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employer-dashboard"
-              element={
-                <ProtectedRoute role="employer">
-                  <EmployerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <CookieBanner />
+              <Route
+                path="/profile-setup"
+                element={
+                  <ProtectedRoute role="student">
+                    <ProfileSetup />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employer-profile-setup"
+                element={
+                  <ProtectedRoute role="employer">
+                    <EmployerProfileSetup />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student-dashboard"
+                element={
+                  <ProtectedRoute role="student">
+                    <StudentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employer-dashboard"
+                element={
+                  <ProtectedRoute role="employer">
+                    <EmployerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <CookieBanner />
+          </NotificationsProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

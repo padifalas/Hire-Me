@@ -7,7 +7,7 @@ import {
   MailOpen,
   Trash2,
 } from "lucide-react";
-import { timeAgo } from "./notificationUtils";
+import { timeAgo } from "../../utils/notificationUtils";
 
 const TYPE_META = {
   application_status: { Icon: ClipboardList, tone: "violet" },
