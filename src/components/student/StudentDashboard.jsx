@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 import { useAuth } from "../../contexts/authContext.jsx";
 import useDialog from "../../hooks/useDialog.js";
@@ -14,7 +14,6 @@ import {
 
 import "./StudentDashboard.css";
 
-
 import StatStrip from "../shared/StatStrip.jsx";
 import "../shared/dashboard-refresh.css";
 import Footer from "../layout/footer.jsx";
@@ -25,6 +24,13 @@ import HireMeLogo2 from "../../assets/HireMeLogo2.png";
 
 import ProfileReminder from "./ProfileReminder.jsx";
 import "./ProfileReminder.css";
+
+import NotificationsBell from "../shared/NotificationsBell.jsx";
+import NotificationToast from "../shared/NotificationToast.jsx";
+import NotificationsView from "../shared/NotificationsView.jsx";
+import { filterByRange } from "../../utils/notificationUtils.js";
+import { useNotifications } from "../../contexts/notificationContext.jsx";
+import useProfileCompletion from "../../hooks/useProfileCompletion.js";
 
 import {
   Briefcase,
@@ -47,6 +53,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { Activity } from "react";
 
 const NAV_ITEMS = [
   { icon: Briefcase, label: "Dashboard", id: "dashboard" },
@@ -283,62 +290,6 @@ function profileChecklist(profile) {
   ];
 }
 
-// ASSUMPTION: there is no notifications/activity table in the services
-// available yet - "BBD viewed your profile" style events need real
-// view-tracking on the backend, which doesn't exist here. This derives a
-// best-effort activity feed from status changes already present in
-// recentApps plus new-match counts, so the panel isn't empty, but it will
-// NOT show employer-side view events until a real activity feed is wired
-// in. Swap this out once that endpoint exists.
-function buildActivityFeed(recentApps, newMatchCount) {
-  const items = [];
-
-  for (const app of recentApps) {
-    const company = app.employer?.company_name ?? "An employer";
-    const role = app.opportunities?.title ?? "your application";
-    if (app.status === "rejected") {
-      items.push({
-        id: `${app.id}-rejected`,
-        text: `${company} rejected your application for ${role}`,
-        color: "#dc2626",
-        date: app.applied_at,
-      });
-    } else if (app.status === "submitted" || app.status === "under_review") {
-      items.push({
-        id: `${app.id}-review`,
-        text: `Your application to ${company} is Under Review`,
-        color: "#16a34a",
-        date: app.applied_at,
-      });
-    } else if (app.status === "interview") {
-      items.push({
-        id: `${app.id}-interview`,
-        text: `${company} requested an interview for ${role}`,
-        color: "#7c3aed",
-        date: app.applied_at,
-      });
-    } else if (app.status === "hired") {
-      items.push({
-        id: `${app.id}-hired`,
-        text: `Congratulations! ${company} hired you for ${role}`,
-        color: "#16a34a",
-        date: app.applied_at,
-      });
-    }
-  }
-
-  if (newMatchCount > 0) {
-    items.push({
-      id: "new-matches",
-      text: `${newMatchCount} new job match${newMatchCount === 1 ? "" : "es"} added - check Opportunities`,
-      color: "#0077c8",
-      date: null,
-    });
-  }
-
-  return items.slice(0, 5);
-}
-
 function timeAgo(dateStr) {
   if (!dateStr) return "";
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -486,8 +437,13 @@ function TableHeader({ columns, variant = "default" }) {
 
 /* dash view */
 
-function DashboardView({ studentName, user, onNavigate }) {
+function DashboardView({ studentName, user, onNavigate, onOpenNotification }) {
   const firstName = (studentName ?? "there").split(" ")[0];
+  const {
+    notifications,
+    loading: notificationsLoading,
+    setRead,
+  } = useNotifications();
 
   const [profile, setProfile] = useState(null);
   const [topMatches, setTopMatches] = useState([]);
@@ -543,9 +499,14 @@ function DashboardView({ studentName, user, onNavigate }) {
     : 0;
 
   const activityFeed = useMemo(
-    () => buildActivityFeed(recentApps, topMatches.length),
-    [recentApps, topMatches],
+    () => filterByRange(notifications, "today").slice(0, 5),
+    [notifications],
   );
+
+  function handleActivityClick(item) {
+    if (!item.read) setRead(item.id, true);
+    onOpenNotification(item);
+  }
 
   return (
     <>
@@ -576,15 +537,52 @@ function DashboardView({ studentName, user, onNavigate }) {
           </div>
         </div>
 
-<StatStrip items={[
-  { tone: "sage", kind: "ring", visual: { pct: profileStrength }, value: `${profileStrength}%`,
-    label: "Profile", note: incompleteCount ? `${incompleteCount} to finish` : "Complete" },
-  { tone: "sand", kind: "dots", value: applicationsSent, label: "Applied",
-    visual: { colors: recentApps.map(a => (APPLICATION_STATUS_LABELS[a.status] ?? APPLICATION_STATUS_LABELS.submitted).color) } },
-  { tone: "clay", kind: "arc", visual: { pct: avgMatchScore }, value: `${avgMatchScore}%`, label: "Avg match" },
-  { tone: "lilac", kind: "pulse", visual: { active: underReviewCount > 0 }, value: underReviewCount, label: "In review",
-    note: recentApps.find(a => a.status === "submitted" || a.status === "under_review")?.opportunities?.title },
-]} />
+        <StatStrip
+          items={[
+            {
+              tone: "sage",
+              kind: "ring",
+              visual: { pct: profileStrength },
+              value: `${profileStrength}%`,
+              label: "Profile",
+              note: incompleteCount
+                ? `${incompleteCount} to finish`
+                : "Complete",
+            },
+            {
+              tone: "sand",
+              kind: "dots",
+              value: applicationsSent,
+              label: "Applied",
+              visual: {
+                colors: recentApps.map(
+                  (a) =>
+                    (
+                      APPLICATION_STATUS_LABELS[a.status] ??
+                      APPLICATION_STATUS_LABELS.submitted
+                    ).color,
+                ),
+              },
+            },
+            {
+              tone: "clay",
+              kind: "arc",
+              visual: { pct: avgMatchScore },
+              value: `${avgMatchScore}%`,
+              label: "Avg match",
+            },
+            {
+              tone: "lilac",
+              kind: "pulse",
+              visual: { active: underReviewCount > 0 },
+              value: underReviewCount,
+              label: "In review",
+              note: recentApps.find(
+                (a) => a.status === "submitted" || a.status === "under_review",
+              )?.opportunities?.title,
+            },
+          ]}
+        />
 
         <div className="sd-card">
           <div className="sd-profile-strength__header">
@@ -664,29 +662,45 @@ function DashboardView({ studentName, user, onNavigate }) {
               </button>
             </div>
 
-            {activityFeed.length === 0 && (
-              <p className="sd-empty__label">No recent activity yet.</p>
+            {!notificationsLoading && activityFeed.length === 0 && (
+              <p className="sd-empty__label">Nothing new today.</p>
             )}
 
-            <div className="sd-activity-list">
+            <ul className="sd-activity-list">
               {activityFeed.map((item) => (
-                <div key={item.id} className="sd-activity-row">
-                  <span
-                    className="sd-activity-dot"
-                    style={{ background: item.color + "22", color: item.color }}
-                  />
-                  <div>
-                    <div className="sd-activity-text">{item.text}</div>
-                    {item.date && (
-                      <div className="sd-activity-time">
-                        {timeAgo(item.date)}
-                      </div>
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="sd-activity-row sd-activity-row--button"
+                    onClick={() => handleActivityClick(item)}
+                  >
+                    <span
+                      className="sd-activity-dot"
+                      aria-hidden="true"
+                      style={{
+                        background: item.read
+                          ? "#cbd5e1"
+                          : "var(--color-primary-active)",
+                      }}
+                    />
+                    <span className="sd-activity-content">
+                      <span className="sd-activity-text">
+                        {!item.read && (
+                          <span className="sr-only">Unread: </span>
+                        )}
+                        {item.body || item.title}
+                      </span>
+                      <span className="sd-activity-time">
+                        {timeAgo(item.created_at)}
+                      </span>
+                    </span>
+                    {!item.read && (
+                      <span className="sd-activity-alert" aria-hidden="true" />
                     )}
-                  </div>
-                  <span className="sd-activity-alert" />
-                </div>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
 
@@ -719,8 +733,9 @@ function DashboardView({ studentName, user, onNavigate }) {
 
 /* applications  */
 
-function ApplicationsView({ user }) {
+function ApplicationsView({ user, highlightId, onHighlightHandled }) {
   const [activeTab, setActiveTab] = useState("All");
+  const [activeHighlight, setActiveHighlight] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // "date" | "status"
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -734,6 +749,38 @@ function ApplicationsView({ user }) {
       setLoading(false);
     })();
   }, [user]);
+
+  // Deep link from a notification: show every application, scroll to the one
+  // the notification is about, and highlight it for a few seconds.
+  useEffect(() => {
+    if (!highlightId || loading) return;
+
+    setActiveTab("All");
+    setActiveHighlight(highlightId);
+
+    const scrollTimer = setTimeout(() => {
+      const el = document.getElementById(`app-${highlightId}`);
+      if (!el) return;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      el.scrollIntoView({
+        block: "center",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+      el.focus({ preventScroll: true });
+    }, 60);
+
+    const clearTimer = setTimeout(() => {
+      setActiveHighlight(null);
+      onHighlightHandled?.();
+    }, 6000);
+
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearTimer);
+    };
+  }, [highlightId, loading, onHighlightHandled]);
 
   const tabCounts = useMemo(() => {
     const counts = {};
@@ -843,7 +890,12 @@ function ApplicationsView({ user }) {
           </div>
         )}
         {sorted.map((app) => (
-          <AppRow key={app.id} app={app} showFeedback />
+          <AppRow
+            key={app.id}
+            app={app}
+            showFeedback
+            highlighted={app.id === activeHighlight}
+          />
         ))}
       </div>
     </div>
@@ -910,6 +962,41 @@ function StudentDashboard() {
 
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
+
+  const { unreadCount } = useNotifications();
+  const [highlightApplicationId, setHighlightApplicationId] = useState(null);
+  const clearHighlight = useCallback(() => setHighlightApplicationId(null), []);
+
+  // Pinned "Complete your profile" item for the bell panel
+  const { strength: setupStrength, needsAttention } = useProfileCompletion({
+    role: "student",
+    userId: user?.id,
+    refreshKey: activeNav,
+  });
+
+  const pinnedItems = needsAttention
+    ? [
+        {
+          id: "pinned-profile",
+          type: "profile_incomplete",
+          title: "Complete your profile",
+          body: `Your profile is ${setupStrength}% complete. A stronger profile gets you better matches.`,
+          onClick: () => setActiveNav("profile"),
+        },
+      ]
+    : [];
+
+  // Where a notification takes the student. `application_status` rows carry
+  // link_type "application" + the application id.
+  function handleOpenNotification(notification) {
+    setMobileNavOpen(false);
+    if (notification.link_type === "application" && notification.link_id) {
+      setHighlightApplicationId(notification.link_id);
+      setActiveNav("applications");
+      return;
+    }
+    setActiveNav("notifications");
+  }
 
   useEffect(() => {
     if (!mobileNavOpen) return;
@@ -1053,6 +1140,12 @@ function StudentDashboard() {
                   aria-hidden="true"
                 />
                 {expanded && label}
+                {expanded && id === "notifications" && unreadCount > 0 && (
+                  <span className="ed-nav-badge">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                    <span className="sr-only"> unread</span>
+                  </span>
+                )}
               </button>
             );
           })}
@@ -1111,10 +1204,13 @@ function StudentDashboard() {
               aria-label="Search jobs, companies"
             />
           </div>
-          <button className="sd-bell-btn" aria-label="Notifications">
-            <Bell size={16} color="#64748b" aria-hidden="true" />
-            <span className="sd-bell-dot" aria-hidden="true" />
-          </button>
+          <NotificationsBell
+            buttonClassName="sd-bell-btn"
+            badgeClassName="sd-bell-badge"
+            pinned={pinnedItems}
+            onOpenNotification={handleOpenNotification}
+            onViewAll={() => setActiveNav("notifications")}
+          />
         </header>
 
         <main id="main-content" tabIndex={-1} className="sd-content">
@@ -1123,14 +1219,28 @@ function StudentDashboard() {
               studentName={student.name}
               user={user}
               onNavigate={setActiveNav}
+              onOpenNotification={handleOpenNotification}
             />
           )}
-          {activeNav === "applications" && <ApplicationsView user={user} />}
+          {activeNav === "applications" && (
+            <ApplicationsView
+              user={user}
+              highlightId={highlightApplicationId}
+              onHighlightHandled={clearHighlight}
+            />
+          )}
+          {activeNav === "notifications" && (
+            <NotificationsView onOpenNotification={handleOpenNotification} />
+          )}
           {activeNav === "profile" && <ProfileView user={user} />}
           {activeNav === "opportunities" && <OpportunitiesView user={user} />}
-          {!["dashboard", "applications", "profile", "opportunities"].includes(
-            activeNav,
-          ) && (
+          {![
+            "dashboard",
+            "applications",
+            "profile",
+            "opportunities",
+            "notifications",
+          ].includes(activeNav) && (
             <div className="sd-empty">
               <Briefcase size={32} strokeWidth={1.5} />
               <p className="sd-empty__label">
@@ -1142,6 +1252,7 @@ function StudentDashboard() {
 
         <Footer />
       </div>
+      <NotificationToast onOpenNotification={handleOpenNotification} />
       {confirmingSignOut && (
         <ConfirmSignOutDialog
           signingOut={signingOut}
