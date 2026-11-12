@@ -359,38 +359,6 @@
   }
 }
 
-/* ---------- Page ---------- */
-.ntf-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 860px;
-}
-.ntf-page__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-.ntf-page__title {
-  margin: 0 0 4px;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  outline: none;
-}
-.ntf-page__subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-.ntf-card {
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
 /* ---------- Toast ---------- */
 .ntf-toast {
   position: fixed;
@@ -432,6 +400,234 @@
   margin-top: 6px;
 }
 
+/* =====================================================================
+   Notifications PAGE (redesign, compact sizing). Scoped to .ntf-page so
+   the bell panel and toast keep their own styling.
+   ===================================================================== */
+.ntf-page {
+  --ntf-accent: var(--color-primary-active, #f34100);
+  --ntf-border: #e7e5e0;
+  --ntf-muted: #6b7280;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: none;
+}
+
+/* Header */
+.ntf-page .ntf-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ntf-page .ntf-page__title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text-primary, #111);
+  outline: none;
+}
+
+.ntf-page .ntf-page__subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ntf-muted);
+}
+
+/* Mark all as read */
+.ntf-page .ntf-outline-btn {
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ntf-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.ntf-page .ntf-outline-btn:hover:not(:disabled) {
+  background: #faf9f6;
+  border-color: #d6d3cb;
+}
+
+/* Tabs */
+.ntf-page .ntf-tabs--page {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ntf-page .ntf-tab {
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  background: #fff;
+  border: 1px solid var(--ntf-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.ntf-page .ntf-tab:hover {
+  border-color: #d6d3cb;
+}
+
+.ntf-page .ntf-tab__count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f0ec;
+  font-size: 11.5px;
+  color: #4b5563;
+}
+
+.ntf-page .ntf-tab--active {
+  background: color-mix(in srgb, var(--ntf-accent) 10%, white);
+  border-color: color-mix(in srgb, var(--ntf-accent) 28%, white);
+  color: var(--ntf-accent);
+}
+
+.ntf-page .ntf-tab--active .ntf-tab__count {
+  background: color-mix(in srgb, var(--ntf-accent) 14%, white);
+  color: var(--ntf-accent);
+}
+
+.ntf-page .ntf-tab:focus-visible,
+.ntf-page .ntf-outline-btn:focus-visible {
+  outline: 2px solid var(--ntf-accent);
+  outline-offset: 2px;
+}
+
+/* Card + list */
+.ntf-page .ntf-card {
+  background: #fdfcfb;
+  border: 1px solid var(--ntf-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ntf-page .ntf-list > li + li {
+  border-top: 1px solid var(--ntf-border);
+}
+
+.ntf-page .ntf-empty--page {
+  padding: 40px 16px;
+  color: var(--ntf-muted);
+}
+
+.ntf-page .ntf-empty--page p {
+  font-size: 13px;
+}
+
+/* Rows */
+.ntf-page .ntf-item {
+  border-bottom: none; /* dividers come from the li + li rule above */
+  background: transparent;
+}
+
+.ntf-page .ntf-item--unread {
+  background: transparent; /* the dot alone marks unread */
+}
+
+.ntf-page .ntf-item:hover {
+  background: color-mix(in srgb, var(--ntf-accent) 4%, white);
+}
+
+.ntf-page .ntf-item__main {
+  gap: 14px;
+  padding: 14px 20px;
+}
+
+.ntf-page .ntf-item__main:focus-visible {
+  outline: 2px solid var(--ntf-accent);
+  outline-offset: -2px;
+}
+
+.ntf-page .ntf-item__icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 9px;
+}
+
+.ntf-page .ntf-item__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ntf-page .ntf-item__icon--orange {
+  background: #fdeae3;
+  color: #f34100;
+}
+.ntf-page .ntf-item__icon--mint {
+  background: #e3f4e8;
+  color: #16a34a;
+}
+.ntf-page .ntf-item__icon--violet {
+  background: #ecebfb;
+  color: #5b5bd6;
+}
+
+.ntf-page .ntf-item__text {
+  gap: 4px;
+}
+
+.ntf-page .ntf-item__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.ntf-page .ntf-item__body {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ntf-muted);
+}
+
+.ntf-page .ntf-item__time {
+  margin-top: 0;
+  font-size: 12px;
+  color: var(--ntf-muted);
+}
+
+.ntf-page .ntf-item__dot--inline {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  margin-top: 0;
+}
+
+/* Mark-read / delete: hidden until hover or focus, always visible on touch */
+.ntf-page .ntf-item__actions {
+  padding: 12px 14px 0 0;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.ntf-page .ntf-item:hover .ntf-item__actions,
+.ntf-page .ntf-item__actions:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ntf-page .ntf-item__actions {
+    opacity: 1;
+  }
+}
+
 /* ---------- Mobile ---------- */
 @media (max-width: 860px) {
   /* The profile reminder toast sits at the bottom on mobile, so go to the top */
@@ -444,13 +640,26 @@
   }
 }
 
+@media (max-width: 600px) {
+  .ntf-page .ntf-page__header {
+    flex-direction: column;
+  }
+  .ntf-page .ntf-page__title {
+    font-size: 21px;
+  }
+  .ntf-page .ntf-item__main {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .ntf-page .ntf-item__title {
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 560px) {
   .ntf-panel {
     right: 8px;
     width: calc(100vw - 16px);
-  }
-  .ntf-page__header {
-    flex-wrap: wrap;
   }
   .ntf-outline-btn {
     width: 100%;

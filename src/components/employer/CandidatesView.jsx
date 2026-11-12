@@ -1,10 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import useDialog from "../../hooks/useDialog.js";
-import {
-  matchColor,
-  avatarStyleFor,
-  getInitials,
-} from "../../utils/uiHelpers.js";
+import { matchColor, getInitials } from "../../utils/uiHelpers.js";
 import {
   getCandidates,
   updateApplicationStatus,
@@ -27,8 +23,23 @@ import {
   Code2,
   FolderKanban,
   BriefcaseBusiness,
-  Form,
 } from "lucide-react";
+
+const AVATAR_SOLIDS = [
+  "#6366f1",
+  "#0ea5e9",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
+];
+
+function solidAvatarFor(id) {
+  const hash = String(id ?? "")
+    .split("")
+    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return { bg: AVATAR_SOLIDS[hash % AVATAR_SOLIDS.length], color: "#fff" };
+}
 
 function skillLabel(s) {
   return typeof s === "string" ? s : (s?.skill ?? "");
@@ -41,7 +52,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
   const [message, setMessage] = useState(null);
 
   const initials = getInitials(candidate.full_name);
-  const avatarStyle = avatarStyleFor(candidate.id);
+  const avatarStyle = solidAvatarFor(candidate.id);
 
   const skills = candidate.extracted_technical_skills || [];
 
@@ -406,7 +417,7 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
 
   const hasAiProfile = candidate.ai_processing_status === "completed";
 
-  const avatarStyle = avatarStyleFor(candidate.id);
+  const avatarStyle = solidAvatarFor(candidate.id);
 
   const hasMatchScore =
     candidate.match_score !== null && candidate.match_score !== undefined;
@@ -480,15 +491,15 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
 
       {skills.length > 0 && (
         <ul className="cd-chip-row" aria-label="Skills">
-          {skills.slice(0, 6).map((s, i) => (
+          {skills.slice(0, 5).map((s, i) => (
             <li key={i} className="cd-chip cd-chip--technical">
               {skillLabel(s)}
             </li>
           ))}
 
-          {skills.length > 6 && (
+          {skills.length > 5 && (
             <li className="cd-chip cd-chip--muted">
-              +{skills.length - 6} more
+              +{skills.length - 5} more
             </li>
           )}
         </ul>
@@ -520,24 +531,6 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
           >
             <FileText size={13} aria-hidden="true" />
             View CV
-          </button>
-        )}
-
-        {candidate.transcript_url && (
-          <button
-            type="button"
-            className="cd-link-btn cd-link-btn--muted"
-            onClick={() =>
-              onViewDocument({
-                docType: "transcript",
-                storagePath: candidate.transcript_url,
-                fileName: candidate.transcript_file_name,
-              })
-            }
-            aria-label={`View transcript for ${candidate.full_name}`}
-          >
-            <FileText size={13} aria-hidden="true" />
-            View transcript
           </button>
         )}
       </div>

@@ -61,7 +61,6 @@ body,
   display: block;
   width: 160px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
   transition: width 0.2s ease;
 }
 
@@ -469,7 +468,7 @@ body,
 }
 
 .ed-greeting__title {
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 6px;
@@ -601,6 +600,10 @@ body,
   padding: 6px 4px;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 4px;
+  background: var(--color-bg-page);
+  padding: 10px 20px;
+  margin-bottom: 0;
+  border-bottom: none;
 }
 
 .ed-table-header--apps {
@@ -1146,6 +1149,16 @@ body,
 .ed-view-btn,
 .ed-link-btn {
   min-height: 24px;
+}
+
+.ed-apps-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary-active);
+}
+
+.ed-apps-row .ed-applicant-role {
+  text-transform: capitalize;
 }
 
 @media (max-width: 1000px) {

@@ -72,7 +72,7 @@ export default function NotificationsView({ onOpenNotification }) {
             {loading
               ? "Loading..."
               : unreadCount > 0
-                ? `${unreadCount} unread`
+                ? `${unreadCount} unread ${unreadCount === 1 ? "update" : "updates"}`
                 : "You're all caught up"}
           </p>
         </div>
