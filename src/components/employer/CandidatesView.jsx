@@ -1,11 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import useDialog from "../../hooks/useDialog.js";
 import { matchColor, getInitials } from "../../utils/uiHelpers.js";
+import { matches } from "../../utils/searchUtils.js";
 import {
   getCandidates,
   updateApplicationStatus,
 } from "../../services/employerService";
+import {
+  computeMatchScore,
+  APPLICATION_STATUS_LABELS,
+} from "../../services/opportunityService.js";
 import DocumentViewerModal from "../shared/DocumentViewerModal.jsx";
+import ApplicantsModal from "./ApplicantsModal.jsx";
 
 import "./CandidatesView.css";
 
@@ -45,7 +51,27 @@ function skillLabel(s) {
   return typeof s === "string" ? s : (s?.skill ?? "");
 }
 
-function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
+function StatusBadge({ status }) {
+  const meta = APPLICATION_STATUS_LABELS[status];
+  if (!meta) return null;
+  return (
+    <span
+      className="cd-status-badge"
+      style={{ color: meta.color, background: meta.bg }}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
+function CandidateProfileDrawer({
+  candidate,
+  jobTitle,
+  onClose,
+  onViewDocument,
+  onStatusChange,
+  onViewApplication,
+}) {
   const dialogRef = useDialog({ onClose });
 
   const [busy, setBusy] = useState(false);
@@ -55,50 +81,43 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
   const avatarStyle = solidAvatarFor(candidate.id);
 
   const skills = candidate.extracted_technical_skills || [];
-
-  const matchingSkills =
-    candidate.matching_skills || candidate.matched_skills || [];
-
+  const matchingSkills = candidate.matching_skills || [];
   const missingSkills = candidate.missing_skills || [];
-
-  const matchReasons = candidate.match_reasons || candidate.why_match || [];
-
-  const projects = candidate.top_projects || candidate.projects || [];
-
+  const matchReasons = candidate.match_reasons || [];
+  const projects = candidate.top_projects || [];
   const matchScore = candidate.match_score;
 
-  async function handleAction(status, doneText) {
-    if (!candidate.application_id) {
-      setMessage({
-        type: "error",
-        text: "Couldn't find an application to update for this candidate.",
-      });
-      return;
-    }
+  // Interview / reject act on an application, so they only exist once candidate has applied to the job being viewed
+  const status = candidate.application_status;
+  const hasApplication = Boolean(candidate.application_id);
+  const canInterview =
+    hasApplication && !["interview", "hired", "rejected"].includes(status);
+  const canReject = hasApplication && status !== "rejected";
 
+  async function handleAction(newStatus, doneText) {
     setBusy(true);
     setMessage(null);
 
     try {
       const result = await updateApplicationStatus(
         candidate.application_id,
-        status,
+        newStatus,
       );
 
-      setMessage(
-        result.success
-          ? {
-              type: "success",
-              text: `${doneText} for ${candidate.full_name}.`,
-            }
-          : {
-              type: "error",
-              text: result.error || "Couldn't update this application.",
-            },
-      );
+      if (result.success) {
+        onStatusChange(result.application);
+        setMessage({
+          type: "success",
+          text: `${doneText} for ${candidate.full_name}.`,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: result.error || "Couldn't update this application.",
+        });
+      }
     } catch (error) {
       console.error("Error updating application:", error);
-
       setMessage({
         type: "error",
         text: "Something went wrong. Please try again.",
@@ -204,7 +223,9 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
           >
             <div className="cd-profile-section-title">
               <Sparkles size={16} aria-hidden="true" />
-              <h4 id="cd-match-title">Why this match</h4>
+              <h4 id="cd-match-title">
+                Why this match {jobTitle ? ` for${jobTitle}` : ""}
+              </h4>
             </div>
 
             <div className="cd-match-list">
@@ -214,9 +235,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   key={`matching-${index}`}
                 >
                   <CheckCircle2 size={15} aria-hidden="true" />
-                  <span>
-                    {typeof skill === "string" ? skill : skillLabel(skill)}
-                  </span>
+                  <span>{skillLabel(skill)}</span>
                 </div>
               ))}
 
@@ -240,10 +259,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                   key={`missing-${index}`}
                 >
                   <XCircle size={15} aria-hidden="true" />
-                  <span>
-                    Missing:{" "}
-                    {typeof skill === "string" ? skill : skillLabel(skill)}
-                  </span>
+                  <span>Missing: {skillLabel(skill)}</span>
                 </div>
               ))}
             </div>
@@ -343,6 +359,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                       docType: "cv",
                       storagePath: candidate.cv_url,
                       fileName: candidate.cv_file_name,
+                      subjectName: candidate.full_name,
                     })
                   }
                   className="cd-document-btn"
@@ -361,6 +378,7 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
                       docType: "transcript",
                       storagePath: candidate.transcript_url,
                       fileName: candidate.transcript_file_name,
+                      subjectName: candidate.full_name,
                     })
                   }
                   className="cd-document-btn"
@@ -382,28 +400,61 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
           >
             {message?.text}
           </div>
+          {hasApplication ? (
+            <>
+              <p className="cd-action-note">
+                Application{jobTitle ? ` for ${jobTitle}` : ""}:{" "}
+                <StatusBadge status={status} />
+              </p>
 
-          <div className="cd-profile-actions__buttons">
-            <button
-              type="button"
-              className="cd-request-interview"
-              disabled={busy}
-              onClick={() => handleAction("interview", "Interview requested")}
-            >
-              <BriefcaseBusiness size={16} aria-hidden="true" />
-              {busy ? "Please wait..." : "Request Interview"}
-            </button>
+              {(canInterview || canReject) && (
+                <div className="cd-profile-actions__buttons">
+                  {canInterview && (
+                    <button
+                      type="button"
+                      className="cd-request-interview"
+                      disabled={busy}
+                      onClick={() =>
+                        handleAction("interview", "Interview requested")
+                      }
+                    >
+                      <BriefcaseBusiness size={16} aria-hidden="true" />
+                      {busy ? "Please wait..." : "Request Interview"}
+                    </button>
+                  )}
 
-            <button
-              type="button"
-              className="cd-reject"
-              disabled={busy}
-              onClick={() => handleAction("rejected", "Candidate rejected")}
-            >
-              <XCircle size={16} aria-hidden="true" />
-              Reject
-            </button>
-          </div>
+                  {canReject && (
+                    <button
+                      type="button"
+                      className="cd-reject"
+                      disabled={busy}
+                      onClick={() =>
+                        handleAction("rejected", "Candidate rejected")
+                      }
+                    >
+                      <XCircle size={16} aria-hidden="true" />
+                      Reject
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="cd-link-btn"
+                onClick={() => onViewApplication(candidate)}
+              >
+                Open full application
+                <ChevronRight size={13} aria-hidden="true" />
+              </button>
+            </>
+          ) : (
+            <p className="cd-action-note">
+              {jobTitle
+                ? `${candidate.full_name} hasn't applied to ${jobTitle}. You can request an interview or reject once they apply.`
+                : "Post a job to compare this candidate against a role."}
+            </p>
+          )}
         </div>
       </aside>
     </>
@@ -412,11 +463,8 @@ function CandidateProfileDrawer({ candidate, onClose, onViewDocument }) {
 
 function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
   const initials = getInitials(candidate.full_name);
-
   const skills = candidate.extracted_technical_skills || [];
-
   const hasAiProfile = candidate.ai_processing_status === "completed";
-
   const avatarStyle = solidAvatarFor(candidate.id);
 
   const hasMatchScore =
@@ -448,6 +496,9 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
                 <Sparkles size={11} aria-hidden="true" />
                 AI profile
               </span>
+            )}
+            {candidate.application_status && (
+              <StatusBadge status={candidate.application_status} />
             )}
           </div>
 
@@ -525,6 +576,7 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
                 docType: "cv",
                 storagePath: candidate.cv_url,
                 fileName: candidate.cv_file_name,
+                subjectName: candidate.full_name,
               })
             }
             aria-label={`View CV for ${candidate.full_name}`}
@@ -538,80 +590,205 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
   );
 }
 
-export default function CandidatesView() {
+// AI TOP PICK
+
+function AiTopPickBanner({ candidate, jobTitle, onOpen }) {
+  const applied = Boolean(candidate.application_id);
+  const total = candidate.required_count;
+
+  return (
+    <section className="cd-top-pick" aria-label="AI top pick">
+      <div className="cd-top-pick__left">
+        <span className="cd-top-pick__label">
+          <Sparkles size={13} aria-hidden="true" /> AI top pick
+        </span>
+        <span className="cd-top-pick__title">
+          {candidate.full_name}{" "}
+          <span className="cd-top-pick__for">for {jobTitle}</span>
+        </span>
+        <span className="cd-top-pick__badge">
+          {candidate.match_score}% <span className="sr-only">match</span>
+        </span>
+        <div className="cd-top-pick__sub">
+          {total > 0
+            ? `${candidate.matched_count}/${total} required skills matched`
+            : "No required skills listed for this job"}
+          {" · "}
+          {applied ? "Has applied" : "Hasn't applied yet"}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="cd-top-pick__cta"
+        onClick={() => onOpen(candidate)}
+        aria-label={`${applied ? "View application from" : "View profile of"} ${candidate.full_name}`}
+      >
+        {applied ? "View application →" : "View profile →"}
+      </button>
+    </section>
+  );
+}
+
+export default function CandidatesView({
+  employerId,
+  search,
+  onSearchChange,
+  openCandidateId,
+  onOpenCandidateHandled,
+}) {
+  const [localSearch, setLocalSearch] = useState("");
+  const searchValue = search ?? localSearch;
+  const setSearch = onSearchChange ?? setLocalSearch;
+
   const [candidates, setCandidates] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [selectedJobId, setSelectedJobId] = useState("");
 
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(null);
 
-  const [search, setSearch] = useState("");
-
-  // Candidate currently displayed in the drawer
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-
-  // Document currently being viewed
+  const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [viewingDoc, setViewingDoc] = useState(null);
+  const [reviewing, setReviewing] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadCandidates() {
-      setLoading(true);
+  const loadData = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!employerId) return;
+      if (!silent) setLoading(true);
       setError(null);
 
       try {
-        const result = await getCandidates();
-
-        if (!isMounted) return;
+        const result = await getCandidates(employerId);
 
         if (result.success) {
+          const opportunities = result.opportunities ?? [];
           setCandidates(result.candidates ?? []);
+          setJobs(opportunities);
+          setApplications(result.applications ?? []);
+          setSelectedJobId((prev) =>
+            prev && opportunities.some((j) => j.id === prev)
+              ? prev
+              : (
+                  opportunities.find((j) => j.status === "active") ??
+                  opportunities[0]
+                )?.id || "",
+          );
         } else {
           setError(
             result.error || "Couldn't load candidates. Please try again.",
           );
         }
-      } catch (error) {
-        console.error("Error loading candidates:", error);
-
-        if (isMounted) {
-          setError("Something went wrong while loading candidates.");
-        }
+      } catch (err) {
+        console.error("Error loading candidates:", err);
+        setError("Something went wrong while loading candidates.");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (!silent) setLoading(false);
       }
-    }
+    },
+    [employerId],
+  );
 
-    loadCandidates();
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const selectedJob = useMemo(
+    () => jobs.find((j) => j.id === selectedJobId) ?? null,
+    [jobs, selectedJobId],
+  );
+
+  // Every candidate, scored against the job being viewed. Applicants keep the
+  // score stored on their application; everyone else is scored on the fly
+  // with the same function the student side uses.
+  const scored = useMemo(() => {
+    const appByStudent = new Map(
+      applications
+        .filter((a) => a.opportunity_id === selectedJobId)
+        .map((a) => [a.student_id, a]),
+    );
+
+    return candidates
+      .map((c) => {
+        const app = appByStudent.get(c.id) ?? null;
+        const match = selectedJob
+          ? computeMatchScore(c.extracted_technical_skills, selectedJob)
+          : null;
+
+        return {
+          ...c,
+          application: app,
+          application_id: app?.id ?? null,
+          application_status: app?.status ?? null,
+          match_score: app?.match_score ?? match?.score ?? null,
+          matching_skills: match?.matchedRequired ?? [],
+          missing_skills: match?.missingRequired ?? [],
+          matched_count: match?.matchedRequired.length ?? 0,
+          required_count:
+            (match?.matchedRequired.length ?? 0) +
+            (match?.missingRequired.length ?? 0),
+          top_projects: (c.translated_projects ?? [])
+            .slice(0, 3)
+            .map((p) => p.professional_title)
+            .filter(Boolean),
+        };
+      })
+      .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
+  }, [candidates, applications, selectedJob, selectedJobId]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    if (!searchValue.trim()) return scored;
+    return scored.filter((c) =>
+      matches(
+        searchValue,
+        c.full_name,
+        c.university,
+        c.degree_program,
+        c.location,
+        (c.extracted_technical_skills || []).map(skillLabel),
+      ),
+    );
+  }, [scored, searchValue]);
 
-    if (!q) return candidates;
+  const selectedCandidate =
+    scored.find((c) => c.id === selectedCandidateId) ?? null;
 
-    return candidates.filter((c) => {
-      const skills = (c.extracted_technical_skills || [])
-        .map(skillLabel)
-        .join(" ")
-        .toLowerCase();
+  // The banner is the default view; hide it while someone is searching.
+  const topPick =
+    selectedJob && !searchValue.trim() && scored[0]?.match_score > 0
+      ? scored[0]
+      : null;
 
-      return (
-        c.full_name?.toLowerCase().includes(q) ||
-        c.university?.toLowerCase().includes(q) ||
-        c.degree_program?.toLowerCase().includes(q) ||
-        c.location?.toLowerCase().includes(q) ||
-        skills.includes(q)
-      );
+  // Header search: "open this candidate".
+  useEffect(() => {
+    if (!openCandidateId || loading) return;
+    if (candidates.some((c) => c.id === openCandidateId)) {
+      setSelectedCandidateId(openCandidateId);
+    }
+    onOpenCandidateHandled?.();
+  }, [openCandidateId, loading, candidates, onOpenCandidateHandled]);
+
+  function handleStatusChange(updated) {
+    setApplications((prev) =>
+      prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+    );
+  }
+
+  function openApplication(candidate) {
+    if (!candidate.application) return;
+    setSelectedCandidateId(null);
+    setReviewing({
+      opportunityId: candidate.application.opportunity_id,
+      jobTitle: selectedJob?.title,
+      applicationId: candidate.application.id,
     });
-  }, [candidates, search]);
+  }
+
+  function openTopPick(candidate) {
+    if (candidate.application) openApplication(candidate);
+    else setSelectedCandidateId(candidate.id);
+  }
 
   return (
     <div className="cd-root">
@@ -626,6 +803,14 @@ export default function CandidatesView() {
               } with a completed profile`}
         </p>
       </div>
+
+      {topPick && (
+        <AiTopPickBanner
+          candidate={topPick}
+          jobTitle={selectedJob.title}
+          onOpen={openTopPick}
+        />
+      )}
 
       <div className="cd-filters">
         <div className="cd-search" role="search">
@@ -643,6 +828,24 @@ export default function CandidatesView() {
             placeholder="Search by name, university, skill, or city..."
           />
         </div>
+
+        {jobs.length > 0 && (
+          <div className="cd-job-select">
+            <label htmlFor="cd-job">Match against</label>
+            <select
+              id="cd-job"
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+            >
+              {jobs.map((j) => (
+                <option key={j.id} value={j.id}>
+                  {j.title}
+                  {j.status !== "active" ? ` (${j.status})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -668,7 +871,7 @@ export default function CandidatesView() {
           <CandidateCard
             key={candidate.id}
             candidate={candidate}
-            onViewProfile={setSelectedCandidate}
+            onViewProfile={(c) => setSelectedCandidateId(c.id)}
             onViewDocument={setViewingDoc}
           />
         ))}
@@ -677,8 +880,11 @@ export default function CandidatesView() {
       {selectedCandidate && (
         <CandidateProfileDrawer
           candidate={selectedCandidate}
-          onClose={() => setSelectedCandidate(null)}
+          jobTitle={selectedJob?.title}
+          onClose={() => setSelectedCandidateId(null)}
           onViewDocument={setViewingDoc}
+          onStatusChange={handleStatusChange}
+          onViewApplication={openApplication}
         />
       )}
 
@@ -687,8 +893,20 @@ export default function CandidatesView() {
           docType={viewingDoc.docType}
           storagePath={viewingDoc.storagePath}
           fileName={viewingDoc.fileName}
-          subjectName={selectedCandidate?.full_name || ""}
+          subjectName={viewingDoc.full_name || ""}
           onClose={() => setViewingDoc(null)}
+        />
+      )}
+
+      {reviewing && (
+        <ApplicantsModal
+          opportunityId={reviewing.opportunityId}
+          jobTitle={reviewing.jobTitle}
+          highlightApplicationId={reviewing.applicationId}
+          onClose={() => {
+            setReviewing(null);
+            loadData({ silent: true }); // statuses may have changed in the modal
+          }}
         />
       )}
     </div>

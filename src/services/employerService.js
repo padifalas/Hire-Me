@@ -346,12 +346,33 @@ export async function generateRejectionFeedback(applicationId) {
 
  *
  */
-export async function getCandidates() {
+
+/**
+ * @returns {{
+ *   success: boolean,
+ *   candidates?: object[],     // completed student profiles (+ full_name, email)
+ *   opportunities?: object[],  // this employer's jobs, newest first
+ *   applications?: object[],   // applications to those jobs only
+ *   error?: string
+ * }}
+ */
+
+export async function getCandidates(employerId) {
   try {
+    const { data: opportunities, error: oppError } = await supabase
+      .from("opportunities")
+      .select(
+        "id, title, status, location, required_skills, nice_to_have_skills, required_skills_normalized, nice_to_have_skills_normalized, created_at",
+      )
+      .eq("employer_id", employerId)
+      .order("created_at", { ascending: false });
+
+    if (oppError) throw oppError;
+
     const { data: profiles, error } = await supabase
       .from("student_profiles")
       .select(
-        "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, ai_processing_status, cv_url, cv_file_name, transcript_url, transcript_file_name",
+        "id, university, degree_program, graduation_year, location, professional_summary, extracted_technical_skills, translated_projects, ai_processing_status, cv_url, cv_file_name, transcript_url, transcript_file_name",
       )
       .eq("profile_completed", true)
       .order("graduation_year", { ascending: false });
@@ -359,42 +380,39 @@ export async function getCandidates() {
     if (error) throw error;
 
     const studentIds = profiles.map((p) => p.id);
+    const opportunityIds = opportunities.map((o) => o.id);
 
     let usersById = {};
-    let matchScoresByStudentId = {};
-
     if (studentIds.length > 0) {
-      // Get user information
       const { data: users, error: userError } = await supabase
         .from("users")
         .select("id, full_name, email")
         .in("id", studentIds);
 
       if (userError) throw userError;
-
       usersById = Object.fromEntries(users.map((u) => [u.id, u]));
+    }
 
-      // Get match scores
-      const { data: applications, error: applicationError } = await supabase
+    let applications = [];
+    if (opportunityIds.length > 0) {
+      const { data, error: appError } = await supabase
         .from("applications")
-        .select("student_id, match_score")
-        .in("student_id", studentIds);
+        .select(
+          "id, student_id, opportunity_id, status, match_score, applied_at, status_updated_at",
+        )
+        .in("opportunity_id", opportunityIds);
 
-      if (applicationError) throw applicationError;
-
-      matchScoresByStudentId = Object.fromEntries(
-        applications.map((a) => [a.student_id, a.match_score]),
-      );
+      if (appError) throw appError;
+      applications = data ?? [];
     }
 
     const candidates = profiles.map((p) => ({
       ...p,
       full_name: usersById[p.id]?.full_name ?? "Student",
       email: usersById[p.id]?.email ?? null,
-
-      match_score: matchScoresByStudentId[p.id] ?? null,
     }));
-    return { success: true, candidates };
+
+    return { success: true, candidates, opportunities, applications };
   } catch (error) {
     return { success: false, error: error.message };
   }

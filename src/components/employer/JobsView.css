@@ -141,6 +141,16 @@
   background: rgba(243, 65, 0, 0.04);
 }
 
+.jv-table-row--highlighted,
+.jv-table-row--highlighted:hover {
+  background: color-mix(in srgb, var(--color-primary-active) 8%, white);
+  box-shadow: inset 3px 0 0 var(--color-primary-active);
+}
+
+.jv-table-row--highlighted:focus {
+  outline: none;
+}
+
 .jv-table-cell {
   font-size: 13px;
   color: #64748b;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "../../contexts/authContext";
 import { signOut } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,7 @@ import {
   getRecentApplicationsForEmployer,
   getEmployerBeeStats,
   BEE_MIN_POOL_SIZE,
+  getCandidates,
 } from "../../services/employerService";
 import HireMeLogo2 from "../../assets/HireMeLogo2.png";
 
@@ -37,6 +38,10 @@ import NotificationsView from "../shared/NotificationsView.jsx";
 import { useNotifications } from "../../contexts/notificationContext.jsx";
 import { getApplicationTarget } from "../../services/notificationService";
 import useProfileCompletion from "../../hooks/useProfileCompletion.js";
+
+import GlobalSearch from "../shared/GlobalSearch.jsx";
+import useSearchIndex from "../../hooks/useSearchIndex.js";
+import { buildEmployerSearchGroups } from "../../utils/searchUtils.js";
 
 import CompanyProfileReminder from "./CompanyProfileReminder.jsx";
 import "../student/ProfileReminder.css"; // shared styles with student reminder toast
@@ -49,7 +54,6 @@ import {
   Building2,
   Bell,
   Menu,
-  Search,
   Plus,
   FileText,
   Sparkles,
@@ -542,6 +546,11 @@ export default function EmployerDashboard() {
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
+  const [highlightJobId, setHighlightJobId] = useState(null);
+  const [openCandidateId, setOpenCandidateId] = useState(null);
+  const clearHighlightJob = useCallback(() => setHighlightJobId(null), []);
+  const clearOpenCandidate = useCallback(() => setOpenCandidateId(null), []);
+
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const sidebarRef = useRef(null);
 
@@ -551,6 +560,52 @@ export default function EmployerDashboard() {
   const { unreadCount } = useNotifications();
   // { opportunityId, jobTitle, applicationId } - the applicant a notification points at
   const [reviewing, setReviewing] = useState(null);
+
+  function navigateTo(id, { query = "" } = {}) {
+    setActiveNav(id);
+    setSearchVal(query);
+    setMobileNavOpen(false);
+  }
+
+  const { index: searchIndex, ensureLoaded: loadSearchIndex } = useSearchIndex(
+    async () => {
+      if (!user?.id) return null;
+      const result = await getCandidates(user.id);
+      return result.success
+        ? { jobs: result.opportunities, candidates: result.candidates }
+        : null;
+    },
+    { jobs: [], candidates: [] },
+  );
+
+  const searchPages = useMemo(
+    () => [...NAV_ITEMS, { icon: User, label: "My Profile", id: "profile" }],
+    [],
+  );
+
+  const searchGroups = useMemo(
+    () =>
+      buildEmployerSearchGroups(searchVal, {
+        pages: searchPages,
+        jobs: searchIndex.jobs,
+        candidates: searchIndex.candidates,
+      }),
+    [searchVal, searchPages, searchIndex],
+  );
+
+  function handleSearchSelect(item) {
+    const a = item.action;
+    if (a.type === "job") {
+      navigateTo("jobs", { query: a.title });
+      setHighlightJobId(a.id);
+    } else if (a.type === "candidate") {
+      navigateTo("candidates", { query: a.name });
+      setOpenCandidateId(a.id);
+    } else {
+      navigateTo(a.id);
+    }
+    requestAnimationFrame(() => document.getElementById("ed-main")?.focus());
+  }
 
   // Pinned "Complete your company profile" item for the bell panel
   const { strength: setupStrength, needsAttention } = useProfileCompletion({
@@ -566,7 +621,7 @@ export default function EmployerDashboard() {
           type: "profile_incomplete",
           title: "Complete your company profile",
           body: `Your company profile is ${setupStrength}% complete. A full profile builds trust with candidates.`,
-          onClick: () => setActiveNav("company-profile"),
+          onClick: () => navigateTo("company-profile"),
         },
       ]
     : [];
@@ -586,7 +641,7 @@ export default function EmployerDashboard() {
         return;
       }
     }
-    setActiveNav("notifications");
+    navigateTo("notifications");
   }
 
   const expanded = sidebarOpen || mobileNavOpen;
@@ -697,8 +752,7 @@ export default function EmployerDashboard() {
             type="button"
             className={`ed-sidebar__user${activeNav === "profile" ? " ed-sidebar__user--active" : ""}`}
             onClick={() => {
-              setActiveNav("profile");
-              setMobileNavOpen(false);
+              navigateTo("profile");
             }}
             title="My profile"
           >
@@ -730,8 +784,7 @@ export default function EmployerDashboard() {
                 key={id}
                 className={`ed-nav-btn${active ? " ed-nav-btn--active" : ""}`}
                 onClick={() => {
-                  setActiveNav(id);
-                  setMobileNavOpen(false);
+                  navigateTo(id);
                 }}
                 title={expanded ? undefined : label}
                 aria-label={label}
@@ -791,23 +844,24 @@ export default function EmployerDashboard() {
             <Menu size={20} />
           </button>
 
-          <div className="ed-search" role="search">
-            <Search size={14} color="#94a3b8" aria-hidden="true" />
-            <input
-              className="ed-search__input"
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              placeholder="Search candidates, jobs..."
-              aria-label="Search candidates and jobs"
-            />
-          </div>
+          <GlobalSearch
+            className="ed-search"
+            inputClassName="ed-search__input"
+            value={searchVal}
+            onChange={setSearchVal}
+            groups={searchGroups}
+            onSelect={handleSearchSelect}
+            onActivate={loadSearchIndex}
+            placeholder="Search pages, jobs, candidates..."
+            ariaLabel="Search pages, jobs and candidates"
+          />
 
           <NotificationsBell
             buttonClassName="ed-bell-btn"
             badgeClassName="ed-bell-badge"
             pinned={pinnedItems}
             onOpenNotification={handleOpenNotification}
-            onViewAll={() => setActiveNav("notifications")}
+            onViewAll={() => navigateTo("notifications")}
           />
         </header>
 
@@ -816,12 +870,27 @@ export default function EmployerDashboard() {
             <DashboardView
               employerName={employer.name}
               employerId={user?.id}
-              onNavigate={setActiveNav}
+              onNavigate={navigateTo}
             />
           )}
           {activeNav === "profile" && <EmployerProfileView user={user} />}
-          {activeNav === "jobs" && <JobsView employerId={user?.id} />}
-          {activeNav === "candidates" && <CandidatesView />}
+          {activeNav === "jobs" && (
+            <JobsView
+              employerId={user?.id}
+              searchQuery={searchVal}
+              highlightJobId={highlightJobId}
+              onHighlightHandled={clearHighlightJob}
+            />
+          )}
+          {activeNav === "candidates" && (
+            <CandidatesView
+              employerId={user?.id}
+              search={searchVal}
+              onSearchChange={setSearchVal}
+              openCandidateId={openCandidateId}
+              onOpenCandidateHandled={clearOpenCandidate}
+            />
+          )}
           {activeNav === "analytics" && <AnalyticsView employerId={user?.id} />}
           {activeNav === "company-profile" && (
             <CompanyProfileView user={user} />

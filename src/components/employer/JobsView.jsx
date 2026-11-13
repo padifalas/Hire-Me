@@ -47,7 +47,12 @@ function formatJobType(type) {
     .join("-");
 }
 
-export default function JobsView({ employerId }) {
+export default function JobsView({
+  employerId,
+  searchQuery = "",
+  highlightJobId,
+  onHighlightHandled,
+}) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -58,6 +63,7 @@ export default function JobsView({ employerId }) {
   const [closing, setClosing] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const titleRef = useRef(null);
+  const [activeHighlight, setActiveHighlight] = useState(null);
 
   const loadJobs = useCallback(async () => {
     setLoading(true);
@@ -69,6 +75,36 @@ export default function JobsView({ employerId }) {
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
+
+  useEffect(() => {
+    if (!highlightJobId || loading) return;
+
+    setActiveFilter("All"); // a closed/expired job must not be hidden by a filter
+    setActiveHighlight(highlightJobId);
+
+    const scrollTimer = setTimeout(() => {
+      const el = document.getElementById(`job-${highlightJobId}`);
+      if (!el) return;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      el.scrollIntoView({
+        block: "center",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+      el.focus({ preventScroll: true });
+    }, 60);
+
+    const clearTimer = setTimeout(() => {
+      setActiveHighlight(null);
+      onHighlightHandled?.();
+    }, 6000);
+
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearTimer);
+    };
+  }, [highlightJobId, loading, onHighlightHandled]);
 
   const jobsWithDisplayStatus = useMemo(
     () => jobs.map((j) => ({ ...j, _displayStatus: displayStatus(j) })),
@@ -91,10 +127,29 @@ export default function JobsView({ employerId }) {
   }, [jobsWithDisplayStatus]);
 
   const filteredJobs = useMemo(() => {
-    if (activeFilter === "All") return jobsWithDisplayStatus;
-    const key = activeFilter.toLowerCase();
-    return jobsWithDisplayStatus.filter((j) => j._displayStatus === key);
-  }, [jobsWithDisplayStatus, activeFilter]);
+    const byStatus =
+      activeFilter === "All"
+        ? jobsWithDisplayStatus
+        : jobsWithDisplayStatus.filter(
+            (j) => j._displayStatus === activeFilter.toLowerCase(),
+          );
+
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return byStatus;
+
+    return byStatus.filter((j) =>
+      [
+        j.title,
+        j.location,
+        formatJobType(j.job_type),
+        STATUS_LABELS[j._displayStatus]?.label,
+      ].some((f) =>
+        String(f ?? "")
+          .toLowerCase()
+          .includes(q),
+      ),
+    );
+  }, [jobsWithDisplayStatus, activeFilter, searchQuery]);
 
   function handleSaved(savedJob) {
     const wasEditing = Boolean(editingJob);
@@ -236,7 +291,13 @@ export default function JobsView({ employerId }) {
               const applicationCount = job.applicationCount ?? 0;
 
               return (
-                <div key={job.id} className="jv-table-row" role="row">
+                <div
+                  key={job.id}
+                  id={`job-${job.id}`}
+                  tabIndex={-1}
+                  className={`jv-table-row${job.id === activeHighlight ? " jv-table-row--highlighted" : ""}`}
+                  role="row"
+                >
                   <span
                     className="jv-table-cell jv-table-cell--title"
                     role="cell"
@@ -329,7 +390,9 @@ export default function JobsView({ employerId }) {
 
           {filteredJobs.length === 0 && (
             <p className="jv-empty-inline" role="status">
-              No {activeFilter.toLowerCase()} jobs.
+              {searchQuery.trim()
+                ? `No jobs match "${searchQuery.trim()}".`
+                : `No ${activeFilter.toLowerCase()} jobs.`}
             </p>
           )}
         </div>
