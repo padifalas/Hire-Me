@@ -81,15 +81,10 @@ function CandidateProfileDrawer({
   const avatarStyle = solidAvatarFor(candidate.id);
 
   const skills = candidate.extracted_technical_skills || [];
-
   const matchingSkills = candidate.matching_skills || [];
-
   const missingSkills = candidate.missing_skills || [];
-
   const matchReasons = candidate.match_reasons || [];
-
   const projects = candidate.top_projects || [];
-
   const matchScore = candidate.match_score;
 
   // Interview / reject act on an application, so they only exist once candidate has applied to the job being viewed
@@ -468,11 +463,8 @@ function CandidateProfileDrawer({
 
 function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
   const initials = getInitials(candidate.full_name);
-
   const skills = candidate.extracted_technical_skills || [];
-
   const hasAiProfile = candidate.ai_processing_status === "completed";
-
   const avatarStyle = solidAvatarFor(candidate.id);
 
   const hasMatchScore =
@@ -879,7 +871,7 @@ export default function CandidatesView({
           <CandidateCard
             key={candidate.id}
             candidate={candidate}
-            onViewProfile={setSelectedCandidate}
+            onViewProfile={(c) => setSelectedCandidateId(c.id)}
             onViewDocument={setViewingDoc}
           />
         ))}
@@ -889,7 +881,7 @@ export default function CandidatesView({
         <CandidateProfileDrawer
           candidate={selectedCandidate}
           jobTitle={selectedJob?.title}
-          onClose={() => setSelectedCandidate(null)}
+          onClose={() => setSelectedCandidateId(null)}
           onViewDocument={setViewingDoc}
           onStatusChange={handleStatusChange}
           onViewApplication={openApplication}
@@ -901,7 +893,7 @@ export default function CandidatesView({
           docType={viewingDoc.docType}
           storagePath={viewingDoc.storagePath}
           fileName={viewingDoc.fileName}
-          subjectName={selectedCandidate?.full_name || ""}
+          subjectName={viewingDoc.full_name || ""}
           onClose={() => setViewingDoc(null)}
         />
       )}

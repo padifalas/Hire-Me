@@ -1181,7 +1181,7 @@ body,
       transform 0.25s ease,
       visibility 0s linear 0.25s;
 
-    background-color: var(--color-ed-sidebar);
+    background-color: #2b2b2b;
   }
   .ed-sidebar--mobile-open {
     transform: none;
