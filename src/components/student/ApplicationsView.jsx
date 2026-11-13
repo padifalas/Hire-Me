@@ -5,6 +5,8 @@ import {
   APPLICATION_STATUS_LABELS,
 } from "../../services/opportunityService.js";
 
+import { matches } from "../../utils/searchUtils.js";
+
 import "./ApplicationsView.css";
 
 import {
@@ -229,6 +231,7 @@ function ApplicationRow({ app, highlighted }) {
 
 export default function ApplicationsView({
   user,
+  searchQuery = "",
   highlightId,
   onHighlightHandled,
 }) {
@@ -290,11 +293,30 @@ export default function ApplicationsView({
 
   const tabs = ["All", ...Object.keys(APPLICATION_STATUS_LABELS)];
 
+  // Filter applications by the selected status tab.
+  const filtered = useMemo(() => {
+    return activeTab === "All"
+      ? applications
+      : applications.filter((a) => a.status === activeTab);
+  }, [applications, activeTab]);
+
+  // Filter the results further using the global search text.
+  const searched = useMemo(() => {
+    if (!searchQuery.trim()) return filtered;
+
+    return filtered.filter((a) =>
+      matches(
+        searchQuery,
+        a.opportunities?.title,
+        a.employer?.company_name,
+        APPLICATION_STATUS_LABELS[a.status]?.label,
+      ),
+    );
+  }, [filtered, searchQuery]);
+
+  // Sort the filtered and searched applications.
   const sorted = useMemo(() => {
-    const list =
-      activeTab === "All"
-        ? [...applications]
-        : applications.filter((a) => a.status === activeTab);
+    const list = [...searched];
 
     if (sortBy === "date") {
       list.sort(
@@ -303,8 +325,9 @@ export default function ApplicationsView({
     } else {
       list.sort((a, b) => (a.status ?? "").localeCompare(b.status ?? ""));
     }
+
     return list;
-  }, [applications, activeTab, sortBy]);
+  }, [searched, sortBy]);
 
   const activeTabLabel =
     activeTab === "All"
@@ -384,9 +407,11 @@ export default function ApplicationsView({
             </div>
             <p className="av-empty__title">No applications here</p>
             <p className="av-empty__sub">
-              {activeTab === "All"
-                ? "You haven't applied anywhere yet."
-                : `Applications marked "${activeTabLabel}" will appear here.`}
+              {searchQuery.trim()
+                ? `No applications match "${searchQuery.trim()}".`
+                : activeTab === "All"
+                  ? "You haven't applied anywhere yet."
+                  : `Applications marked "${activeTabLabel}" will appear here.`}
             </p>
           </div>
         )}
