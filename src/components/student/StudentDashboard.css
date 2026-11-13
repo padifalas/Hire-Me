@@ -1210,11 +1210,11 @@ ul.sd-activity-list {
 
 .sd-signout-confirm__yes,
 .sd-signout-confirm__no {
-  padding: 7px 14px;
-  border-radius: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   font-family: inherit;
 }

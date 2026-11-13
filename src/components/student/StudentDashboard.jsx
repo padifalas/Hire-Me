@@ -32,6 +32,7 @@ import NotificationsView from "../shared/NotificationsView.jsx";
 import { filterByRange } from "../../utils/notificationUtils.js";
 import { useNotifications } from "../../contexts/notificationContext.jsx";
 import useProfileCompletion from "../../hooks/useProfileCompletion.js";
+import ConfirmDialog from "../shared/ConfirmDialog.jsx";
 
 import {
   Briefcase,
