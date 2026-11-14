@@ -71,7 +71,7 @@ const NAV_ITEMS = [
   { icon: Bell, label: "Notifications", id: "notifications" },
 ];
 
-function Avatar({ initials, id, size = 32 }) {
+function Avatar({ initials, id, size = 32, avatarUrl }) {
   const avatarStyle = avatarStyleFor(id);
 
   return (
@@ -86,7 +86,20 @@ function Avatar({ initials, id, size = 32 }) {
         color: avatarStyle.color,
       }}
     >
-      {initials}
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "50%",
+          }}
+        />
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -479,6 +492,7 @@ function DashboardView({ employerName, employerId, onNavigate }) {
                     initials={getInitials(name)}
                     id={app.student?.id ?? app.id}
                     size={38}
+                    avatarUrl={app.student?.avatar_url}
                   />
 
                   <div>

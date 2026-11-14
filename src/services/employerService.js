@@ -410,6 +410,7 @@ export async function getCandidates(employerId) {
       ...p,
       full_name: usersById[p.id]?.full_name ?? "Student",
       email: usersById[p.id]?.email ?? null,
+      avatar_url: usersById[p.id]?.avatar_url ?? null,
     }));
 
     return { success: true, candidates, opportunities, applications };
@@ -437,7 +438,7 @@ export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
     const { data, error } = await supabase
       .from("applications")
       .select(
-        "*, opportunities(title), student:student_id(full_name, avatar_url)",
+        "*, opportunities(title), student:student_id(id, full_name, avatar_url)",
       )
       .in("opportunity_id", opportunityIds)
       .order("applied_at", { ascending: false })
