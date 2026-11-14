@@ -74,8 +74,12 @@ function FileDropField({ id, label, currentFileName, file, onSelect }) {
   );
 }
 
-function SkillChip({ label }) {
-  return <span className="pv-skill-chip">{label}</span>;
+function SkillChip({ label, type }) {
+  return (
+    <span className={`pv-skill-chip${type ? ` pv-skill-chip--${type}` : ""}`}>
+      {label}
+    </span>
+  );
 }
 
 // Same checks as the dashboard, put it on this page as well so students can act on the changes.
@@ -285,7 +289,7 @@ function Field({ id, label, children }) {
 }
 
 export default function ProfileView({ user }) {
-  const { userProfile,refreshUserProfile } = useAuth();
+  const { userProfile, refreshUserProfile } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(null);
@@ -493,13 +497,13 @@ export default function ProfileView({ user }) {
 
       <ChecklistCard profile={profile} />
 
-    <AvatarCard
-  avatarUrl={profile.avatar_url}
-  fullName={userProfile?.full_name || profile.full_name}
-  onSelect={handleAvatarSelect}
-  preview={avatarPreview}
-  saving={savingAvatar}
-    />
+      <AvatarCard
+        avatarUrl={userProfile?.avatar_url}
+        fullName={userProfile?.full_name || profile.full_name}
+        onSelect={handleAvatarSelect}
+        preview={avatarPreview}
+        saving={savingAvatar}
+      />
 
       <BeeDisclosureCard
         raceCategory={profile.race_category}

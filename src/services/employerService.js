@@ -386,7 +386,7 @@ export async function getCandidates(employerId) {
     if (studentIds.length > 0) {
       const { data: users, error: userError } = await supabase
         .from("users")
-        .select("id, full_name, email")
+        .select("id, full_name, email, avatar_url")
         .in("id", studentIds);
 
       if (userError) throw userError;
@@ -436,7 +436,9 @@ export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
 
     const { data, error } = await supabase
       .from("applications")
-      .select("*, opportunities(title), student:student_id(full_name)")
+      .select(
+        "*, opportunities(title), student:student_id(full_name, avatar_url)",
+      )
       .in("opportunity_id", opportunityIds)
       .order("applied_at", { ascending: false })
       .limit(limit);
