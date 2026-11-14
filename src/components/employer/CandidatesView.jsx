@@ -47,6 +47,43 @@ function solidAvatarFor(id) {
   return { bg: AVATAR_SOLIDS[hash % AVATAR_SOLIDS.length], color: "#fff" };
 }
 
+function CandidateAvatar({ candidate, className }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const avatarStyle = solidAvatarFor(candidate.id);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [candidate.avatar_url]);
+
+  return (
+    <div
+      className={className}
+      aria-hidden="true"
+      style={{
+        background: avatarStyle.bg,
+        color: avatarStyle.color,
+      }}
+    >
+      {candidate.avatar_url && !imageFailed ? (
+        <img
+          src={candidate.avatar_url}
+          alt=""
+          onError={() => setImageFailed(true)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "50%",
+            display: "block",
+          }}
+        />
+      ) : (
+        getInitials(candidate.full_name)
+      )}
+    </div>
+  );
+}
+
 function skillLabel(s) {
   return typeof s === "string" ? s : (s?.skill ?? "");
 }
@@ -78,7 +115,6 @@ function CandidateProfileDrawer({
   const [message, setMessage] = useState(null);
 
   const initials = getInitials(candidate.full_name);
-  const avatarStyle = solidAvatarFor(candidate.id);
 
   const skills = candidate.extracted_technical_skills || [];
   const matchingSkills = candidate.matching_skills || [];
@@ -158,16 +194,10 @@ function CandidateProfileDrawer({
         </div>
 
         <div className="cd-profile-identity">
-          <div
+          <CandidateAvatar
+            candidate={candidate}
             className="cd-profile-avatar"
-            aria-hidden="true"
-            style={{
-              background: avatarStyle.bg,
-              color: avatarStyle.color,
-            }}
-          >
-            {initials}
-          </div>
+          />
 
           <div className="cd-profile-main-info">
             <div className="cd-profile-name-row">
@@ -462,10 +492,8 @@ function CandidateProfileDrawer({
 }
 
 function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
-  const initials = getInitials(candidate.full_name);
   const skills = candidate.extracted_technical_skills || [];
   const hasAiProfile = candidate.ai_processing_status === "completed";
-  const avatarStyle = solidAvatarFor(candidate.id);
 
   const hasMatchScore =
     candidate.match_score !== null && candidate.match_score !== undefined;
@@ -476,16 +504,7 @@ function CandidateCard({ candidate, onViewProfile, onViewDocument }) {
       aria-label={`Candidate ${candidate.full_name}`}
     >
       <div className="cd-card__top">
-        <div
-          className="cd-avatar"
-          aria-hidden="true"
-          style={{
-            background: avatarStyle.bg,
-            color: avatarStyle.color,
-          }}
-        >
-          {initials}
-        </div>
+        <CandidateAvatar candidate={candidate} className="cd-avatar" />
 
         <div className="cd-card__heading">
           <div className="cd-card__name-row">
@@ -823,7 +842,7 @@ export default function CandidatesView({
           <input
             id="cd-search"
             type="search"
-            value={search}
+            value={searchValue}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, university, skill, or city..."
           />
