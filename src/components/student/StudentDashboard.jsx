@@ -1135,10 +1135,15 @@ function StudentDashboard() {
       </div>
       <NotificationToast onOpenNotification={handleOpenNotification} />
       {confirmingSignOut && (
-        <ConfirmSignOutDialog
-          signingOut={signingOut}
-          onCancel={() => setConfirmingSignOut(false)}
+        <ConfirmDialog
+          title="Sign out"
+          description="Are you sure you want to sign out?"
+          confirmLabel="Yes, sign out"
+          busyLabel="Signing out..."
+          cancelLabel="Cancel"
           onConfirm={handleSignOut}
+          onCancel={() => setConfirmingSignOut(false)}
+          busy={signingOut}
         />
       )}
     </div>
