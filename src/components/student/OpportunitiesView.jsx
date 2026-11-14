@@ -59,7 +59,7 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function CompanyMark({ name }) {
+function CompanyMark({ name, src }) {
   const style = avatarStyleFor(name);
   const initials = getInitials(name);
   return (
@@ -68,7 +68,11 @@ function CompanyMark({ name }) {
       style={{ background: style.bg, color: style.color }}
       aria-hidden="true"
     >
-      {initials || <Building2 size={16} />}
+      {src ? (
+        <img src={src} alt="" className="ov-company-mark__img" />
+      ) : (
+        initials || <Building2 size={16} />
+      )}
     </div>
   );
 }
@@ -169,7 +173,10 @@ function OpportunityCard({
       aria-labelledby={`opp-${opportunity.id}-title`}
     >
       <div className="ov-card__top">
-        <CompanyMark name={opportunity.employer?.company_name} />
+        <CompanyMark
+          name={opportunity.employer?.company_name}
+          src={opportunity.employer?.logo_url}
+        />
         <div className="ov-card__heading">
           <div className="ov-card__title-row">
             <h2 className="ov-card__role" id={`opp-${opportunity.id}-title`}>

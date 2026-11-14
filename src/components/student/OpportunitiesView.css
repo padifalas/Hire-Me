@@ -209,6 +209,15 @@
   font-size: 13px;
 }
 
+.ov-company-mark__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 3px;
+  background: #fff;
+  border-radius: 8px;
+}
+
 .ov-card__heading {
   flex: 1;
   min-width: 0;
