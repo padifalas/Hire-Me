@@ -950,7 +950,12 @@ function StudentDashboard() {
 
         <nav className="sd-sidebar__nav" aria-label="Main">
           <div className="sd-sidebar__user">
-            <div className="sd-sidebar__user-top">
+            <button
+              type="button"
+              className="sd-sidebar__user-top sd-sidebar__user-btn"
+              onClick={() => navigateTo("profile")}
+              aria-label="Go to your profile"
+            >
               <div className="sd-sidebar__avatar">
                 {userProfile?.avatar_url ? (
                   <img
@@ -970,7 +975,7 @@ function StudentDashboard() {
                   </div>
                 </div>
               )}
-            </div>
+            </button>
 
             <div
               className="sd-meter"
