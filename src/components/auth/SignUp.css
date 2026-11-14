@@ -1,6 +1,9 @@
 .auth-page {
   min-height: 100vh;
   display: flex;
+  height: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   align-items: center;
   justify-content: center;
   background: var(--color-bg-page);
@@ -740,11 +743,14 @@
     min-height: 100vh;
     border-radius: 0;
     box-shadow: none;
+    min-height: 100dvh;
+    overflow: visible; /* radius is off on mobile anyway */
   }
 
   .auth-brand {
     gap: 1.25rem;
     padding: 1.75rem 1.5rem 2rem;
+    overflow: hidden;
   }
 
   .auth-brand__text {
@@ -760,6 +766,7 @@
   .auth-form-side {
     padding: 2rem 1.5rem 2.5rem;
     align-items: flex-start;
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
   }
 
   .auth-switch-inline {

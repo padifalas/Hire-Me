@@ -30,7 +30,8 @@
    pressed: darker orange, nudges down 1px
    focus:   orange ring (keyboard only) */
 
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
   --lk-ink: #0f172a;
   --lk-hot: #c23000;
   --lk-pressed: #8f2400;
@@ -62,27 +63,31 @@
     transform 0.12s ease;
 }
 
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):hover {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):hover {
   background-color: transparent;
   background-size: 100% 1.5px;
   color: var(--lk-hot);
   text-decoration: none;
 }
 
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
   background-color: transparent;
   background-size: 100% 1.5px;
   color: var(--lk-pressed);
   transform: translateY(1px);
 }
 
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):focus-visible {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):focus-visible {
   outline: 2px solid var(--lk-hot);
   outline-offset: 2px;
   background-size: 100% 1.5px;
 }
 
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):disabled {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-size: 0% 1.5px;
@@ -90,21 +95,59 @@
 }
 
 /* "View all" links sit on the right edge of a card header */
-:is(.sd-dashboard, .ed-dashboard) :is(.sd-section-header, .ed-card__header) :is(.sd-link-btn, .ed-link-btn) {
+:is(.sd-dashboard, .ed-dashboard)
+  :is(.sd-section-header, .ed-card__header)
+  :is(.sd-link-btn, .ed-link-btn) {
   margin-right: 0;
 }
 
+@keyframes hm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.page-fade {
+  animation: hm-fade-up 0.36s ease both;
+}
+
+/* Greeting first, then everything else staggers in */
+.sd-dashboard > *:first-child,
+.ed-dashboard > *:first-child {
+  animation: hm-fade-up 0.4s ease both;
+}
+.sd-dashboard > *:not(:first-child),
+.ed-dashboard > *:not(:first-child) {
+  animation: hm-fade-up 0.45s ease both;
+  animation-delay: 0.35s;
+}
+.sd-dashboard > *:nth-child(n + 3),
+.ed-dashboard > *:nth-child(n + 3) {
+  animation-delay: 0.5s;
+}
+.sd-dashboard > *:nth-child(n + 4),
+.ed-dashboard > *:nth-child(n + 4) {
+  animation-delay: 0.65s;
+}
+
 @media (max-width: 860px) {
-  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+  :is(.sd-dashboard, .ed-dashboard)
+    :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
     min-height: 40px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
+  :is(.sd-dashboard, .ed-dashboard)
+    :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn) {
     transition: color 0.01ms;
   }
-  :is(.sd-dashboard, .ed-dashboard) :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
+  :is(.sd-dashboard, .ed-dashboard)
+    :is(.sd-view-link, .sd-link-btn, .ed-link-btn, .ed-view-btn):active {
     transform: none;
   }
 }
