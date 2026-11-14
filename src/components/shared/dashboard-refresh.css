@@ -129,9 +129,12 @@
 .ed-dashboard > *:nth-child(n + 3) {
   animation-delay: 0.5s;
 }
-.sd-dashboard > *:nth-child(n + 4),
-.ed-dashboard > *:nth-child(n + 4) {
+.sd-dashboard > *:nth-child(n + 4) {
   animation-delay: 0.65s;
+}
+
+.ed-dashboard > *:nth-child(n + 4) {
+  animation-delay: 0.15s;
 }
 
 @media (max-width: 860px) {

@@ -866,59 +866,56 @@ export default function EmployerDashboard() {
         </header>
 
         <main id="ed-main" className="ed-content" tabIndex={-1}>
-          <div key={activeNav} className="page-fade">
-            {activeNav === "dashboard" && (
-              <DashboardView
-                employerName={employer.name}
-                employerId={user?.id}
-                onNavigate={navigateTo}
-              />
-            )}
-            {activeNav === "profile" && <EmployerProfileView user={user} />}
-            {activeNav === "jobs" && (
-              <JobsView
-                employerId={user?.id}
-                searchQuery={searchVal}
-                highlightJobId={highlightJobId}
-                onHighlightHandled={clearHighlightJob}
-              />
-            )}
-            {activeNav === "candidates" && (
-              <CandidatesView
-                employerId={user?.id}
-                search={searchVal}
-                onSearchChange={setSearchVal}
-                openCandidateId={openCandidateId}
-                onOpenCandidateHandled={clearOpenCandidate}
-              />
-            )}
-            {activeNav === "analytics" && (
-              <AnalyticsView employerId={user?.id} />
-            )}
-            {activeNav === "company-profile" && (
-              <CompanyProfileView user={user} />
-            )}
-            {activeNav === "notifications" && (
-              <NotificationsView onOpenNotification={handleOpenNotification} />
-            )}
-            {![
-              "dashboard",
-              "profile",
-              "jobs",
-              "candidates",
-              "analytics",
-              "company-profile",
-              "notifications",
-            ].includes(activeNav) && (
-              <div className="ed-empty">
-                <Briefcase size={32} strokeWidth={1.5} />
-                <p className="ed-empty__label">
-                  {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming
-                  soon
-                </p>
-              </div>
-            )}
-          </div>
+          {/* <div key={activeNav} className="page-fade"> */}
+          {activeNav === "dashboard" && (
+            <DashboardView
+              employerName={employer.name}
+              employerId={user?.id}
+              onNavigate={navigateTo}
+            />
+          )}
+          {activeNav === "profile" && <EmployerProfileView user={user} />}
+          {activeNav === "jobs" && (
+            <JobsView
+              employerId={user?.id}
+              searchQuery={searchVal}
+              highlightJobId={highlightJobId}
+              onHighlightHandled={clearHighlightJob}
+            />
+          )}
+          {activeNav === "candidates" && (
+            <CandidatesView
+              employerId={user?.id}
+              search={searchVal}
+              onSearchChange={setSearchVal}
+              openCandidateId={openCandidateId}
+              onOpenCandidateHandled={clearOpenCandidate}
+            />
+          )}
+          {activeNav === "analytics" && <AnalyticsView employerId={user?.id} />}
+          {activeNav === "company-profile" && (
+            <CompanyProfileView user={user} />
+          )}
+          {activeNav === "notifications" && (
+            <NotificationsView onOpenNotification={handleOpenNotification} />
+          )}
+          {![
+            "dashboard",
+            "profile",
+            "jobs",
+            "candidates",
+            "analytics",
+            "company-profile",
+            "notifications",
+          ].includes(activeNav) && (
+            <div className="ed-empty">
+              <Briefcase size={32} strokeWidth={1.5} />
+              <p className="ed-empty__label">
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming soon
+              </p>
+            </div>
+          )}
+          {/* </div> */}
         </main>
 
         <Footer />

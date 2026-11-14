@@ -256,6 +256,8 @@ function matchColor(score) {
 }
 
 function computeProfileStrength(profile) {
+  const profileStrength = useProfileCompletion ?? 0;
+
   if (!profile) return 0;
   const checks = [
     Boolean(profile.university),
@@ -889,7 +891,7 @@ function StudentDashboard() {
     };
   }, [mobileNavOpen]);
 
-  const profileStrength = computeProfileStrength(userProfile);
+  const profileStrength = setupStrength ?? 0;
 
   // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
   // ProtectedRoute.jsx) - this component only ever mounts once that has
@@ -1093,50 +1095,49 @@ function StudentDashboard() {
         </header>
 
         <main id="main-content" tabIndex={-1} className="sd-content">
-          <div key={activeNav} className="page-fade">
-            {activeNav === "dashboard" && (
-              <DashboardView
-                studentName={student.name}
-                user={user}
-                onNavigate={navigateTo}
-                onOpenNotification={handleOpenNotification}
-              />
-            )}
-            {activeNav === "applications" && (
-              <ApplicationsView
-                user={user}
-                searchQuery={searchVal}
-                highlightId={highlightApplicationId}
-                onHighlightHandled={clearHighlight}
-              />
-            )}
-            {activeNav === "notifications" && (
-              <NotificationsView onOpenNotification={handleOpenNotification} />
-            )}
-            {activeNav === "profile" && <ProfileView user={user} />}
-            {activeNav === "opportunities" && (
-              <OpportunitiesView
-                user={user}
-                search={searchVal}
-                onSearchChange={setSearchVal}
-              />
-            )}
-            {![
-              "dashboard",
-              "applications",
-              "profile",
-              "opportunities",
-              "notifications",
-            ].includes(activeNav) && (
-              <div className="sd-empty">
-                <Briefcase size={32} strokeWidth={1.5} />
-                <p className="sd-empty__label">
-                  {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming
-                  soon
-                </p>
-              </div>
-            )}
-          </div>
+          {/* <div key={activeNav} className="page-fade"> */}
+          {activeNav === "dashboard" && (
+            <DashboardView
+              studentName={student.name}
+              user={user}
+              onNavigate={navigateTo}
+              onOpenNotification={handleOpenNotification}
+            />
+          )}
+          {activeNav === "applications" && (
+            <ApplicationsView
+              user={user}
+              searchQuery={searchVal}
+              highlightId={highlightApplicationId}
+              onHighlightHandled={clearHighlight}
+            />
+          )}
+          {activeNav === "notifications" && (
+            <NotificationsView onOpenNotification={handleOpenNotification} />
+          )}
+          {activeNav === "profile" && <ProfileView user={user} />}
+          {activeNav === "opportunities" && (
+            <OpportunitiesView
+              user={user}
+              search={searchVal}
+              onSearchChange={setSearchVal}
+            />
+          )}
+          {![
+            "dashboard",
+            "applications",
+            "profile",
+            "opportunities",
+            "notifications",
+          ].includes(activeNav) && (
+            <div className="sd-empty">
+              <Briefcase size={32} strokeWidth={1.5} />
+              <p className="sd-empty__label">
+                {NAV_ITEMS.find((n) => n.id === activeNav)?.label} - coming soon
+              </p>
+            </div>
+          )}
+          {/* </div> */}
         </main>
 
         <Footer />
