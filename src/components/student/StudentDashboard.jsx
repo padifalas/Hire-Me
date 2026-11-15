@@ -36,6 +36,10 @@ import { useNotifications } from "../../contexts/notificationContext.jsx";
 import useProfileCompletion from "../../hooks/useProfileCompletion.js";
 import ConfirmDialog from "../shared/ConfirmDialog.jsx";
 
+import GlobalSearch from "../shared/GlobalSearch.jsx";
+import useSearchIndex from "../../hooks/useSearchIndex.js";
+import { buildStudentSearchGroups, matches } from "../../utils/searchUtils.js";
+
 import {
   Briefcase,
   Lightbulb,
@@ -43,7 +47,6 @@ import {
   User,
   Bell,
   Menu,
-  Search,
   Upload,
   Building2,
   Percent,
@@ -255,6 +258,8 @@ function matchColor(score) {
 }
 
 function computeProfileStrength(profile) {
+  const profileStrength = useProfileCompletion ?? 0;
+
   if (!profile) return 0;
   const checks = [
     Boolean(profile.university),
@@ -775,21 +780,64 @@ function StudentDashboard() {
           type: "profile_incomplete",
           title: "Complete your profile",
           body: `Your profile is ${setupStrength}% complete. A stronger profile gets you better matches.`,
-          onClick: () => setActiveNav("profile"),
+          onClick: () => navigateTo("profile"),
         },
       ]
     : [];
 
+  function navigateTo(id, { query = "" } = {}) {
+    setActiveNav(id);
+    setSearchVal(query);
+    setMobileNavOpen(false);
+  }
+
+  const { index: searchIndex, ensureLoaded: loadSearchIndex } = useSearchIndex(
+    async () => {
+      if (!user?.id) return null;
+      const [opps, apps] = await Promise.all([
+        getActiveOpportunities({}),
+        getStudentApplicationsWithDetails(user.id),
+      ]);
+      return {
+        opportunities: opps.success ? opps.opportunities : [],
+        applications: apps.success ? apps.applications : [],
+      };
+    },
+    { opportunities: [], applications: [] },
+  );
+
+  const searchGroups = useMemo(
+    () =>
+      buildStudentSearchGroups(searchVal, { pages: NAV_ITEMS, ...searchIndex }),
+    [searchVal, searchIndex],
+  );
+
+  function handleSearchSelect(item) {
+    const a = item.action;
+    if (a.type === "opportunity") {
+      // Opportunities has no single-item page, so land on the list already filtered to it.
+      navigateTo("opportunities", { query: a.title });
+    } else if (a.type === "application") {
+      // Same deep link the notifications use: Applications scrolls to it and highlights it.
+      setHighlightApplicationId(a.id);
+      navigateTo("applications");
+    } else {
+      navigateTo(a.id);
+    }
+    requestAnimationFrame(() =>
+      document.getElementById("main-content")?.focus(),
+    );
+  }
+
   // Where a notification takes the student. `application_status` rows carry
   // link_type "application" + the application id.
   function handleOpenNotification(notification) {
-    setMobileNavOpen(false);
     if (notification.link_type === "application" && notification.link_id) {
       setHighlightApplicationId(notification.link_id);
       setActiveNav("applications");
       return;
     }
-    setActiveNav("notifications");
+    navigateTo("notifications");
   }
 
   useEffect(() => {
@@ -808,7 +856,7 @@ function StudentDashboard() {
     };
   }, [mobileNavOpen]);
 
-  const profileStrength = computeProfileStrength(userProfile);
+  const profileStrength = setupStrength ?? 0;
 
   // Auth + role guard now lives in <ProtectedRoute> (src/components/auth/
   // ProtectedRoute.jsx) - this component only ever mounts once that has
@@ -869,7 +917,12 @@ function StudentDashboard() {
 
         <nav className="sd-sidebar__nav" aria-label="Main">
           <div className="sd-sidebar__user">
-            <div className="sd-sidebar__user-top">
+            <button
+              type="button"
+              className="sd-sidebar__user-top sd-sidebar__user-btn"
+              onClick={() => navigateTo("profile")}
+              aria-label="Go to your profile"
+            >
               <div className="sd-sidebar__avatar">
                 {userProfile?.avatar_url ? (
                   <img
@@ -889,7 +942,7 @@ function StudentDashboard() {
                   </div>
                 </div>
               )}
-            </div>
+            </button>
 
             <div
               className="sd-meter"
@@ -921,8 +974,7 @@ function StudentDashboard() {
                 key={id}
                 className={`sd-nav-btn${active ? " sd-nav-btn--active" : ""}`}
                 onClick={() => {
-                  setActiveNav(id);
-                  setMobileNavOpen(false);
+                  navigateTo(id);
                 }}
                 aria-current={active ? "page" : undefined}
                 aria-label={expanded ? undefined : label}
@@ -986,39 +1038,41 @@ function StudentDashboard() {
             <Menu size={18} aria-hidden="true" />
           </button>
 
-          <div className="sd-search" role="search">
-            <Search size={14} color="#94a3b8" aria-hidden="true" />
+          <GlobalSearch
+            className="sd-search"
+            inputClassName="sd-search__input"
+            value={searchVal}
+            onChange={setSearchVal}
+            groups={searchGroups}
+            onSelect={handleSearchSelect}
+            onActivate={loadSearchIndex}
+            placeholder="Search pages, jobs, applications..."
+            ariaLabel="Search pages, opportunities and applications"
+          />
 
-            <input
-              className="sd-search__input"
-              type="search"
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              placeholder="Search jobs, companies..."
-              aria-label="Search jobs, companies"
-            />
-          </div>
           <NotificationsBell
             buttonClassName="sd-bell-btn"
             badgeClassName="sd-bell-badge"
             pinned={pinnedItems}
             onOpenNotification={handleOpenNotification}
-            onViewAll={() => setActiveNav("notifications")}
+            onViewAll={() => navigateTo("notifications")}
           />
         </header>
 
         <main id="main-content" tabIndex={-1} className="sd-content">
+          {/* <div key={activeNav} className="page-fade"> */}
           {activeNav === "dashboard" && (
             <DashboardView
               studentName={student.name}
               user={user}
-              onNavigate={setActiveNav}
+              onNavigate={navigateTo}
               onOpenNotification={handleOpenNotification}
             />
           )}
           {activeNav === "applications" && (
             <ApplicationsView
               user={user}
+              searchQuery={searchVal}
               highlightId={highlightApplicationId}
               onHighlightHandled={clearHighlight}
             />
@@ -1027,7 +1081,13 @@ function StudentDashboard() {
             <NotificationsView onOpenNotification={handleOpenNotification} />
           )}
           {activeNav === "profile" && <ProfileView user={user} />}
-          {activeNav === "opportunities" && <OpportunitiesView user={user} />}
+          {activeNav === "opportunities" && (
+            <OpportunitiesView
+              user={user}
+              search={searchVal}
+              onSearchChange={setSearchVal}
+            />
+          )}
           {![
             "dashboard",
             "applications",
@@ -1042,16 +1102,22 @@ function StudentDashboard() {
               </p>
             </div>
           )}
+          {/* </div> */}
         </main>
 
         <Footer />
       </div>
       <NotificationToast onOpenNotification={handleOpenNotification} />
       {confirmingSignOut && (
-        <ConfirmSignOutDialog
-          signingOut={signingOut}
-          onCancel={() => setConfirmingSignOut(false)}
+        <ConfirmDialog
+          title="Sign out"
+          description="Are you sure you want to sign out?"
+          confirmLabel="Yes, sign out"
+          busyLabel="Signing out..."
+          cancelLabel="Cancel"
           onConfirm={handleSignOut}
+          onCancel={() => setConfirmingSignOut(false)}
+          busy={signingOut}
         />
       )}
     </div>
