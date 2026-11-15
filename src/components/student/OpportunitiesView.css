@@ -281,12 +281,54 @@
 }
 
 .ov-card__desc {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
   font-size: 13px;
   color: #475569;
-  line-height: 1.55;
-  margin: 0;
 }
 
+.ov-card__desc--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ov-desc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.ov-desc__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: -10px;
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--color-primary-strong, var(--color-primary-active));
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.ov-desc__toggle:hover {
+  background-color: color-mix(in srgb, var(--color-primary-active) 10%, white);
+}
+
+.ov-desc__toggle:focus-visible {
+  outline: 2px solid var(--color-primary-active);
+  outline-offset: 1px;
+}
+
+.ov-desc__chevron {
+  transition: transform 0.15s ease;
+}
 .ov-card__tags {
   display: flex;
   flex-wrap: wrap;
@@ -545,13 +587,6 @@
 .ov-card:hover {
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
   transform: translateY(-1px);
-}
-
-.ov-card__desc {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* AI top pick banner */

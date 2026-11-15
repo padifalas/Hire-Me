@@ -133,17 +133,15 @@
   position: relative;
   z-index: 3;
   align-self: flex-start;
-  background: #fff;
-  border-radius: 16px;
-  padding: 12px 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  background: transparent;
+  padding: 0;
 }
 
-.auth-brand__logo-img {
+.auth-brand__logo img {
   display: block;
-  height: 42px;
-  width: auto;
-  object-fit: contain;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
 }
 
 .auth-brand__content {

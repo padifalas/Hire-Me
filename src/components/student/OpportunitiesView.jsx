@@ -7,6 +7,7 @@ import {
 } from "../../services/opportunityService";
 import ApplicationPreviewModal from "./ApplicationPreviewModal";
 import "./OpportunitiesView.css";
+import JobDescription from "./JobDescription";
 
 import {
   Search,
@@ -169,9 +170,7 @@ function OpportunityCard({
   appliedAt,
   onApply,
   applying,
-}
-)
-{
+}) {
   const salaryText =
     opportunity.salary_min && opportunity.salary_max
       ? `R${opportunity.salary_min.toLocaleString()} - R${opportunity.salary_max.toLocaleString()}/mo`
@@ -185,10 +184,10 @@ function OpportunityCard({
     >
       <div className="ov-card__top">
         <CompanyMark
-  key={opportunity.employer?.logo_url}
-  name={opportunity.employer?.company_name}
-  logoUrl={opportunity.employer?.logo_url}
-/>
+          key={opportunity.employer?.logo_url}
+          name={opportunity.employer?.company_name}
+          logoUrl={opportunity.employer?.logo_url}
+        />
         <div className="ov-card__heading">
           <div className="ov-card__title-row">
             <h2 className="ov-card__role" id={`opp-${opportunity.id}-title`}>
@@ -222,7 +221,7 @@ function OpportunityCard({
         </div>
       </div>
 
-      <p className="ov-card__desc">{opportunity.description}</p>
+      <JobDescription text={opportunity.description} />
 
       <div className="ov-card__tags">
         {(opportunity.required_skills || []).slice(0, 4).map((skill) => {
@@ -244,10 +243,10 @@ function OpportunityCard({
         })}
 
         {(opportunity.required_skills?.length ?? 0) > 4 && (
-  <span className="ov-tag">
-    +{opportunity.required_skills.length - 4} more
-  </span>
-)}
+          <span className="ov-tag">
+            +{opportunity.required_skills.length - 4} more
+          </span>
+        )}
       </div>
 
       <MatchExplanation result={matchResult} />
@@ -288,8 +287,20 @@ function ScoreRing({ score, color, size = 68 }) {
 
   return (
     <div className="ov-ring" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-        <circle cx={mid} cy={mid} r={r} fill="none" stroke="#e8edf2" strokeWidth={stroke} />
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        aria-hidden="true"
+      >
+        <circle
+          cx={mid}
+          cy={mid}
+          r={r}
+          fill="none"
+          stroke="#e8edf2"
+          strokeWidth={stroke}
+        />
         <circle
           cx={mid}
           cy={mid}
@@ -310,7 +321,13 @@ function ScoreRing({ score, color, size = 68 }) {
   );
 }
 
-function AiTopPickBanner({ opportunity, matchResult, applied, onApply, applying }) {
+function AiTopPickBanner({
+  opportunity,
+  matchResult,
+  applied,
+  onApply,
+  applying,
+}) {
   const company = opportunity.employer?.company_name ?? "this company";
   const { score, matchedRequired, missingRequired } = matchResult;
   const total = matchedRequired.length + missingRequired.length;
@@ -324,9 +341,12 @@ function AiTopPickBanner({ opportunity, matchResult, applied, onApply, applying 
         : "Closest AI match right now";
 
   let headline;
-  if (total === 0) headline = "No specific skills required, so it's a good place to start.";
-  else if (missingRequired.length === 0) headline = `You have all ${total} required skills.`;
-  else headline = `You have ${matchedRequired.length} of ${total} required skills.`;
+  if (total === 0)
+    headline = "No specific skills required, so it's a good place to start.";
+  else if (missingRequired.length === 0)
+    headline = `You have all ${total} required skills.`;
+  else
+    headline = `You have ${matchedRequired.length} of ${total} required skills.`;
 
   const salaryText =
     opportunity.salary_min && opportunity.salary_max
@@ -440,7 +460,6 @@ export default function OpportunitiesView({ user }) {
     }
 
     if (appsResult.success) {
-
       setAppliedMap(
         new Map(
           appsResult.applications.map((a) => [a.opportunity_id, a.applied_at]),
@@ -551,8 +570,6 @@ export default function OpportunitiesView({ user }) {
             applying={applyingId === m.opportunity.id}
             onApply={handleApply}
           />
-
-
         ))}
       </div>
       {selectedOpportunity && (

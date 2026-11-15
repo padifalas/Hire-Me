@@ -19,7 +19,7 @@ import {
   Target,
   FileText,
 } from "lucide-react";
-import HireMeLogo from "../../assets/HireMeLogo.png";
+import HireMeLogo2 from "../../assets/HireMeLogo2.png";
 
 import "./SignUp.css";
 import "../legal/Legal.css";
@@ -416,7 +416,7 @@ export default function SignUp() {
 
           <div className="auth-brand__logo">
             <img
-              src={HireMeLogo}
+              src={HireMeLogo2}
               alt="HireMe logo"
               className="auth-brand__logo-img"
             />
