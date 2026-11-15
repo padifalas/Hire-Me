@@ -5,16 +5,10 @@ import {
   APPLICATION_STATUS_LABELS,
 } from "../../services/opportunityService.js";
 
-import { matches } from "../../utils/searchUtils.js";
-
+import FeedbackFromEmployer from "../shared/FeedbackFromEmployer.jsx";
 import "./ApplicationsView.css";
 
-import {
-  Sparkles,
-  SlidersHorizontal,
-  ClipboardList,
-  ChevronDown,
-} from "lucide-react";
+import { SlidersHorizontal, ClipboardList, ChevronDown } from "lucide-react";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -34,59 +28,6 @@ function formatDate(value) {
     month: "short",
     year: "numeric",
   });
-}
-
-function parseFeedback(text) {
-  const headingMatch = text.match(/free resources[^:\n]*:/i);
-  if (!headingMatch) return { intro: text, resources: [] };
-
-  const intro = text.slice(0, headingMatch.index).trim();
-  const resourceBlock = text.slice(headingMatch.index + headingMatch[0].length);
-
-  const resources = [];
-  const linePattern = /^-\s*([^:\n]+):\s*(.+)$/gm;
-  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-
-  let lineMatch;
-  while ((lineMatch = linePattern.exec(resourceBlock)) !== null) {
-    const skill = lineMatch[1].trim();
-    const linksPart = lineMatch[2];
-    let linkMatch;
-    linkPattern.lastIndex = 0;
-    while ((linkMatch = linkPattern.exec(linksPart)) !== null) {
-      resources.push({ skill, title: linkMatch[1], url: linkMatch[2] });
-    }
-  }
-
-  return { intro, resources };
-}
-
-// Turns [text](url) inside a paragraph into real links.
-function renderFeedbackText(text) {
-  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  const parts = [];
-  let lastIndex = 0;
-  let match;
-  let key = 0;
-
-  while ((match = linkPattern.exec(text)) !== null) {
-    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
-    parts.push(
-      <a
-        key={key++}
-        href={match[2]}
-        target="_blank"
-        rel="noreferrer"
-        className="av-link"
-      >
-        {match[1]}
-      </a>,
-    );
-    lastIndex = linkPattern.lastIndex;
-  }
-  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
-
-  return parts;
 }
 
 const STATUS_NOTES = {
@@ -118,15 +59,10 @@ function ApplicationRow({ app, highlighted }) {
   const company = app.employer?.company_name ?? "Company";
   const role = app.opportunities?.title ?? "Opportunity";
 
-  const feedback = useMemo(
-    () =>
-      app.status === "rejected" && app.rejection_feedback
-        ? parseFeedback(app.rejection_feedback)
-        : null,
-    [app.status, app.rejection_feedback],
-  );
+  const hasFeedback =
+    app.status === "rejected" && Boolean(app.rejection_feedback?.trim());
 
-  const [open, setOpen] = useState(Boolean(feedback));
+  const [open, setOpen] = useState(hasFeedback);
 
   useEffect(() => {
     if (highlighted) setOpen(true);
@@ -178,46 +114,11 @@ function ApplicationRow({ app, highlighted }) {
 
       {open && (
         <div id={panelId} className="av-panel">
-          {feedback ? (
-            <div className="av-feedback">
-              <h3 className="av-feedback__title">
-                <Sparkles size={15} aria-hidden="true" />
-                Feedback from the employer
-              </h3>
-
-              <p className="av-feedback__intro">
-                {renderFeedbackText(feedback.intro)}
-              </p>
-
-              {feedback.resources.length > 0 && (
-                <>
-                  <hr className="av-feedback__divider" />
-                  <h4 className="av-feedback__resources-title">
-                    Free resources to close the gap
-                  </h4>
-                  <ul className="av-resources">
-                    {feedback.resources.map((r, i) => (
-                      <li key={i} className="av-resource">
-                        <span className="av-resource__arrow" aria-hidden="true">
-                          →
-                        </span>
-                        <span>
-                          <span className="av-resource__skill">{r.skill}:</span>{" "}
-                          <a
-                            href={r.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="av-link"
-                          >
-                            {r.title}
-                          </a>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
+          {hasFeedback ? (
+            <FeedbackFromEmployer
+              text={app.rejection_feedback}
+              company={company}
+            />
           ) : (
             <p className="av-note">
               {STATUS_NOTES[app.status] ?? STATUS_NOTES.submitted}
@@ -231,7 +132,6 @@ function ApplicationRow({ app, highlighted }) {
 
 export default function ApplicationsView({
   user,
-  searchQuery = "",
   highlightId,
   onHighlightHandled,
 }) {
@@ -293,30 +193,11 @@ export default function ApplicationsView({
 
   const tabs = ["All", ...Object.keys(APPLICATION_STATUS_LABELS)];
 
-  // Filter applications by the selected status tab.
-  const filtered = useMemo(() => {
-    return activeTab === "All"
-      ? applications
-      : applications.filter((a) => a.status === activeTab);
-  }, [applications, activeTab]);
-
-  // Filter the results further using the global search text.
-  const searched = useMemo(() => {
-    if (!searchQuery.trim()) return filtered;
-
-    return filtered.filter((a) =>
-      matches(
-        searchQuery,
-        a.opportunities?.title,
-        a.employer?.company_name,
-        APPLICATION_STATUS_LABELS[a.status]?.label,
-      ),
-    );
-  }, [filtered, searchQuery]);
-
-  // Sort the filtered and searched applications.
   const sorted = useMemo(() => {
-    const list = [...searched];
+    const list =
+      activeTab === "All"
+        ? [...applications]
+        : applications.filter((a) => a.status === activeTab);
 
     if (sortBy === "date") {
       list.sort(
@@ -325,9 +206,8 @@ export default function ApplicationsView({
     } else {
       list.sort((a, b) => (a.status ?? "").localeCompare(b.status ?? ""));
     }
-
     return list;
-  }, [searched, sortBy]);
+  }, [applications, activeTab, sortBy]);
 
   const activeTabLabel =
     activeTab === "All"
@@ -407,11 +287,9 @@ export default function ApplicationsView({
             </div>
             <p className="av-empty__title">No applications here</p>
             <p className="av-empty__sub">
-              {searchQuery.trim()
-                ? `No applications match "${searchQuery.trim()}".`
-                : activeTab === "All"
-                  ? "You haven't applied anywhere yet."
-                  : `Applications marked "${activeTabLabel}" will appear here.`}
+              {activeTab === "All"
+                ? "You haven't applied anywhere yet."
+                : `Applications marked "${activeTabLabel}" will appear here.`}
             </p>
           </div>
         )}
