@@ -497,3 +497,202 @@
     margin-left: 0;
   }
 }
+/* Company logos */
+.ov-company-mark--img {
+  background: #fff;
+  border: 1px solid #e8edf2;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.ov-company-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Top pick banner layout with the logo */
+.ov-top-pick__left {
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.ov-top-pick__text {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Card polish */
+.ov-card {
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.ov-card:hover {
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.ov-card__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* AI top pick banner */
+.ov-pick {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary-active) 9%, white),
+    #fff 70%
+  );
+  border: 1px solid color-mix(in srgb, var(--color-primary-active) 25%, white);
+  border-left: 4px solid var(--color-primary-active);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.ov-pick .ov-company-mark {
+  width: 52px;
+  height: 52px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+.ov-pick__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ov-pick__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-active);
+}
+
+.ov-pick__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.ov-pick__at {
+  font-weight: 600;
+  color: var(--color-primary-active);
+}
+
+.ov-pick__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.ov-pick__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ov-pick__salary {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.ov-pick__headline {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ov-pick__skills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-pick__skills .ov-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ov-pick__more {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ov-pick__gap-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-left: 6px;
+}
+
+.ov-pick__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ov-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.ov-ring svg {
+  position: absolute;
+  inset: 0;
+}
+
+.ov-ring__num {
+  position: relative;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .ov-pick {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .ov-pick__aside {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .ov-pick__aside .ov-top-pick__cta,
+  .ov-pick__aside .ov-apply-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+}

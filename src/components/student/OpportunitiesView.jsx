@@ -12,6 +12,7 @@ import {
   Search,
   MapPin,
   Building2,
+  Brain,
   Sparkles,
   ChevronDown,
   CheckCircle2,
@@ -59,16 +60,28 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function CompanyMark({ name }) {
+function CompanyMark({ name, logoUrl }) {
+  const [failed, setFailed] = useState(false);
   const style = avatarStyleFor(name);
   const initials = getInitials(name);
+  const showImg = Boolean(logoUrl) && !failed;
+
   return (
     <div
-      className="ov-company-mark"
-      style={{ background: style.bg, color: style.color }}
+      className={`ov-company-mark${showImg ? " ov-company-mark--img" : ""}`}
+      style={showImg ? undefined : { background: style.bg, color: style.color }}
       aria-hidden="true"
     >
-      {initials || <Building2 size={16} />}
+      {showImg ? (
+        <img
+          src={logoUrl}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initials || <Building2 size={16} />
+      )}
     </div>
   );
 }
@@ -86,7 +99,7 @@ function MatchExplanation({ result }) {
         aria-expanded={open}
         aria-controls={panelId}
       >
-        <Sparkles size={12} aria-hidden="true" /> Why this score?{" "}
+        <Brain size={12} aria-hidden="true" /> Why this score?{" "}
         <ChevronDown
           size={12}
           aria-hidden="true"
@@ -156,7 +169,9 @@ function OpportunityCard({
   appliedAt,
   onApply,
   applying,
-}) {
+}
+)
+{
   const salaryText =
     opportunity.salary_min && opportunity.salary_max
       ? `R${opportunity.salary_min.toLocaleString()} - R${opportunity.salary_max.toLocaleString()}/mo`
@@ -169,7 +184,11 @@ function OpportunityCard({
       aria-labelledby={`opp-${opportunity.id}-title`}
     >
       <div className="ov-card__top">
-        <CompanyMark name={opportunity.employer?.company_name} />
+        <CompanyMark
+  key={opportunity.employer?.logo_url}
+  name={opportunity.employer?.company_name}
+  logoUrl={opportunity.employer?.logo_url}
+/>
         <div className="ov-card__heading">
           <div className="ov-card__title-row">
             <h2 className="ov-card__role" id={`opp-${opportunity.id}-title`}>
@@ -223,6 +242,12 @@ function OpportunityCard({
             </span>
           );
         })}
+
+        {(opportunity.required_skills?.length ?? 0) > 4 && (
+  <span className="ov-tag">
+    +{opportunity.required_skills.length - 4} more
+  </span>
+)}
       </div>
 
       <MatchExplanation result={matchResult} />
@@ -255,49 +280,131 @@ function OpportunityCard({
   );
 }
 
-function AiTopPickBanner({
-  opportunity,
-  matchResult,
-  applied,
-  onApply,
-  applying,
-}) {
+function ScoreRing({ score, color, size = 68 }) {
+  const stroke = 6;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const mid = size / 2;
+
   return (
-    <section className="ov-top-pick">
-      <div className="ov-top-pick__left">
-        <span className="ov-top-pick__label">
-          <Sparkles size={13} aria-hidden="true" /> AI TOP PICK
+    <div className="ov-ring" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <circle cx={mid} cy={mid} r={r} fill="none" stroke="#e8edf2" strokeWidth={stroke} />
+        <circle
+          cx={mid}
+          cy={mid}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - score / 100)}
+          transform={`rotate(-90 ${mid} ${mid})`}
+        />
+      </svg>
+      <span className="ov-ring__num" style={{ color }}>
+        {score}%<span className="sr-only"> match</span>
+      </span>
+    </div>
+  );
+}
+
+function AiTopPickBanner({ opportunity, matchResult, applied, onApply, applying }) {
+  const company = opportunity.employer?.company_name ?? "this company";
+  const { score, matchedRequired, missingRequired } = matchResult;
+  const total = matchedRequired.length + missingRequired.length;
+  const color = matchColor(score);
+
+  const eyebrow =
+    score >= 75
+      ? "Your strongest match"
+      : score >= 50
+        ? "Your best AI match so far"
+        : "Closest AI match right now";
+
+  let headline;
+  if (total === 0) headline = "No specific skills required, so it's a good place to start.";
+  else if (missingRequired.length === 0) headline = `You have all ${total} required skills.`;
+  else headline = `You have ${matchedRequired.length} of ${total} required skills.`;
+
+  const salaryText =
+    opportunity.salary_min && opportunity.salary_max
+      ? `R${opportunity.salary_min.toLocaleString()} - R${opportunity.salary_max.toLocaleString()}/mo`
+      : null;
+
+  const shownMatched = matchedRequired.slice(0, 4);
+  const hiddenMatched = matchedRequired.length - shownMatched.length;
+  const shownMissing = missingRequired.slice(0, 2);
+
+  return (
+    <section className="ov-pick" aria-label="Your top match">
+      <CompanyMark
+        key={opportunity.employer?.logo_url}
+        name={opportunity.employer?.company_name}
+        logoUrl={opportunity.employer?.logo_url}
+      />
+
+      <div className="ov-pick__body">
+        <span className="ov-pick__eyebrow">
+          <Brain size={13} aria-hidden="true" /> {eyebrow}
         </span>
-        <span className="ov-top-pick__title">
-          {opportunity.title}{" "}
-          <span className="ov-top-pick__at">
-            @ {opportunity.employer?.company_name}
-          </span>
-        </span>
-        <span className="ov-top-pick__badge">
-          {matchResult.score}% <span className="sr-only">match</span>
-        </span>
-        <div className="ov-top-pick__sub">
-          {matchResult.matchedRequired.length}/
-          {matchResult.matchedRequired.length +
-            matchResult.missingRequired.length}{" "}
-          required skills matched
+
+        <h2 className="ov-pick__title">
+          {opportunity.title} <span className="ov-pick__at">at {company}</span>
+        </h2>
+
+        <div className="ov-pick__meta">
+          {opportunity.location && (
+            <span>
+              <MapPin size={12} aria-hidden="true" /> {opportunity.location}
+            </span>
+          )}
+          {opportunity.remote_option && <span>Remote/Hybrid</span>}
+          {salaryText && <span className="ov-pick__salary">{salaryText}</span>}
         </div>
+
+        <p className="ov-pick__headline">{headline}</p>
+
+        {(shownMatched.length > 0 || shownMissing.length > 0) && (
+          <div className="ov-pick__skills">
+            {shownMatched.map((s) => (
+              <span key={s} className="ov-skill-chip ov-skill-chip--matched">
+                <Check size={10} aria-hidden="true" /> {s}
+              </span>
+            ))}
+            {hiddenMatched > 0 && (
+              <span className="ov-pick__more">+{hiddenMatched} more</span>
+            )}
+            {shownMissing.length > 0 && (
+              <span className="ov-pick__gap-label">To add:</span>
+            )}
+            {shownMissing.map((s) => (
+              <span key={s} className="ov-skill-chip ov-skill-chip--missing">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-      {applied ? (
-        <button className="ov-apply-btn ov-apply-btn--applied" disabled>
-          Applied <Check size={13} aria-hidden="true" />
-        </button>
-      ) : (
-        <button
-          className="ov-top-pick__cta"
-          onClick={() => onApply(opportunity, matchResult.score)}
-          disabled={applying}
-          aria-label={`Apply to ${opportunity.title} at ${opportunity.employer?.company_name ?? "this company"}`}
-        >
-          {applying ? "Submitting..." : "Apply Now →"}
-        </button>
-      )}
+
+      <div className="ov-pick__aside">
+        <ScoreRing score={score} color={color} />
+        {applied ? (
+          <button className="ov-apply-btn ov-apply-btn--applied" disabled>
+            Applied <Check size={13} aria-hidden="true" />
+          </button>
+        ) : (
+          <button
+            className="ov-top-pick__cta"
+            onClick={() => onApply(opportunity, score)}
+            disabled={applying}
+            aria-label={`Apply to ${opportunity.title} at ${company}`}
+          >
+            {applying ? "Submitting..." : "Apply Now →"}
+          </button>
+        )}
+      </div>
     </section>
   );
 }
@@ -333,10 +440,7 @@ export default function OpportunitiesView({ user }) {
     }
 
     if (appsResult.success) {
-      // ASSUMPTION: each application record includes applied_at (same field
-      // other views in this app already read) - if getStudentApplications
-      // doesn't select it, appliedAt will just come through as undefined
-      // and the card falls back to showing "Applied" with no date.
+
       setAppliedMap(
         new Map(
           appsResult.applications.map((a) => [a.opportunity_id, a.applied_at]),
@@ -447,6 +551,8 @@ export default function OpportunitiesView({ user }) {
             applying={applyingId === m.opportunity.id}
             onApply={handleApply}
           />
+
+
         ))}
       </div>
       {selectedOpportunity && (
