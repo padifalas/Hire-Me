@@ -59,7 +59,7 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function CompanyMark({ name }) {
+function CompanyMark({ name, src }) {
   const style = avatarStyleFor(name);
   const initials = getInitials(name);
   return (
@@ -68,7 +68,11 @@ function CompanyMark({ name }) {
       style={{ background: style.bg, color: style.color }}
       aria-hidden="true"
     >
-      {initials || <Building2 size={16} />}
+      {src ? (
+        <img src={src} alt="" className="ov-company-mark__img" />
+      ) : (
+        initials || <Building2 size={16} />
+      )}
     </div>
   );
 }
@@ -169,7 +173,10 @@ function OpportunityCard({
       aria-labelledby={`opp-${opportunity.id}-title`}
     >
       <div className="ov-card__top">
-        <CompanyMark name={opportunity.employer?.company_name} />
+        <CompanyMark
+          name={opportunity.employer?.company_name}
+          src={opportunity.employer?.logo_url}
+        />
         <div className="ov-card__heading">
           <div className="ov-card__title-row">
             <h2 className="ov-card__role" id={`opp-${opportunity.id}-title`}>
@@ -302,12 +309,19 @@ function AiTopPickBanner({
   );
 }
 
-export default function OpportunitiesView({ user }) {
+export default function OpportunitiesView({
+  user,
+  search: searchProp,
+  onSearchChange,
+}) {
+  const [localSearch, setLocalSearch] = useState("");
+  const search = searchProp ?? localSearch;
+  const setSearch = onSearchChange ?? setLocalSearch;
+
   const [opportunities, setOpportunities] = useState([]);
   const [studentSkills, setStudentSkills] = useState([]);
   const [appliedMap, setAppliedMap] = useState(new Map());
 
-  const [search, setSearch] = useState("");
   const [scoreBucket, setScoreBucket] = useState("all");
 
   const [loading, setLoading] = useState(true);
@@ -320,7 +334,7 @@ export default function OpportunitiesView({ user }) {
     setError(null);
 
     const [oppResult, profileResult, appsResult] = await Promise.all([
-      getActiveOpportunities({ search }),
+      getActiveOpportunities({}),
       getStudentProfile(user.id),
       getStudentApplications(user.id),
     ]);
@@ -345,19 +359,32 @@ export default function OpportunitiesView({ user }) {
     }
 
     setLoading(false);
-  }, [user.id, search]);
+  }, [user.id]);
 
   useEffect(() => {
     if (!user) return;
-    const timeout = setTimeout(loadData, 300);
-    return () => clearTimeout(timeout);
+    loadData();
   }, [loadData, user]);
 
   function handleApply(opportunity, score) {
     setSelectedOpportunity({ opportunity, score });
   }
 
-  const scored = opportunities
+  // Filter opportunities using the global or local search text.
+  const q = search.trim().toLowerCase();
+
+  const visibleOpportunities = q
+    ? opportunities.filter((o) =>
+        [o.title, o.employer?.company_name, o.location].some((f) =>
+          String(f ?? "")
+            .toLowerCase()
+            .includes(q),
+        ),
+      )
+    : opportunities;
+
+  // Calculate match scores only for the visible opportunities.
+  const scored = visibleOpportunities
     .map((o) => ({ opportunity: o, ...computeMatchScore(studentSkills, o) }))
     .sort((a, b) => b.score - a.score);
 
@@ -375,7 +402,7 @@ export default function OpportunitiesView({ user }) {
         <p className="ov-subtitle" role="status" aria-live="polite">
           {loading
             ? "Loading..."
-            : `${opportunities.length} opportunit${opportunities.length === 1 ? "y" : "ies"} matching your profile`}
+            : `${visibleOpportunities.length} opportunit${visibleOpportunities.length === 1 ? "y" : "ies"} matching your profile`}
         </p>
       </div>
 

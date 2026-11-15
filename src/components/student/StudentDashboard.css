@@ -106,6 +106,25 @@
   gap: 14px;
 }
 
+.sd-sidebar__user-top:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sd-sidebar__user-btn {
+  background: none;
+  border: 0;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.sd-sidebar__user-btn:hover .sd-sidebar__user-name {
+  color: var(--color-primary-active);
+}
+
 .sd-sidebar--collapsed .sd-sidebar__user {
   gap: 12px;
   padding-bottom: 16px;
