@@ -26,6 +26,8 @@ import ApplicationsView from "./ApplicationsView.jsx";
 import ProfileReminder from "./ProfileReminder.jsx";
 import "./ProfileReminder.css";
 
+import FeedbackFromEmployer from "../shared/FeedbackFromEmployer.jsx";
+
 import NotificationsBell from "../shared/NotificationsBell.jsx";
 import NotificationToast from "../shared/NotificationToast.jsx";
 import NotificationsView from "../shared/NotificationsView.jsx";
@@ -215,36 +217,36 @@ function parseFeedback(text) {
   return { intro, resources };
 }
 
-function renderFeedbackText(text) {
-  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  const parts = [];
-  let lastIndex = 0;
-  let match;
-  let key = 0;
+// function renderFeedbackText(text) {
+//   const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+//   const parts = [];
+//   let lastIndex = 0;
+//   let match;
+//   let key = 0;
 
-  while ((match = linkPattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-    parts.push(
-      <a
-        key={key++}
-        href={match[2]}
-        target="_blank"
-        rel="noreferrer"
-        className="sd-feedback-link"
-      >
-        {match[1]}
-      </a>,
-    );
-    lastIndex = linkPattern.lastIndex;
-  }
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
+//   while ((match = linkPattern.exec(text)) !== null) {
+//     if (match.index > lastIndex) {
+//       parts.push(text.slice(lastIndex, match.index));
+//     }
+//     parts.push(
+//       <a
+//         key={key++}
+//         href={match[2]}
+//         target="_blank"
+//         rel="noreferrer"
+//         className="sd-feedback-link"
+//       >
+//         {match[1]}
+//       </a>,
+//     );
+//     lastIndex = linkPattern.lastIndex;
+//   }
+//   if (lastIndex < text.length) {
+//     parts.push(text.slice(lastIndex));
+//   }
 
-  return parts;
-}
+//   return parts;
+// }
 
 function matchColor(score) {
   if (score >= 75) return "#16A34A";
@@ -353,10 +355,7 @@ function AppRow({ app, showFeedback = false }) {
     APPLICATION_STATUS_LABELS.submitted;
   const company = app.employer?.company_name ?? "Company";
   const role = app.opportunities?.title ?? "Opportunity";
-  const feedback =
-    showFeedback && app.status === "rejected" && app.rejection_feedback
-      ? parseFeedback(app.rejection_feedback)
-      : null;
+ const feedbackText = showFeedback && app.status === "rejected" ? app.rejection_feedback : null;
 
   return (
     <div className="sd-app-row">
@@ -380,41 +379,7 @@ function AppRow({ app, showFeedback = false }) {
         />
       </div>
 
-      {feedback && (
-        <div className="sd-ai-feedback">
-          <div className="sd-ai-feedback__title">
-            <Sparkles size={14} /> Feedback from employer
-          </div>
-          <p className="sd-ai-feedback__intro">
-            {renderFeedbackText(feedback.intro)}
-          </p>
-
-          {feedback.resources.length > 0 && (
-            <>
-              <div className="sd-ai-feedback__divider" />
-              <div className="sd-ai-feedback__resources-title">
-                Free resources to close the gap:
-              </div>
-              <ul className="sd-ai-feedback__resources">
-                {feedback.resources.map((r, i) => (
-                  <li key={i}>
-                    <span className="sd-ai-feedback__arrow">→</span>{" "}
-                    <span className="sd-ai-feedback__skill">{r.skill}:</span>{" "}
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="sd-feedback-link"
-                    >
-                      {r.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )}
+      {feedbackText && <FeedbackFromEmployer text={feedbackText} company={company} />}
     </div>
   );
 }

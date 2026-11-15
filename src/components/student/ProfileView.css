@@ -1,5 +1,5 @@
 :root {
-  --color-skill-technical: #1d4ed8;
+  /* --color-skill-technical: #1d4ed8; */
   --color-skill-technical-bg: #eff6ff;
   --color-skill-technical-border: #dbeafe;
 }
@@ -14,6 +14,9 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+.pv-grid-layout__full {
+  grid-column: 1 / -1;
 }
 
 .pv-title {

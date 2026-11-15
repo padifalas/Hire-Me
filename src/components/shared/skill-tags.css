@@ -1,0 +1,63 @@
+.hm-tag {
+  --tag: var(--color-skill-soft, #64748b);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tag) 35%, #fff);
+  background: color-mix(in srgb, var(--tag) 12%, #fff);
+  color: color-mix(in srgb, var(--tag) 55%, #000);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.hm-tag--technical {
+  --tag: var(--color-skill-technical, #6ea65a);
+}
+.hm-tag--soft {
+  --tag: var(--color-skill-soft, #64748b);
+}
+.hm-tag--domain {
+  --tag: var(--color-skill-domain, #495260);
+}
+.hm-tag--matched {
+  --tag: var(--color-skill-matched, #16a34a);
+}
+.hm-tag--missing {
+  --tag: var(--color-skill-missing, #f87171);
+}
+.hm-tag--nice {
+  --tag: var(--color-skill-nice, #7c3aed);
+}
+
+.hm-tag--sm {
+  padding: 3px 9px;
+  font-size: 11.5px;
+}
+
+/* Level pips: one, two or three dots */
+.hm-pips {
+  --tag: var(--color-skill-technical, #6ea65a);
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.hm-tag .hm-pips {
+  --tag: inherit;
+}
+
+.hm-pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tag) 28%, #fff);
+}
+
+.hm-pip--on {
+  background: color-mix(in srgb, var(--tag) 80%, #000);
+}

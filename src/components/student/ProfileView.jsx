@@ -11,6 +11,10 @@ import {
 
 import AutocompleteField from "../shared/AutocompleteField.jsx";
 import "./ProfileView.css";
+
+import ProfileHeader from "./ProfileHeader.jsx";
+import ProfileResults from "./ProfileResults.jsx";
+
 import { SA_UNIVERSITIES, SA_CITIES } from "../../utils/suggestionList";
 
 import {
@@ -493,13 +497,20 @@ export default function ProfileView({ user }) {
 
       <ChecklistCard profile={profile} />
 
-    <AvatarCard
-  avatarUrl={profile.avatar_url}
-  fullName={userProfile?.full_name || profile.full_name}
-  onSelect={handleAvatarSelect}
+    <ProfileHeader
+  avatarUrl={userProfile?.avatar_url || profile.avatar_url}
   preview={avatarPreview}
+  fullName={userProfile?.full_name || profile.full_name}
+  degree={profile.degree_program}
+  university={profile.university}
+  graduationYear={profile.graduation_year}
+  location={profile.location}
+  linkedinUrl={profile.linkedin_url}
+  githubUrl={profile.github_url}
+  portfolioUrl={profile.portfolio_url}
+  onSelectAvatar={handleAvatarSelect}
   saving={savingAvatar}
-    />
+/>
 
       <BeeDisclosureCard
         raceCategory={profile.race_category}
@@ -648,12 +659,7 @@ export default function ProfileView({ user }) {
 
           {!aiRunning ? (
             <>
-              {hasResults && (
-                <p className="pv-ai-status pv-ai-status--done">
-                  <CheckCircle2 size={14} /> Last analyzed{" "}
-                  {new Date(profile.ai_processed_at).toLocaleString()}
-                </p>
-              )}
+              {/* {hasResults && <ProfileResults profile={profile} />} */}
               {hasFailed && (
                 <p className="pv-ai-status pv-ai-status--failed" role="alert">
                   <AlertCircle size={14} aria-hidden="true" /> Last analysis
@@ -706,13 +712,20 @@ export default function ProfileView({ user }) {
                   </div>
                 );
               })}
+
             </div>
           )}
+
         </div>
+        {hasResults && (
+  <div className="pv-grid-layout__full">
+    <ProfileResults profile={profile} />
+  </div>
+)}
       </div>
 
       {/* Results */}
-      {hasResults && (
+      {/* {hasResults && (
         <div className="pv-card pv-results">
           <h2 className="pv-card__title">AI-generated profile summary</h2>
 
@@ -790,7 +803,7 @@ export default function ProfileView({ user }) {
             </div>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 }
