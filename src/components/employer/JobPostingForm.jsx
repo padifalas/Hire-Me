@@ -122,6 +122,10 @@ export default function JobPostingForm({
   const [error, setError] = useState(null); // { field, message }
   const [submitting, setSubmitting] = useState(false);
 
+  const isDraft = existingJob?.status === "draft";
+  const canSaveDraft = !isEditing || isDraft;
+  const [savingAs, setSavingAs] = useState(null); // status being saved
+
   const dialogRef = useDialog({ onClose, closeDisabled: submitting });
 
   const invalid = (fieldId) => (error?.field === fieldId ? true : undefined);
@@ -133,22 +137,27 @@ export default function JobPostingForm({
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   }
 
-  function validate() {
-    if (!form.title)
+  function validate(status) {
+    if (!form.title.trim())
       return { field: "jpf-title", message: "Please enter a job title." };
-    if (!form.description)
-      return {
-        field: "jpf-description",
-        message: "Please enter a job description.",
-      };
-    if (!form.location)
-      return { field: "jpf-location", message: "Please enter a location." };
-    if (form.requiredSkills.length === 0) {
-      return {
-        field: "jpf-required-skills",
-        message: "Add at least one required skill so we can match candidates.",
-      };
+
+    if (status !== "draft") {
+      if (!form.description.trim())
+        return {
+          field: "jpf-description",
+          message: "Please enter a job description.",
+        };
+      if (!form.location.trim())
+        return { field: "jpf-location", message: "Please enter a location." };
+      if (form.requiredSkills.length === 0) {
+        return {
+          field: "jpf-required-skills",
+          message:
+            "Add at least one required skill so we can match candidates.",
+        };
+      }
     }
+
     if (
       form.salaryMin &&
       form.salaryMax &&
@@ -162,9 +171,8 @@ export default function JobPostingForm({
     return null;
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const problem = validate();
+  async function save(status) {
+    const problem = validate(status);
     if (problem) {
       setError(problem);
       document.getElementById(problem.field)?.focus();
@@ -173,12 +181,14 @@ export default function JobPostingForm({
 
     setError(null);
     setSubmitting(true);
+    setSavingAs(status);
 
     const payload = {
       ...form,
       salaryMin: form.salaryMin ? Number(form.salaryMin) : null,
       salaryMax: form.salaryMax ? Number(form.salaryMax) : null,
       deadline: form.deadline || null,
+      status,
     };
 
     const result = isEditing
@@ -186,12 +196,18 @@ export default function JobPostingForm({
       : await createOpportunity(employerId, payload);
 
     setSubmitting(false);
+    setSavingAs(null);
 
     if (!result.success) {
       setError({ field: null, message: result.error });
       return;
     }
     onSaved(result.opportunity);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    save(isEditing && !isDraft ? existingJob.status : "active");
   }
 
   return (
@@ -211,7 +227,11 @@ export default function JobPostingForm({
       >
         <div className="jpf-modal__header">
           <h2 id="jpf-heading">
-            {isEditing ? "Edit job posting" : "Post a new job"}
+            {isDraft
+              ? "Edit draft"
+              : isEditing
+                ? "Edit job posting"
+                : "Post a new job"}
           </h2>
           <button
             type="button"
@@ -225,7 +245,11 @@ export default function JobPostingForm({
         </div>
 
         <form onSubmit={handleSubmit} className="jpf-form" noValidate>
-          <p className="jpf-required-note">Fields marked * are required.</p>
+          <p className="jpf-required-note">
+            {canSaveDraft
+              ? "Fields marked * are required to post. A draft only needs a title."
+              : "Fields marked * are required."}
+          </p>
 
           <div className="jpf-field">
             <label htmlFor="jpf-title">Job title *</label>
@@ -388,17 +412,31 @@ export default function JobPostingForm({
             >
               Cancel
             </button>
+
+            {canSaveDraft && (
+              <button
+                type="button"
+                className="jpf-draft-btn"
+                onClick={() => save("draft")}
+                disabled={submitting}
+              >
+                {savingAs === "draft" ? "Saving..." : "Save as draft"}
+              </button>
+            )}
+
             <button
               type="submit"
               className="jpf-submit-btn"
               disabled={submitting}
             >
               <Plus size={15} aria-hidden="true" />
-              {submitting
+              {submitting && savingAs !== "draft"
                 ? "Saving..."
-                : isEditing
-                  ? "Save changes"
-                  : "Post job"}
+                : isDraft
+                  ? "Publish"
+                  : isEditing
+                    ? "Save changes"
+                    : "Post job"}
             </button>
           </div>
         </form>

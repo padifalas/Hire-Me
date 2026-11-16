@@ -1,4 +1,6 @@
 .jv-root {
+  --jv-accent: var(--color-primary-active, #f34100);
+
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -12,7 +14,7 @@
 }
 
 .jv-title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 4px;
@@ -74,10 +76,9 @@
   text-decoration: none;
 }
 
-.jv-filter-pill--active {
-  background: var(--color-primary-active);
-  border-color: var(--color-primary-active);
-  color: #fff;
+.jv-filter-pill:focus-visible {
+  outline: 2px solid var(--jv-accent);
+  outline-offset: 2px;
 }
 
 .jv-filter-pill__count {
@@ -90,8 +91,16 @@
   text-align: center;
 }
 
+.jv-filter-pill--active,
+.jv-filter-pill--active:hover {
+  background: color-mix(in srgb, var(--jv-accent) 10%, white);
+  border-color: color-mix(in srgb, var(--jv-accent) 28%, white);
+  color: var(--jv-accent);
+}
+
 .jv-filter-pill--active .jv-filter-pill__count {
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in srgb, var(--jv-accent) 14%, white);
+  color: var(--jv-accent);
 }
 
 .jv-empty-inline {
@@ -269,10 +278,7 @@
 .jv-empty-inline {
   color: var(--color-text-muted);
 }
-.jv-filter-pill--active {
-  background: var(--color-primary-strong);
-  border-color: var(--color-primary-strong);
-}
+
 .jv-icon-btn {
   min-width: 28px;
   min-height: 28px;

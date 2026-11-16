@@ -261,6 +261,8 @@ function DashboardView({ employerName, employerId, onNavigate }) {
         totalPooled: result.totalPooled,
         breakdown: result.breakdown,
       });
+    } else {
+      console.error("BEE stats failed:", result.error);
     }
     setLoadingBee(false);
   }, [employerId]);

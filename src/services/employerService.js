@@ -95,6 +95,10 @@ export async function uploadCompanyLogo(file, userId) {
  * "JS" -> "JavaScript", "CRM" -> "Customer Relationship Management (CRM)".
  */
 export async function normalizeSkillTags(requiredSkills, niceToHaveSkills) {
+  if (!requiredSkills?.length && !niceToHaveSkills?.length) {
+    return { requiredSkillsNormalized: null, niceToHaveSkillsNormalized: null };
+  }
+
   try {
     const { data, error } = await invokeEdgeFunction("normalize-skills", {
       requiredSkills: requiredSkills || [],
@@ -450,53 +454,79 @@ export async function getRecentApplicationsForEmployer(employerId, limit = 5) {
 }
 
 export async function getEmployerBeeStats(employerId) {
-  //Only the students that have consented will show up with a
-  //category and everyone else will show up in a general "pooled"
-  //category. This is to protect the privacy of students who have
-  //not consented to share their data with employers.
-  const { data, error } = await supabase
-    .from("applications")
-    .select(
-      `
-      id,
-      student_profiles!inner (
-      race_category,
-      bee_disclosure_consented_at
-      ), 
-      opportunities!inner (
-        employer_id
-      )
-    `,
-    )
-    .eq("opportunities.employer_id", employerId);
-
-  if (error) return { success: false, error: error.message };
-
+  // Only students who consented are counted, so individual answers stay private.
   const categories = ["black_african", "coloured", "indian", "white", "other"];
-  const counts = Object.fromEntries(categories.map((c) => [c, 0]));
-  let consentedTotal = 0;
 
-  for (const app of data) {
-    const cat = app.student_profiles?.race_category;
-    const consented = app.student_profiles?.bee_disclosure_consented_at;
-    if (consented && categories.includes(cat)) {
-      counts[cat]++;
-      consentedTotal++;
+  try {
+    const { data: opps, error: oppError } = await supabase
+      .from("opportunities")
+      .select("id")
+      .eq("employer_id", employerId);
+
+    if (oppError) throw oppError;
+
+    const opportunityIds = opps.map((o) => o.id);
+    const empty = Object.fromEntries(categories.map((c) => [c, 0]));
+
+    if (opportunityIds.length === 0) {
+      return {
+        success: true,
+        totalPooled: 0,
+        totalApplications: 0,
+        breakdown: empty,
+      };
     }
-  }
 
-  const breakdown = Object.fromEntries(
-    categories.map((c) => [
-      c,
-      consentedTotal > 0 ? Math.round((counts[c] / consentedTotal) * 100) : 0,
-    ]),
-  );
-  return {
-    success: true,
-    totalPooled: consentedTotal, //counts the consented applications
-    totalApplications: data.length,
-    breakdown,
-  };
+    const { data: applications, error: appError } = await supabase
+      .from("applications")
+      .select("id, student_id")
+      .in("opportunity_id", opportunityIds);
+
+    if (appError) throw appError;
+
+    const studentIds = [...new Set(applications.map((a) => a.student_id))];
+    let profilesById = {};
+
+    if (studentIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from("student_profiles")
+        .select("id, race_category, bee_disclosure_consented_at")
+        .in("id", studentIds);
+
+      if (profileError) throw profileError;
+      profilesById = Object.fromEntries(profiles.map((p) => [p.id, p]));
+    }
+
+    const counts = { ...empty };
+    let consentedTotal = 0;
+
+    for (const app of applications) {
+      const profile = profilesById[app.student_id];
+      if (
+        profile?.bee_disclosure_consented_at &&
+        categories.includes(profile.race_category)
+      ) {
+        counts[profile.race_category]++;
+        consentedTotal++;
+      }
+    }
+
+    const breakdown = Object.fromEntries(
+      categories.map((c) => [
+        c,
+        consentedTotal > 0 ? Math.round((counts[c] / consentedTotal) * 100) : 0,
+      ]),
+    );
+
+    return {
+      success: true,
+      totalPooled: consentedTotal,
+      totalApplications: applications.length,
+      breakdown,
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
 export const BEE_MIN_POOL_SIZE = 5;

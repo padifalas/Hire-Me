@@ -373,8 +373,8 @@ body,
 
 .ed-bell-btn {
   position: relative;
-  background: transparent;
-  border: none;
+  background: #fff;
+  border: 1px solid #e8edf2;
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
