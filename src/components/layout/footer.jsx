@@ -1,4 +1,4 @@
-import "./Footer.css";
+import "./footer.css";
 import HireMeLogo from "../../assets/HireMeLogo.png";
 
 function Footer() {
@@ -7,9 +7,7 @@ function Footer() {
       <div className="footer-brand">
         <img src={HireMeLogo} alt="HireMe" className="footer-logo" />
 
-        <span className="footer-tagline">
-          AI-POWERED CAREEER MATCHING
-        </span>
+        <span className="footer-tagline">AI-POWERED CAREEER MATCHING</span>
       </div>
 
       <nav className="footer-links">
